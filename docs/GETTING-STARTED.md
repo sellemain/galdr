@@ -65,7 +65,7 @@ For a 5-minute track, `fetch --analyze` takes 60–90 seconds.
 **If YouTube blocks the download** (rate limit, JS runtime missing), galdr will still fetch lyrics and Wikipedia context and print the slug. You can proceed with `galdr assemble` — the prompt will have lyrics and background but no structural analysis. To skip audio entirely and fetch context only:
 
 ```bash
-galdr fetch 'https://www.youtube.com/watch?v=qc98u-eGzlc' --no-download --name meshuggah-bleed --artist "Meshuggah" --title "Bleed"
+galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --no-download --name queen-bohemian-rhapsody --artist "Queen" --title "Bohemian Rhapsody"
 ```
 
 ---
