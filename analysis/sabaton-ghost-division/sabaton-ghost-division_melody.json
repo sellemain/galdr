@@ -1,0 +1,15 @@
+{
+  "track": "sabaton-ghost-division",
+  "duration": 230.9,
+  "overall_range_semitones": 30.6,
+  "overall_center_hz": 73.9,
+  "overall_center_note": "D2",
+  "range_low": "B1",
+  "range_high": "F4",
+  "mean_vocal_presence": 0.012,
+  "contour_ascending_pct": 0,
+  "contour_descending_pct": 0,
+  "contour_holding_pct": 0,
+  "mean_direction": -0.135,
+  "stream_length": 462
+}

@@ -1,0 +1,53 @@
+{
+  "track": "sabaton-ghost-division",
+  "duration": 230.9,
+  "tempo": 89.1,
+  "silences": [],
+  "pattern_breaks": [
+    {
+      "time": 226.0,
+      "type": "pattern_break",
+      "intensity": 0.515,
+      "description": "pattern break at 226s (beat:1.00 spectral:0.33 energy:0.00)"
+    },
+    {
+      "time": 226.5,
+      "type": "pattern_break",
+      "intensity": 0.439,
+      "description": "pattern break at 226s (beat:1.00 spectral:0.05 energy:0.09)"
+    },
+    {
+      "time": 227.0,
+      "type": "pattern_break",
+      "intensity": 0.471,
+      "description": "pattern break at 227s (beat:1.00 spectral:0.20 energy:0.00)"
+    },
+    {
+      "time": 227.5,
+      "type": "pattern_break",
+      "intensity": 0.403,
+      "description": "pattern break at 228s (beat:1.00 spectral:0.01 energy:0.00)"
+    },
+    {
+      "time": 228.0,
+      "type": "pattern_break",
+      "intensity": 0.421,
+      "description": "pattern break at 228s (beat:1.00 spectral:0.00 energy:0.08)"
+    }
+  ],
+  "summary": {
+    "mean_momentum": 0.907,
+    "mean_pattern_lock": 0.942,
+    "momentum_range": [
+      0.0,
+      0.987
+    ],
+    "total_silence_sec": 0,
+    "pattern_break_count": 5,
+    "breath_positive_pct": 41.6,
+    "breath_negative_pct": 37.2,
+    "breath_sustain_pct": 21.2
+  },
+  "stream_hop_sec": 0.5,
+  "stream_length": 462
+}
