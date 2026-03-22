@@ -134,7 +134,7 @@ galdr catalog
 
 ### Harmony
 
-- **Key Detection** — Krumhansl-Kessler profile correlation. Empirically grounded, not argmax.
+- **Key Detection** — Krumhansl-Kessler profile correlation.
 - **Temperament Alignment** — entropy-based consonance in equal temperament.
 - **Series Consonance** — harmonic series fit (just intonation ratios).
 - **Tension** — movement rate in tonnetz space.
