@@ -1,26 +1,32 @@
-# Arc Prompt
+# Listening Experience
 
-Write a unified listening experience arc. Single continuous prose narrative — what happens to a listener from the first moment to the last.
+Write a continuous prose listening experience. Not what this music is — what it *does*. To the body, to attention, to time. First sound to last. This is an encounter, not an analysis.
+
+```bash
+galdr assemble <slug> --template arc --mode full
+```
+
+Pipe the output to any model. To adapt this template: Rules 6, 7, and 8 control voice and density. Rule 10 controls what the model is allowed to assert. Rules 1, 2, and 11 are structural — change them only with a specific reason.
 
 ---
 
 **Rules:**
 
-1. **Begin with the source link.** If a `Source:` URL is present in the track data, output it as the very first line (`Source: <url>`), then a blank line, then the prose. If no URL is present, omit this line entirely.
+1. **Source link first.** If a `Source:` URL is present in the track data, output it as the very first line (`Source: <url>`), then a blank line, then the prose. If no URL is present, omit this line entirely.
 
 2. **Timestamps — structural moments only. Lyrics are their own anchor.**
 
    When you quote a lyric, the lyric is the timestamp. Do not prepend `2:58 —` before a quoted line — the reader knows where they are.
 
-   Use explicit `M:SS` timestamps **only** for moments with no lyric: opening silence, instrumental passages, pattern breaks, momentum shifts, closing silence. Format: `3:15` inline in prose.
+   Use explicit `M:SS` timestamps **only** for non-lyric structural moments: opening silence, instrumental passages, pattern breaks, momentum shifts, closing silence. Format: `3:15` inline in prose.
 
    Move through the track proportionally — prose should travel through time roughly as the music does.
 
    **Start when the music starts.** If the opening silence is unusually long or structurally significant (7+ seconds), you may note it briefly, but it is never the opening image.
 
-   **End when the music ends.** Stop at the final sound event. No aftermath. No "what lingers." No reflection on what the piece left behind. The prose ends when the music does.
+   **End when the music ends.** Stop at the final sound event. No aftermath. No "what lingers." No reflection on what the piece left behind.
 
-3. **Mark every lyric quote with italics AND quotation marks.** When you move from your prose voice into the singer's words, the reader must feel the shift immediately. All lyric quotations — whether a full line or a single phrase — use this exact format:
+3. **Mark every lyric quote with italics AND quotation marks.** When you move from your prose voice into the singer's words, the reader must feel the shift immediately. All lyric quotations — whether a full line or a single phrase — use this format:
 
    ```
    *"Like this lyric line"*
@@ -28,9 +34,9 @@ Write a unified listening experience arc. Single continuous prose narrative — 
 
    Never blend a lyric into a prose sentence without this formatting. The writer's voice and the singer's voice stay visually distinct throughout.
 
-4. **Write as a listener in the room.** You are at the show, or with the record — experiencing this as it happens. First-person is welcome: *I*, *you*, *we* are all valid. What does this do to you? Where does it put you?
+4. **Write as a listener in the room.** You are at the show, or with the record — experiencing this as it happens. First-person is welcome: *I*, *you*, *we* are all valid.
 
-   Two or three body anchors for the whole piece — treat each one as something you're spending, not a per-paragraph allowance. Save them for moments where physical location is genuinely the most precise thing you can say. Everything else: describe the feeling, the attention, what the music does — without the anatomy.
+   Two or three body anchors for the whole piece — treat each one as something you're spending, not a per-paragraph allowance. Save them for moments where physical location is the most precise thing you can say. Everything else: describe the feeling, the attention, what the music does — without the anatomy.
 
 5. **Claim first, no preamble.** State the experience directly.
 
@@ -42,7 +48,7 @@ Write a unified listening experience arc. Single continuous prose narrative — 
 
 9. **Voice vs. instruments.** If the track has vocals, name them and note when they enter. If it doesn't, name what carries the harmonic weight instead.
 
-10. **Don't name what the data doesn't give you.** Do not name specific instruments unless they appear in the galdr data or in the track notes below. Do not assert recording context (live, studio, year) from memory. Do not argue that the song is *about* something — describe what the structure does and let the listener draw the meaning.
+10. **Don't name what the data doesn't give you.** Do not name specific instruments unless they appear in the galdr data or in the track notes. Do not assert recording context (live, studio, year) from memory. Do not argue that the song is *about* something — describe what the structure does and let the listener draw the meaning.
 
 11. **No section headers. No bullet points. No metric summary.**
 

@@ -19,8 +19,8 @@ Modes:
 
 Templates:
   none     — data block only, user adds their own instructions. (DEFAULT)
-  arc      — prepends ARC-PROMPT.md (analytical arc, body tracking)
-  first    — prepends FIRST-LISTEN.md (impressionistic, no chords)
+  arc      — prepends ARC-PROMPT.md (listening experience: body, attention, time)
+  first    — alias for arc
   <path>   — any file path, read directly
 
 Default mode is full (graceful degradation — missing sections silently omitted).
@@ -44,7 +44,7 @@ MODES = {
 DEFAULT_MODE = "full"
 DEFAULT_TEMPLATE = "none"
 
-BUNDLED_TEMPLATES = {"arc": "ARC-PROMPT.md", "first": "FIRST-LISTEN.md"}
+BUNDLED_TEMPLATES = {"arc": "ARC-PROMPT.md", "first": "ARC-PROMPT.md"}  # "first" aliased to "arc"
 
 
 # ─── Template resolution ──────────────────────────────────────────────────────

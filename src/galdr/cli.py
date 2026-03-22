@@ -368,13 +368,13 @@ Modes control what context is included:
 
 Templates prepend instruction rules to the data block:
   none     Data block only — add your own instructions (DEFAULT)
-  arc      ARC-PROMPT: analytical arc, body tracking, timestamps
-  first    FIRST-LISTEN: impressionistic, no chords
+  arc      Listening experience template (body, attention, time — first sound to last)
+  first    Alias for arc
 
 Examples:
   galdr assemble 7-helvegen                              # full data, no instructions
-  galdr assemble 7-helvegen --template first             # impressionistic
-  galdr assemble 7-helvegen --mode blind --template arc  # pure structure, analytical
+  galdr assemble 7-helvegen --template arc               # full listening experience
+  galdr assemble 7-helvegen --mode blind --template arc  # structure only, no context
   galdr assemble 7-helvegen --mode blind > blind.md && galdr assemble 7-helvegen > full.md
 """,
     )
