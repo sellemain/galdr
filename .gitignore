@@ -1,0 +1,45 @@
+# Audio/media files
+audio/
+videos/
+frames/
+spectrograms/
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+
+# Analysis output (user-generated)
+analysis/
+catalog/
+
+# Private documents
+experiences/
+cold-start-prompt.md
+DISCOVERY.md
+SELF-DIALOGUE.md
+download_all.sh
+run_all_analysis.sh
+
+# Catalog state (user-specific)
+catalog_state.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# Misc
+--output-dir/
+scripts/legacy/
+video/
+work/
