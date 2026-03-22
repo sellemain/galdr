@@ -57,6 +57,14 @@ target-version = "py310"
 select = ["E", "F", "W"]
 ignore = ["E501", "F401", "F541", "F841"]
 
+[tool.pytest.ini_options]
+# Skip slow functional tests (real audio analysis) by default.
+# Run them explicitly with: pytest -m slow
+addopts = "-m 'not slow'"
+markers = [
+    "slow: full audio-analysis pipeline (requires audio files in audio/)",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

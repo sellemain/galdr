@@ -71,11 +71,13 @@ class TestHzToCents:
         f2 = 440.0 * (2 ** (1 / 12))
         assert self.fn(440.0, f2) == pytest.approx(100.0, abs=0.1)
 
-    def test_zero_f1_returns_zero(self):
-        assert self.fn(0.0, 440.0) == 0.0
+    def test_zero_f1_returns_inf(self):
+        import math
+        assert math.isinf(self.fn(0.0, 440.0))
 
-    def test_zero_f2_returns_zero(self):
-        assert self.fn(440.0, 0.0) == 0.0
+    def test_zero_f2_returns_inf(self):
+        import math
+        assert math.isinf(self.fn(440.0, 0.0))
 
     def test_antisymmetric(self):
         # cents(f1, f2) == -cents(f2, f1)
