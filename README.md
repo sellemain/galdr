@@ -63,39 +63,41 @@ cat prompt.txt | claude       # Claude CLI
 
 That produces something like this: **[On the Nature of Daylight](docs/on-the-nature-of-daylight.md)**
 
+### For humans
+
+If you have the Claude CLI (or [llm](https://llm.datasette.io/)):
+
+```bash
+galdr assemble my-track --template arc | claude
+galdr assemble my-track --template arc | llm
+```
+
+The assembled prompt is self-contained — no system prompt needed, the template handles everything.
+
 ### For AI agents
 
 If a user asks you to generate a listening experience for a YouTube track, galdr handles the analysis. You handle the prose.
 
 ```python
-import subprocess, re, anthropic
+import subprocess, re
 
 url = "https://www.youtube.com/watch?v=b_YHE4Sx-08"
 
 # Fetch and analyze — slug auto-derived from YouTube title
-result = subprocess.run(["galdr", "fetch", url, "--analyze"],
-                        capture_output=True, text=True, check=True)
+fetch = subprocess.run(["galdr", "fetch", url, "--analyze"],
+                       capture_output=True, text=True, check=True)
+slug = re.search(r"Slug\s*:\s*(\S+)", fetch.stdout).group(1)
 
-# Parse the printed slug from fetch output
-slug = re.search(r"Slug\s*:\s*(\S+)", result.stdout).group(1)
-
-# Assemble the prompt
-result = subprocess.run(
+# Get the assembled prompt
+prompt = subprocess.run(
     ["galdr", "assemble", slug, "--template", "arc", "--mode", "full"],
     capture_output=True, text=True, check=True
-)
+).stdout
 
-# Call any model — no system prompt needed, the template handles instructions
-client = anthropic.Anthropic()
-response = client.messages.create(
-    model="claude-opus-4-5",
-    max_tokens=2048,
-    messages=[{"role": "user", "content": result.stdout}]
-)
-print(response.content[0].text)
+# prompt is a self-contained string — pass it to whatever model your agent uses
 ```
 
-The assembled prompt is self-contained: source URL, all structural events, harmonic and melodic data, lyrics with timestamps if available, video frame descriptions. The `arc` template handles voice and format. See [PERCEPTION-MODEL.md](docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
+The prompt includes: source URL, all structural events, harmonic and melodic data, lyrics with timestamps if available, video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
 
 ---
 
