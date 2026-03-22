@@ -222,7 +222,7 @@ What agents shouldn't do: assert emotional meaning directly from structural data
 ## Limitations
 
 - **Monophonic pitch detection.** Melody tracking uses pyin, which assumes a single dominant pitch. Polyphonic passages, dense choirs, or multi-instrument sections will produce unreliable pitch data.
-- **Non-Western intonation.** Pitch detection quantizes to equal-tempered semitones. Music using microtonal intervals (Sámi joik, Arabic maqam, Indian raga) will show pitch uncertainty — e.g., pyin reporting C, C#, D simultaneously when the actual pitch sits between them. This is a domain edge, not a bug.
+- **Non-Western intonation.** Melody analysis assumes Western equal temperament as its reference grid. Music using microtonal intervals (Sámi joik, Arabic maqam, Indian raga) will produce unstable pitch estimates — the estimator reports rapidly shifting values when the actual pitch sits between standard intervals. This is a domain edge, not a bug.
 - **Key detection in modal music.** Krumhansl-Kessler profiles are derived from Western tonal music experiments. Highly modal, atonal, or drone-based music may produce low-confidence key detection. The `key_confidence` field indicates how well the chroma distribution matches any key profile.
 - **No chord labels.** galdr deliberately does not name chords. Chord labels (F major, Am, etc.) are analytical constructs that listeners don't perceive directly. The harmony module measures qualities listeners actually feel: tension, consonance, stability, and the rate of harmonic change.
 
