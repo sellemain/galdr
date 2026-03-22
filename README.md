@@ -20,11 +20,6 @@ Just what shaped the reasoning.
 
 **[Read a listening experience →](docs/bohemian-rhapsody.md)**
 
-```bash
-galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --analyze
-galdr assemble queen-bohemian-rhapsody --template arc --mode full
-```
-
 ---
 
 ## Install
