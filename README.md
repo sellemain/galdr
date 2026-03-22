@@ -63,6 +63,8 @@ cat prompt.txt | claude       # Claude CLI
 
 That produces something like this: **[Rich Men North of Richmond](docs/rich-men-north-of-richmond.md)**
 
+→ **[Full getting started guide](docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
+
 ### For humans
 
 If you have the Claude CLI (or [llm](https://llm.datasette.io/)):
