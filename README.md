@@ -21,8 +21,7 @@ Just what shaped the reasoning.
 **[Read a listening experience →](docs/on-the-nature-of-daylight.md)**
 
 ```bash
-galdr fetch "https://youtu.be/b_YHE4Sx-08" \
-  --artist "Max Richter" --title "On the Nature of Daylight" --analyze
+galdr fetch "https://youtu.be/b_YHE4Sx-08" --analyze
 galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full
 ```
 
@@ -47,8 +46,12 @@ pip install -e .
 Point galdr at a YouTube URL. Three commands to a finished listening experience.
 
 ```bash
-# 1. Fetch and analyze (yt-dlp handles audio extraction)
+# 1. Fetch and analyze — slug is auto-derived from the YouTube title
 galdr fetch https://www.youtube.com/watch?v=b_YHE4Sx-08 --analyze
+
+# galdr prints the slug at the end:
+#   Slug : max-richter-on-the-nature-of-daylight
+#   Next : galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full
 
 # 2. Assemble a structured prompt from the analysis
 galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full > prompt.txt
@@ -58,8 +61,6 @@ cat prompt.txt | llm          # llm CLI
 cat prompt.txt | claude       # Claude CLI
 ```
 
-The slug comes from the track title — galdr prints it after fetch, or check `analysis/` to find it.
-
 That produces something like this: **[On the Nature of Daylight](docs/on-the-nature-of-daylight.md)**
 
 ### For AI agents
@@ -67,17 +68,20 @@ That produces something like this: **[On the Nature of Daylight](docs/on-the-nat
 If a user asks you to generate a listening experience for a YouTube track, galdr handles the analysis. You handle the prose.
 
 ```python
-import subprocess, pathlib, anthropic
+import subprocess, re, anthropic
 
 url = "https://www.youtube.com/watch?v=b_YHE4Sx-08"
 
-# Fetch and analyze
-subprocess.run(["galdr", "fetch", url, "--analyze"], check=True)
+# Fetch and analyze — slug auto-derived from YouTube title
+result = subprocess.run(["galdr", "fetch", url, "--analyze"],
+                        capture_output=True, text=True, check=True)
+
+# Parse the printed slug from fetch output
+slug = re.search(r"Slug\s*:\s*(\S+)", result.stdout).group(1)
 
 # Assemble the prompt
 result = subprocess.run(
-    ["galdr", "assemble", "max-richter-on-the-nature-of-daylight",
-     "--template", "arc", "--mode", "full"],
+    ["galdr", "assemble", slug, "--template", "arc", "--mode", "full"],
     capture_output=True, text=True, check=True
 )
 
