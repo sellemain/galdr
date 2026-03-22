@@ -18,11 +18,11 @@ What galdr can claim: it measures real structural features of music. The listene
 
 Just what shaped the reasoning.
 
-**[Read a listening experience →](docs/on-the-nature-of-daylight.md)**
+**[Read a listening experience →](docs/rich-men-north-of-richmond.md)**
 
 ```bash
-galdr fetch "https://youtu.be/b_YHE4Sx-08" --analyze
-galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full
+galdr fetch "https://youtu.be/sqZgyvAfhqg" --analyze
+galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full
 ```
 
 ---
@@ -47,21 +47,21 @@ Point galdr at a YouTube URL. Three commands to a finished listening experience.
 
 ```bash
 # 1. Fetch and analyze — slug is auto-derived from the YouTube title
-galdr fetch https://www.youtube.com/watch?v=b_YHE4Sx-08 --analyze
+galdr fetch https://www.youtube.com/watch?v=sqZgyvAfhqg --analyze
 
 # galdr prints the slug at the end:
-#   Slug : max-richter-on-the-nature-of-daylight
-#   Next : galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full
+#   Slug : oliver-anthony-rich-men-north-of-richmond
+#   Next : galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full
 
 # 2. Assemble a structured prompt from the analysis
-galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full > prompt.txt
+galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full > prompt.txt
 
 # 3. Pipe to any model
 cat prompt.txt | llm          # llm CLI
 cat prompt.txt | claude       # Claude CLI
 ```
 
-That produces something like this: **[On the Nature of Daylight](docs/on-the-nature-of-daylight.md)**
+That produces something like this: **[Rich Men North of Richmond](docs/rich-men-north-of-richmond.md)**
 
 ### For humans
 
