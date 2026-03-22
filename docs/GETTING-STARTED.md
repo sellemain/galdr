@@ -6,15 +6,13 @@ Galdr analyzes a piece of music and produces structured data about what it does 
 
 This is what comes back:
 
-> *It holds you with almost nothing. Five seconds of a piano so quiet the analysis can't even find the harmony in it, and the listener is more locked in than at any other point in the piece. 0.999. You're held by the absence of the thing that hasn't started yet. The room before the door opens.*
+> *The voices arrive before anything else—unaccompanied, stacked in close harmony, asking questions that float without a floor beneath them. "Is this the real life? Is this just fantasy?" The absence of instruments makes the air feel pressurized. You're waiting for something to catch you, and nothing does. Just voices in the dark, layered and intimate, until a piano enters and suddenly there's ground.*
 >
-> *Then it opens wrong. E major — not the key, not even close to the key. The first real sound is the most tense moment in the entire three minutes. It doesn't ease you in. It starts from the place most music builds toward, and then it falls.*
+> *Around 2:37, the guitar enters—not suddenly, but like a door opening into a different room. The solo doesn't comment on the lyrics; it extends the ache into wordless space, bending notes that feel like questions without answers.*
 >
-> *The cycle starts, and the cycle is the piece. Bm to D to Em to G, over and over. Every time the progression reaches D, something in the body rises a quarter inch. Every time it passes through to Em and G, it sets back down. Not disappointed. Just — not lifted. The piece lives in the space between sad and not-sad, and it never chooses.*
->
-> *Time doesn't pass in this piece. It pools.*
+> *Then the storm breaks. The piano comes back alone, and the voice re-enters softened, exhausted: "Nothing really matters, anyone can see." The final phrase floats, untethered again, back to where the song began: voices without ground. Around 5:44, small pattern breaks ripple through—the structure loosening, letting go. Eight seconds of nothing close the piece, the sound decaying into stillness.*
 
-— Yann Tiersen, *Comptine d'un autre été*
+— Queen, *Bohemian Rhapsody*
 
 That's the first use. Give galdr a track. Give an AI the output. Get that back.
 
@@ -46,21 +44,21 @@ Point galdr at a YouTube URL. The slug is auto-derived from the video title.
 
 ```bash
 # 1. Fetch audio + context and analyze
-galdr fetch 'https://www.youtube.com/watch?v=qc98u-eGzlc' --analyze
+galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --analyze
 
 # galdr prints the slug at the end:
-#   Slug : meshuggah-bleed
-#   Next : galdr assemble meshuggah-bleed --template arc --mode full
+#   Slug : queen-bohemian-rhapsody
+#   Next : galdr assemble queen-bohemian-rhapsody --template arc --mode full
 
 # 2. Assemble a structured prompt
-galdr assemble meshuggah-bleed --template arc --mode full > prompt.txt
+galdr assemble queen-bohemian-rhapsody --template arc --mode full > prompt.txt
 
 # 3. Send to a model
 cat prompt.txt | claude
 cat prompt.txt | llm
 ```
 
-That produces something like this: **[Meshuggah — Bleed](meshuggah-bleed.md)**
+That produces something like this: **[Queen — Bohemian Rhapsody](bohemian-rhapsody.md)**
 
 For a 5-minute track, `fetch --analyze` takes 60–90 seconds.
 

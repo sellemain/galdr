@@ -18,11 +18,11 @@ What galdr can claim: it measures real structural features of music. The listene
 
 Just what shaped the reasoning.
 
-**[Read a listening experience →](docs/rich-men-north-of-richmond.md)**
+**[Read a listening experience →](docs/bohemian-rhapsody.md)**
 
 ```bash
-galdr fetch "https://youtu.be/sqZgyvAfhqg" --analyze
-galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full
+galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --analyze
+galdr assemble queen-bohemian-rhapsody --template arc --mode full
 ```
 
 ---
