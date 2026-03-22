@@ -42,15 +42,66 @@ cd galdr
 pip install -e .
 ```
 
-## Quick Start
+## Getting Started
 
-Analyze a track:
+Point galdr at a YouTube URL. Three commands to a finished listening experience.
+
+```bash
+# 1. Fetch and analyze (yt-dlp handles audio extraction)
+galdr fetch https://www.youtube.com/watch?v=b_YHE4Sx-08 --analyze
+
+# 2. Assemble a structured prompt from the analysis
+galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full > prompt.txt
+
+# 3. Pipe to any model
+cat prompt.txt | llm          # llm CLI
+cat prompt.txt | claude       # Claude CLI
+```
+
+The slug comes from the track title — galdr prints it after fetch, or check `analysis/` to find it.
+
+That produces something like this: **[On the Nature of Daylight](docs/on-the-nature-of-daylight.md)**
+
+### For AI agents
+
+If a user asks you to generate a listening experience for a YouTube track, galdr handles the analysis. You handle the prose.
+
+```python
+import subprocess, pathlib, anthropic
+
+url = "https://www.youtube.com/watch?v=b_YHE4Sx-08"
+
+# Fetch and analyze
+subprocess.run(["galdr", "fetch", url, "--analyze"], check=True)
+
+# Assemble the prompt
+result = subprocess.run(
+    ["galdr", "assemble", "max-richter-on-the-nature-of-daylight",
+     "--template", "arc", "--mode", "full"],
+    capture_output=True, text=True, check=True
+)
+
+# Call any model — no system prompt needed, the template handles instructions
+client = anthropic.Anthropic()
+response = client.messages.create(
+    model="claude-opus-4-5",
+    max_tokens=2048,
+    messages=[{"role": "user", "content": result.stdout}]
+)
+print(response.content[0].text)
+```
+
+The assembled prompt is self-contained: source URL, all structural events, harmonic and melodic data, lyrics with timestamps if available, video frame descriptions. The `arc` template handles voice and format. See [PERCEPTION-MODEL.md](docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
+
+---
+
+### Other commands
+
+Analyze a local file:
 
 ```bash
 galdr listen track.wav
 ```
-
-Runs the full pipeline: audio analysis, perception, harmony, melody, and overtone modules. Outputs JSON reports and PNG visualizations to `analysis/<track-name>/`.
 
 Compare two tracks:
 
