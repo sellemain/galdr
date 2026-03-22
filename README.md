@@ -47,21 +47,21 @@ Point galdr at a YouTube URL. Three commands to a finished listening experience.
 
 ```bash
 # 1. Fetch and analyze — slug is auto-derived from the YouTube title
-galdr fetch 'https://www.youtube.com/watch?v=sqZgyvAfhqg' --analyze
+galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --analyze
 
 # galdr prints the slug at the end:
-#   Slug : oliver-anthony-rich-men-north-of-richmond
-#   Next : galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full
+#   Slug : queen-bohemian-rhapsody
+#   Next : galdr assemble queen-bohemian-rhapsody --template arc --mode full
 
 # 2. Assemble a structured prompt from the analysis
-galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full > prompt.txt
+galdr assemble queen-bohemian-rhapsody --template arc --mode full > prompt.txt
 
 # 3. Pipe to any model
 cat prompt.txt | llm          # llm CLI
 cat prompt.txt | claude       # Claude CLI
 ```
 
-That produces something like this: **[Rich Men North of Richmond](docs/rich-men-north-of-richmond.md)**
+That produces something like this: **[Queen — Bohemian Rhapsody](docs/bohemian-rhapsody.md)**
 
 → **[Full getting started guide](docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
 
