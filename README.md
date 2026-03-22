@@ -47,7 +47,7 @@ Point galdr at a YouTube URL. Three commands to a finished listening experience.
 
 ```bash
 # 1. Fetch and analyze — slug is auto-derived from the YouTube title
-galdr fetch https://www.youtube.com/watch?v=sqZgyvAfhqg --analyze
+galdr fetch 'https://www.youtube.com/watch?v=sqZgyvAfhqg' --analyze
 
 # galdr prints the slug at the end:
 #   Slug : oliver-anthony-rich-men-north-of-richmond

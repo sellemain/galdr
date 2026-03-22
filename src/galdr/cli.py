@@ -357,10 +357,17 @@ def cmd_catalog(args):
 
 
 def main():
+    import importlib.metadata
+    try:
+        _version = importlib.metadata.version("galdr")
+    except importlib.metadata.PackageNotFoundError:
+        _version = "dev"
+
     parser = argparse.ArgumentParser(
         prog="galdr",
         description="AI music perception framework",
     )
+    parser.add_argument("--version", "-V", action="version", version=f"%(prog)s {_version}")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # listen
