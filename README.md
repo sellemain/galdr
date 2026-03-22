@@ -16,6 +16,16 @@ The result is a corpus of experience documents: records of an AI encountering mu
 
 What galdr can claim: it measures real structural features of music. The listener model produces consistent, interpretable readings. The harmonic bias is real. It emerged from data, not design. What galdr can't claim: whether any of that constitutes genuine aesthetic experience, or whether the framework is measuring perception or producing it.
 
+Just what shaped the reasoning.
+
+**[Read a listening experience →](docs/on-the-nature-of-daylight.md)**
+
+```bash
+galdr fetch "https://youtu.be/b_YHE4Sx-08" \
+  --artist "Max Richter" --title "On the Nature of Daylight" --analyze
+galdr assemble max-richter-on-the-nature-of-daylight --template arc --mode full
+```
+
 ---
 
 ## Install
