@@ -202,15 +202,47 @@ def cmd_compare(args):
 def cmd_fetch(args):
     """Download audio + context for a track."""
     from pathlib import Path
-    from .fetch import fetch_track
+    from .fetch import fetch_track, get_youtube_metadata, slugify, derive_artist_title
 
     analysis_dir = Path(args.analysis_dir)
     audio_dir = Path(args.audio_dir)
 
+    # Auto-derive slug / artist / title from YouTube metadata when not provided
+    name = getattr(args, "name", None)
+    artist = getattr(args, "artist", None)
+    title = getattr(args, "title", None)
+
+    if args.url and (not name or not artist or not title):
+        print(f"[fetch] Fetching metadata from YouTube...")
+        try:
+            meta = get_youtube_metadata(args.url)
+            derived_artist, derived_title = derive_artist_title(
+                meta["title"], meta["uploader"]
+            )
+            if not artist:
+                artist = derived_artist
+            if not title:
+                title = derived_title
+            if not name:
+                name = slugify(f"{artist}-{title}")
+            print(f"[fetch] Artist : {artist}")
+            print(f"[fetch] Title  : {title}")
+            print(f"[fetch] Slug   : {name}")
+        except Exception as e:
+            print(f"[fetch] Metadata fetch failed: {e}")
+            print("[fetch] Pass --name, --artist, --title explicitly to continue.")
+            return
+
+    if not name or not artist or not title:
+        print("[fetch] Error: --name, --artist, and --title are required when no URL is given.")
+        return
+
+    slug = _validate_slug(name)
+
     fetch_track(
-        slug=_validate_slug(args.name),
-        artist=args.artist,
-        title=args.title,
+        slug=slug,
+        artist=artist,
+        title=title,
         analysis_dir=analysis_dir,
         audio_dir=audio_dir,
         url=args.url,
@@ -223,12 +255,11 @@ def cmd_fetch(args):
     )
 
     if args.analyze and not args.no_download:
-        # Run galdr listen on the downloaded audio
-        audio_path = audio_dir / f"{args.name}.mp3"
+        audio_path = audio_dir / f"{slug}.mp3"
         if audio_path.exists():
             listen_args = type("args", (), {
                 "audio": str(audio_path),
-                "name": args.name,
+                "name": slug,
                 "analysis_dir": args.analysis_dir,
                 "skip": None,
                 "only": None,
@@ -238,6 +269,12 @@ def cmd_fetch(args):
             cmd_listen(listen_args)
         else:
             print(f"[fetch] Audio not found at {audio_path}, skipping analysis")
+
+    # Always print the slug at the end so users know what to pass to assemble
+    print(f"\n{'─'*50}")
+    print(f"  Slug   : {slug}")
+    print(f"  Next   : galdr assemble {slug} --template arc --mode full")
+    print(f"{'─'*50}\n")
 
 
 def cmd_assemble(args):
@@ -339,9 +376,9 @@ def main():
     # fetch
     fetch_parser = subparsers.add_parser("fetch", help="Download audio + context for a track")
     fetch_parser.add_argument("url", nargs="?", help="YouTube URL (omit if audio already downloaded)")
-    fetch_parser.add_argument("--name", required=True, help="Track slug (e.g. 7-helvegen)")
-    fetch_parser.add_argument("--artist", required=True, help="Artist name for Wikipedia lookup")
-    fetch_parser.add_argument("--title", required=True, help="Song title for Wikipedia lookup")
+    fetch_parser.add_argument("--name", default=None, help="Track slug (auto-derived from YouTube title if omitted)")
+    fetch_parser.add_argument("--artist", default=None, help="Artist name for Wikipedia lookup (auto-derived if omitted)")
+    fetch_parser.add_argument("--title", default=None, help="Song title for Wikipedia lookup (auto-derived if omitted)")
     fetch_parser.add_argument("--audio-dir", default="audio", help="Directory for audio files (default: audio)")
     fetch_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory root (default: analysis)")
     fetch_parser.add_argument("--analyze", action="store_true", help="Run galdr listen after download")

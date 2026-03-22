@@ -16,6 +16,67 @@ from pathlib import Path
 
 # ─── YouTube / audio ─────────────────────────────────────────────────────────
 
+def slugify(text: str) -> str:
+    """Convert a title string to a filesystem-safe slug.
+
+    "Katy Perry - Chained To The Rhythm (Official) ft. Skip Marley"
+    → "katy-perry-chained-to-the-rhythm"
+    """
+    text = text.lower()
+    # Remove parenthetical suffixes: (Official), (Official Video), (Lyrics), etc.
+    text = re.sub(r"\([^)]*\)", "", text)
+    # Remove common suffix tags after pipe or brackets
+    text = re.sub(r"\[[^\]]*\]", "", text)
+    # Normalise separator characters to spaces
+    text = re.sub(r"[–—/|]+", " ", text)
+    # Strip ft./feat. and everything after
+    text = re.sub(r"\bft\..*$|\bfeat\..*$", "", text)
+    # Keep only letters, digits, spaces, hyphens
+    text = re.sub(r"[^a-z0-9\s-]", "", text)
+    # Collapse whitespace → hyphens, strip leading/trailing
+    text = re.sub(r"\s+", "-", text.strip())
+    text = re.sub(r"-{2,}", "-", text).strip("-")
+    return text[:80]  # reasonable max length
+
+
+def get_youtube_metadata(url: str) -> dict:
+    """Fetch video metadata from YouTube without downloading audio.
+
+    Returns dict with 'title', 'uploader', 'channel' keys (strings).
+    Raises subprocess.CalledProcessError on failure.
+    """
+    result = subprocess.run(
+        ["yt-dlp", "--dump-json", "--no-playlist", url],
+        capture_output=True, text=True, check=True,
+    )
+    info = json.loads(result.stdout)
+    return {
+        "title": info.get("title", ""),
+        "uploader": info.get("uploader") or info.get("channel") or "",
+        "channel": info.get("channel") or info.get("uploader") or "",
+    }
+
+
+def derive_artist_title(yt_title: str, uploader: str) -> tuple[str, str]:
+    """Split a YouTube title into (artist, song_title).
+
+    Handles common formats:
+      "Artist - Song Title" → ("Artist", "Song Title")
+      "Song Title" (no dash) → (uploader, "Song Title")
+    """
+    # Try "Artist - Title" or "Artist — Title"
+    m = re.match(r"^(.+?)\s*[-–—]\s*(.+)$", yt_title)
+    if m:
+        artist_part = m.group(1).strip()
+        title_part = m.group(2).strip()
+        # Strip parentheticals/suffixes from title_part
+        title_part = re.sub(r"\s*[\(\[].*", "", title_part).strip()
+        return artist_part, title_part
+    # No separator — use uploader as artist
+    clean_title = re.sub(r"\s*[\(\[].*", "", yt_title).strip()
+    return uploader, clean_title
+
+
 def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
     """Download audio and auto-captions from a YouTube URL via yt-dlp."""
     audio_dir.mkdir(parents=True, exist_ok=True)
