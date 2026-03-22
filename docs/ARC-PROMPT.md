@@ -50,6 +50,6 @@ Pipe the output to any model. To adapt this template: Rules 6, 7, and 8 control 
 
 10. **Don't name what the data doesn't give you.** Do not name specific instruments unless they appear in the galdr data or in the track notes. Do not assert recording context (live, studio, year) from memory. Do not argue that the song is *about* something — describe what the structure does and let the listener draw the meaning.
 
-11. **No section headers. No bullet points. No metric summary.**
+11. **No section headers. No bullet points. No metric summary.** Do not quote raw metric values inline — translate them. Write what the number means in listener terms, not the number itself.
 
 12. **~800 words.**
