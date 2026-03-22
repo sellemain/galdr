@@ -46,28 +46,28 @@ Point galdr at a YouTube URL. The slug is auto-derived from the video title.
 
 ```bash
 # 1. Fetch audio + context and analyze
-galdr fetch 'https://www.youtube.com/watch?v=sqZgyvAfhqg' --analyze
+galdr fetch 'https://www.youtube.com/watch?v=qc98u-eGzlc' --analyze
 
 # galdr prints the slug at the end:
-#   Slug : oliver-anthony-rich-men-north-of-richmond
-#   Next : galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full
+#   Slug : meshuggah-bleed
+#   Next : galdr assemble meshuggah-bleed --template arc --mode full
 
 # 2. Assemble a structured prompt
-galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full > prompt.txt
+galdr assemble meshuggah-bleed --template arc --mode full > prompt.txt
 
 # 3. Send to a model
 cat prompt.txt | claude
 cat prompt.txt | llm
 ```
 
-That produces something like this: **[Rich Men North of Richmond](rich-men-north-of-richmond.md)**
+That produces something like this: **[Meshuggah — Bleed](meshuggah-bleed.md)**
 
-For a 4-minute track, `fetch --analyze` takes 30–60 seconds.
+For a 5-minute track, `fetch --analyze` takes 60–90 seconds.
 
 **If YouTube blocks the download** (rate limit, JS runtime missing), galdr will still fetch lyrics and Wikipedia context and print the slug. You can proceed with `galdr assemble` — the prompt will have lyrics and background but no structural analysis. To skip audio entirely and fetch context only:
 
 ```bash
-galdr fetch 'https://www.youtube.com/watch?v=sqZgyvAfhqg' --no-download --name oliver-anthony-rich-men-north-of-richmond --artist "Oliver Anthony" --title "Rich Men North of Richmond"
+galdr fetch 'https://www.youtube.com/watch?v=qc98u-eGzlc' --no-download --name meshuggah-bleed --artist "Meshuggah" --title "Bleed"
 ```
 
 ---
