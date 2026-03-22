@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "galdr"
+version = "0.1.0"
+description = "Music perception framework for AI listening experiences. Pattern lock, momentum, harmonic analysis, lyric integration."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Sellemain", email = "hello@sellemain.dev" },
+]
+keywords = ["music", "audio", "analysis", "perception", "harmonics", "AI"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "librosa>=0.10.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "matplotlib>=3.7.0",
+    "soundfile>=0.12.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/sellemain/galdr"
+Repository = "https://github.com/sellemain/galdr"
+Issues = "https://github.com/sellemain/galdr/issues"
+Changelog = "https://github.com/sellemain/galdr/blob/main/CHANGELOG.md"
+
+[project.scripts]
+galdr = "galdr.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501", "F401", "F541", "F841"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+# Ship prompt templates as package data so they're available after pip install.
+# Templates live in src/galdr/templates/ and are accessed via importlib.resources.
+# docs/ is the canonical source; templates/ is the bundled copy shipped with the package.
+galdr = ["templates/*.md"]
