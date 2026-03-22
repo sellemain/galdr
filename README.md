@@ -56,14 +56,14 @@ galdr catalog
 
 ## What It Measures
 
-### Perception (`perceive`)
+### Perception
 
 - **Momentum** — rolling rhythmic consistency (0–1). How locked-in the beat is.
 - **Pattern Lock** — prediction accuracy (inverted disruption). High = expectations met.
 - **Breath** — energy direction. Building, sustaining, or releasing.
 - **Silence** — actual nothing, not just quiet. Often the most significant moments.
 
-### Harmony (`harmony`)
+### Harmony
 
 - **Key Detection** — Krumhansl-Kessler profile correlation. Empirically grounded, not argmax.
 - **Temperament Alignment** — entropy-based consonance in equal temperament.
@@ -73,19 +73,19 @@ galdr catalog
 - **Tonal Stability** — how dominant the tonic pitch class is in the current window.
 - **Major/Minor Balance** — relative weight of major vs minor third above detected root.
 
-### Melody (`melody`)
+### Melody
 
 - **Pitch Contour** — fundamental frequency tracking via pyin.
 - **Contour Direction** — ascending, descending, or holding.
 - **Vocal Presence** — confidence that a pitched signal exists.
 
-### Overtone (`overtone`)
+### Overtone
 
 - **Series Fit** — how well spectral peaks match integer multiples of f0.
 - **Richness** — fraction of possible harmonics present.
 - **Inharmonicity** — mean deviation from ideal harmonic positions (cents).
 
-### Catalog (`catalog`)
+### Catalog
 
 - Persistent cross-track statistics. z-scores, percentiles, rankings.
 - Every new track is positioned relative to everything heard before.
