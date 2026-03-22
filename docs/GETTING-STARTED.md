@@ -40,38 +40,42 @@ sudo apt install ffmpeg
 
 ---
 
-## Get a Track
+## Three Commands
 
-Galdr accepts WAV, MP3, FLAC, OGG, M4A, and AIFF. If you have a file, use it directly. To pull from YouTube:
+Point galdr at a YouTube URL. The slug is auto-derived from the video title.
 
 ```bash
-pip install yt-dlp
-yt-dlp -x --audio-format mp3 -o "track.%(ext)s" "https://youtube.com/watch?v=..."
+# 1. Fetch audio + context and analyze
+galdr fetch https://www.youtube.com/watch?v=sqZgyvAfhqg --analyze
+
+# galdr prints the slug at the end:
+#   Slug : oliver-anthony-rich-men-north-of-richmond
+#   Next : galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full
+
+# 2. Assemble a structured prompt
+galdr assemble oliver-anthony-rich-men-north-of-richmond --template arc --mode full > prompt.txt
+
+# 3. Send to a model
+cat prompt.txt | claude
+cat prompt.txt | llm
 ```
 
-For freely-licensed recordings: [Free Music Archive](https://freemusicarchive.org), [Internet Archive](https://archive.org/details/audio), [Musopen](https://musopen.org).
+That produces something like this: **[Rich Men North of Richmond](rich-men-north-of-richmond.md)**
+
+For a 4-minute track, `fetch --analyze` takes 30–60 seconds.
 
 ---
 
-## Analyze It
+## Local Files
+
+If you have an audio file already:
 
 ```bash
-galdr listen track.mp3 --name my-track
+galdr listen track.wav --name my-track
+galdr assemble my-track --template arc --mode full | claude
 ```
 
-This runs the full pipeline — audio analysis, perception, harmony, melody, overtone — and writes JSON output to `analysis/my-track/`. For a 4-minute track, expect 30–60 seconds.
-
----
-
-## Your First Listen
-
-Open `analysis/my-track/my-track_report.json` and `my-track_perception.json`. You'll find tempo, momentum, pattern lock, breath balance, detected key, and structural events.
-
-Now take that data and give it to an AI using the prompt in [FIRST-LISTEN.md](FIRST-LISTEN.md).
-
-The prompt is short. The instruction at the end is: *write what it does — not what it is. To the body, to attention, to time. No format. Just what you hear.*
-
-That's it. That's the first use.
+Galdr accepts WAV, MP3, FLAC, OGG, M4A, and AIFF via ffmpeg. For freely-licensed recordings: [Free Music Archive](https://freemusicarchive.org), [Internet Archive](https://archive.org/details/audio), [Musopen](https://musopen.org).
 
 ---
 
@@ -84,10 +88,10 @@ Once you've done a first listen, galdr has more to give.
 **Focus on one thing.** Run only the harmony module to explore chord structure:
 
 ```bash
-galdr listen track.mp3 --only report,harmony
+galdr listen track.wav --name my-track --only report,harmony
 ```
 
-Pick a question — *why does this feel unresolved?* or *what is the chord doing at 2:30?* — and follow it into the data. The deeper experience documents in [PERCEPTION-MODEL.md](PERCEPTION-MODEL.md) show what this looks like.
+Pick a question — *why does this feel unresolved?* or *what is the chord doing at 2:30?* — and follow it into the data.
 
 **Build a catalog.** Analyze ten tracks and patterns emerge that single-track analysis can't surface:
 
