@@ -1,6 +1,8 @@
 # galdr
 
-AI music perception framework. Stateful listener, pattern analysis, harmonic decomposition.
+galdr — AI music perception framework.
+Translates acoustic signal into structures an LLM can encounter.
+Stateful listener, pattern analysis, harmonic decomposition.
 
 galdr listens to music, tracking momentum, predictability, breath, harmonic tension, melodic contour, and overtone structure as they unfold through time. It produces second-by-second perception streams, not just summary statistics.
 
