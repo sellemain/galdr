@@ -20,7 +20,7 @@ What galdr can claim: it measures real structural features of music. The listene
 
 Just what shaped the reasoning.
 
-**[Read a listening experience →](docs/bohemian-rhapsody.md)**
+**[Read a listening experience →](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 
 ---
 
@@ -58,9 +58,9 @@ cat prompt.txt | llm          # llm CLI
 cat prompt.txt | claude       # Claude CLI
 ```
 
-That produces something like this: **[Queen — Bohemian Rhapsody](docs/bohemian-rhapsody.md)**
+That produces something like this: **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 
-→ **[Full getting started guide](docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
+→ **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
 
 ### For humans
 
@@ -96,7 +96,7 @@ prompt = subprocess.run(
 # prompt is a self-contained string — pass it to whatever model your agent uses
 ```
 
-The prompt includes: source URL, all structural events, harmonic and melodic data, lyrics with timestamps if available, video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
+The prompt includes: source URL, all structural events, harmonic and melodic data, lyrics with timestamps if available, video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
 
 ---
 
@@ -207,7 +207,7 @@ The assembled prompt includes the source URL (so a reader can listen along), all
 
 ### Tool definitions
 
-If your agent framework supports tool definitions (LangChain tools, MCP, OpenClaw skills, etc.), `src/galdr/SKILL.md` is a lean command reference designed to be included as agent context. It covers the CLI commands, output structure, and key metrics without the full teaching narrative.
+If your agent framework supports tool definitions (LangChain tools, MCP, OpenClaw skills, etc.), `[src/galdr/SKILL.md](https://github.com/sellemain/galdr/blob/main/src/galdr/SKILL.md)` is a lean command reference designed to be included as agent context. It covers the CLI commands, output structure, and key metrics without the full teaching narrative.
 
 ### What agents can do with this data
 
@@ -216,7 +216,7 @@ If your agent framework supports tool definitions (LangChain tools, MCP, OpenCla
 - Write experience documents that describe structure without overclaiming emotional content
 - Flag anomalies and unexpected patterns for human review
 
-What agents shouldn't do: assert emotional meaning directly from structural data without explicit framing. The [PERCEPTION-MODEL.md](docs/PERCEPTION-MODEL.md) covers this boundary in detail.
+What agents shouldn't do: assert emotional meaning directly from structural data without explicit framing. The [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) covers this boundary in detail.
 
 ## Limitations
 
