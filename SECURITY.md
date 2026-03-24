@@ -10,7 +10,8 @@
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Email: **hello@sellemain.dev**
+Use GitHub's private vulnerability reporting:
+**[Report a vulnerability](https://github.com/sellemain/galdr/security/advisories/new)**
 
 Include:
 - Description of the vulnerability
