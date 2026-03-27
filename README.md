@@ -209,6 +209,8 @@ The assembled prompt includes the source URL (so a reader can listen along), all
 
 If your agent framework supports tool definitions (LangChain tools, MCP, OpenClaw skills, etc.), `[src/galdr/SKILL.md](https://github.com/sellemain/galdr/blob/main/src/galdr/SKILL.md)` is a lean command reference designed to be included as agent context. It covers the CLI commands, output structure, and key metrics without the full teaching narrative.
 
+For [OpenClaw](https://openclaw.ai) users, `galdr-skill/` contains a pre-built OpenClaw skill package (`.skill` file) installable via clawhub, with an experience-generation workflow optimized for OpenClaw's agent context.
+
 ### What agents can do with this data
 
 - Identify structural moments (pattern breaks, silences, momentum drops) with precision
