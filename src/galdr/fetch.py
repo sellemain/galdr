@@ -14,6 +14,43 @@ import urllib.parse
 from pathlib import Path
 
 
+# ─── Input validation ─────────────────────────────────────────────────────────
+
+# Accepts standard youtube.com and youtu.be URLs only.
+# Prevents option-like strings from being interpreted by yt-dlp as flags.
+_YOUTUBE_URL_RE = re.compile(
+    r"^https?://(www\.)?(youtube\.com/watch\?.*v=|youtu\.be/)[A-Za-z0-9_\-]{11}"
+)
+
+_SLUG_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+def validate_youtube_url(url: str) -> str:
+    """Reject URLs that don't look like YouTube watch links.
+
+    Prevents option-like strings (e.g. '--exec rm -rf /') from being passed
+    to yt-dlp as positional arguments.
+    """
+    if not _YOUTUBE_URL_RE.match(url):
+        raise ValueError(
+            f"Invalid YouTube URL: {url!r}. Expected a youtube.com/watch or youtu.be link."
+        )
+    return url
+
+
+def validate_slug(slug: str) -> str:
+    """Reject slugs that could escape the analysis directory.
+
+    Safe for use by library callers (not just the CLI entrypoint).
+    """
+    if not _SLUG_RE.match(slug):
+        raise ValueError(
+            f"Invalid slug {slug!r}. Slugs may only contain letters, digits, "
+            "dots, hyphens, and underscores."
+        )
+    return slug
+
+
 # ─── YouTube / audio ─────────────────────────────────────────────────────────
 
 def slugify(text: str) -> str:
@@ -45,6 +82,7 @@ def get_youtube_metadata(url: str) -> dict:
     Returns dict with 'title', 'uploader', 'channel' keys (strings).
     Raises subprocess.CalledProcessError on failure.
     """
+    url = validate_youtube_url(url)
     result = subprocess.run(
         ["yt-dlp", "--dump-json", "--no-playlist", url],
         capture_output=True, text=True, check=True,
@@ -79,6 +117,8 @@ def derive_artist_title(yt_title: str, uploader: str) -> tuple[str, str]:
 
 def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
     """Download audio and auto-captions from a YouTube URL via yt-dlp."""
+    url = validate_youtube_url(url)
+    slug = validate_slug(slug)
     audio_dir.mkdir(parents=True, exist_ok=True)
     audio_out = audio_dir / f"{slug}.%(ext)s"
 
@@ -582,6 +622,9 @@ def fetch_track(
     censor: bool = False,
 ) -> dict:
     """Full fetch pipeline. Returns context dict and writes context.json."""
+    slug = validate_slug(slug)
+    if url and not skip_download:
+        url = validate_youtube_url(url)
 
     context = {
         "slug": slug,
