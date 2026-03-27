@@ -21,7 +21,7 @@ Check: `galdr --version`. If missing: install before proceeding.
 
 ```bash
 # Step 1: fetch audio + context (slug auto-derived from title)
-galdr fetch https://youtu.be/... --analyze
+galdr fetch "https://youtu.be/..." --analyze
 
 # galdr prints the slug at the end:
 #   Slug : artist-song-title
@@ -34,7 +34,7 @@ galdr assemble artist-song-title --template arc --mode full | llm
 
 Override auto-derived metadata if needed:
 ```bash
-galdr fetch https://youtu.be/... --artist "Oliver Anthony" --title "Rich Men North of Richmond" --analyze
+galdr fetch "https://youtu.be/..." --artist "Oliver Anthony" --title "Rich Men North of Richmond" --analyze
 ```
 
 ### Local file → Analysis only
@@ -100,6 +100,8 @@ When writing experience prose yourself from `galdr assemble` output (no `--templ
 ```bash
 galdr compare track-a track-b          # side-by-side structural comparison
 galdr frames slug                      # extract + describe video frames at structural moments
-galdr fetch <url> --no-download        # context only (Wikipedia + lyrics), no audio
-galdr fetch <url> --censor             # sanitize explicit lyrics before saving
+galdr fetch "url" --no-download        # context only (Wikipedia + lyrics), no audio
+galdr fetch "url" --censor             # sanitize explicit lyrics before saving
+galdr catalog                          # list all indexed tracks
+galdr catalog --track NAME             # summary card for one track
 ```
