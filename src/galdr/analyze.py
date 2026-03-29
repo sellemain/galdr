@@ -79,9 +79,15 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
     # Energy arc: split into segments and track the build
     n_segments = ENERGY_ARC_SEGMENTS
     seg_len = len(rms) // n_segments
+    if seg_len == 0:
+        # Audio too short to split into n_segments — treat as a single segment
+        n_segments = 1
+        seg_len = len(rms)
     energy_arc = []
     for i in range(n_segments):
         seg = rms[i * seg_len : (i + 1) * seg_len]
+        if len(seg) == 0:
+            seg = rms  # fallback: use the whole array
         energy_arc.append({
             "segment": i + 1,
             "time_range": f"{rms_times[i * seg_len]:.0f}s-{rms_times[min((i+1)*seg_len, len(rms_times)-1)]:.0f}s",
