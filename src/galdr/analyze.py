@@ -21,6 +21,7 @@ from .constants import (
     PITCH_NAMES,
     SEGMENT_MIN_GAP_SEC, SEGMENT_MIN_TAIL_SEC,
     ENERGY_ARC_SEGMENTS,
+    NULL_SIGNAL_RMS_THRESHOLD,
 )
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -42,6 +43,21 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
 
     if duration <= 0:
         raise ValueError("Audio too short to analyze")
+
+    # Null signal guard: degenerate/empty audio produces misleading metrics.
+    # Return early with a clear message rather than indexing garbage into the catalog.
+    rms_check = float(np.sqrt(np.mean(y.astype(np.float64) ** 2)))
+    if rms_check < NULL_SIGNAL_RMS_THRESHOLD:
+        print(f"\n  [null signal] RMS={rms_check:.2e} < threshold={NULL_SIGNAL_RMS_THRESHOLD:.0e}")
+        print(f"  Null or near-silent audio detected — no analysis performed.")
+        print(f"  (To analyze intentional silence, use a track with natural floor noise.)")
+        return {
+            "track": track_name,
+            "null_signal": True,
+            "rms": rms_check,
+            "duration_seconds": round(duration, 1),
+            "reason": "rms_below_threshold",
+        }
 
     # --- Tempo and beat tracking ---
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
