@@ -1,7 +1,17 @@
 # Galdr 0.1.5 Release Plan
 
-**Target:** Thursday 2026-04-03
+**Target:** Wednesday 2026-04-02
 **Branch:** `feature/silence-aware-metrics` → `main`
+
+> ⚠️ **Rebase required before merge.** Local `main` is at 0.1.2. GitHub `main` has all of 0.1.4 (pattern_break_counts split, DSP/IO separation, 12 bug fixes). Bring local main up to date first.
+
+```bash
+git fetch github
+git checkout main && git reset --hard github/main
+git checkout feature/silence-aware-metrics
+git rebase main   # conflicts possible in perceive.py, catalog.py, analyze.py
+git checkout main && git merge --ff-only feature/silence-aware-metrics
+```
 
 ## What's in 0.1.5
 
