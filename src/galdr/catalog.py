@@ -104,7 +104,8 @@ class CatalogState:
         if perception:
             s = perception.get("summary", perception)
             # mean_surprise was renamed to mean_pattern_lock in the disruption refactor
-            pattern_lock = s.get("mean_pattern_lock") or s.get("mean_surprise")
+            val = s.get("mean_pattern_lock")
+            pattern_lock = val if val is not None else s.get("mean_surprise")
             metrics.update({
                 "mean_momentum": s.get("mean_momentum"),
                 "mean_pattern_lock": pattern_lock,

@@ -367,8 +367,8 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
 
     for i, t in enumerate(stream_times):
         # Find nearest tonal center window
-        tc_idx = np.searchsorted(tc_times, t)
-        tc_idx = min(tc_idx, len(tc_key_names) - 1)
+        tc_idx = np.searchsorted(tc_times, t, side="right") - 1
+        tc_idx = max(0, min(tc_idx, len(tc_key_names) - 1))
         tonal_center = tc_key_names[tc_idx] if tc_idx < len(tc_key_names) else "?"
 
         entry = {
