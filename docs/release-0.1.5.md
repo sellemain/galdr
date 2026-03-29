@@ -3,15 +3,7 @@
 **Target:** Wednesday 2026-04-02
 **Branch:** `feature/silence-aware-metrics` → `main`
 
-> ⚠️ **Rebase required before merge.** Local `main` is at 0.1.2. GitHub `main` has all of 0.1.4 (pattern_break_counts split, DSP/IO separation, 12 bug fixes). Bring local main up to date first.
-
-```bash
-git fetch github
-git checkout main && git reset --hard github/main
-git checkout feature/silence-aware-metrics
-git rebase main   # conflicts possible in perceive.py, catalog.py, analyze.py
-git checkout main && git merge --ff-only feature/silence-aware-metrics
-```
+**Status:** Branch merged, version bumped to 0.1.5, all commits on main. Ready to push Wednesday.
 
 ## What's in 0.1.5
 
@@ -23,8 +15,9 @@ git checkout main && git merge --ff-only feature/silence-aware-metrics
 
 ## Release Checklist
 
-- [ ] Merge `feature/silence-aware-metrics` into `main`
-- [ ] Bump version: `pyproject.toml` → `0.1.5` (also `src/galdr/__init__.py` if set there)
+- [x] Merge `feature/silence-aware-metrics` into `main` (cherry-picked, 2026-03-29)
+- [x] Bump version: `pyproject.toml` → `0.1.5` (done 2026-03-29; `__init__.py` reads dynamically)
+- [x] ARC-PROMPT template updated: Posture section added + rules tightened (ca443e9, ea4547b)
 - [ ] Run full test suite: `pytest tests/ -q` — all green
 - [ ] Run against full catalog (re-index 2–3 tracks to verify silence_pct in output)
 - [ ] Build: `python3 -m build`
