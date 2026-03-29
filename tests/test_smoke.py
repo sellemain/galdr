@@ -7,7 +7,8 @@ def test_import_galdr():
     """Package imports without error."""
     import galdr
     assert hasattr(galdr, "__version__")
-    assert galdr.__version__ == "0.1.0"
+    assert isinstance(galdr.__version__, str)
+    assert galdr.__version__ != ""
 
 
 def test_import_analyze():

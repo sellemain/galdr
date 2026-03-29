@@ -319,6 +319,13 @@ def cmd_frames(args):
     from pathlib import Path
     from .frames import extract_visual_moments
 
+    if args.target <= 0:
+        print(f"Error: --target must be > 0, got {args.target}", file=sys.stderr)
+        sys.exit(1)
+    if args.anchor_ratio < 0 or args.anchor_ratio > 1:
+        print(f"Error: --anchor-ratio must be between 0 and 1, got {args.anchor_ratio}", file=sys.stderr)
+        sys.exit(1)
+
     analysis_dir = Path(args.analysis_dir)
     video_dir = Path(args.video_dir) if args.video_dir else None
     video_path = Path(args.video) if args.video else None
