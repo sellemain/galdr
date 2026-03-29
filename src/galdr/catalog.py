@@ -15,6 +15,8 @@ from collections import OrderedDict
 
 import numpy as np
 
+from .constants import ACTIVE_FRAME_SILENCE_PCT_THRESHOLD
+
 
 def _default_catalog_dir():
     """Return the default catalog directory (~/.galdr/)."""
@@ -106,10 +108,24 @@ class CatalogState:
             # mean_surprise was renamed to mean_pattern_lock in the disruption refactor
             val = s.get("mean_pattern_lock")
             pattern_lock = val if val is not None else s.get("mean_surprise")
+
+            # Use active-frame stats for catalog ranking when silence is significant.
+            # This prevents tracks with long silences (Helvegen, Feldman) from ranking
+            # artificially low on momentum vs. tracks with no silence.
+            silence_pct = s.get("silence_pct", 0.0) or 0.0
+            if silence_pct >= ACTIVE_FRAME_SILENCE_PCT_THRESHOLD:
+                catalog_momentum = s.get("mean_momentum_active", s.get("mean_momentum"))
+                catalog_pattern_lock = s.get("mean_pattern_lock_active", pattern_lock)
+            else:
+                catalog_momentum = s.get("mean_momentum")
+                catalog_pattern_lock = pattern_lock
+
             metrics.update({
-                "mean_momentum": s.get("mean_momentum"),
-                "mean_pattern_lock": pattern_lock,
+                "mean_momentum": catalog_momentum,
+                "mean_pattern_lock": catalog_pattern_lock,
                 "total_silence_sec": s.get("total_silence_sec"),
+                "silence_pct": silence_pct,
+                "active_duration_sec": s.get("active_duration_sec"),
                 "pattern_break_count": s.get("pattern_break_count"),
                 "breath_positive_pct": s.get("breath_positive_pct"),
                 "breath_negative_pct": s.get("breath_negative_pct"),
@@ -230,7 +246,9 @@ class CatalogState:
 
         key_metrics = [
             ("mean_pattern_lock", "Pattern Lock", "higher = stronger pattern lock"),
-            ("mean_momentum", "Momentum", "higher = more locked in"),
+            ("mean_momentum", "Momentum", "higher = more locked in (active frames when silence >= 10%)"),
+            ("silence_pct", "Silence %", "fraction of track that is silence"),
+            ("active_duration_sec", "Active Duration", "seconds of non-silent audio"),
             ("mean_temperament_alignment", "Temperament Alignment", "higher = more aligned with equal temperament"),
             ("mean_consonance_series", "Series Consonance", "higher = closer to harmonic series (JI)"),
             ("mean_tension", "Tension", "higher = more harmonic movement"),

@@ -230,6 +230,21 @@ OVERTONE_FREQ_CEILING = 10000
 
 
 # ============================================================
+# Null Signal Detection
+# ============================================================
+
+# RMS below this value (linear, not dB) is treated as a null/degenerate signal.
+# A typical quiet recording sits around 0.01-0.05. Pure digital silence = 0.0.
+# This threshold catches only truly empty audio (all-zeros or near-zero noise floor).
+NULL_SIGNAL_RMS_THRESHOLD = 1e-6
+
+# If silence_pct exceeds this value, use active-frame stats for catalog ranking.
+# Below this threshold, the track is treated as having negligible silence
+# and whole-track averages are used without adjustment.
+ACTIVE_FRAME_SILENCE_PCT_THRESHOLD = 10.0
+
+
+# ============================================================
 # Structural Segmentation (analyze.py)
 # ============================================================
 

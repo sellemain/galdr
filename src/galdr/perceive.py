@@ -33,6 +33,7 @@ from .constants import (
     EVENT_MOMENTUM_LOCKED, EVENT_MOMENTUM_FLOATING,
     EVENT_DISRUPTION_BREAK, EVENT_BREATH_BUILDING, EVENT_BREATH_RELEASING,
     PATTERN_BREAK_MIN_DISRUPTION, MOMENTUM_SHIFT_THRESHOLD, TOP_DISRUPTION_COUNT,
+    ACTIVE_FRAME_SILENCE_PCT_THRESHOLD,
 )
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -395,29 +396,67 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
     # Sort pattern breaks chronologically
     pattern_breaks.sort(key=lambda m: m["time"])
 
+    # ===== ACTIVE-FRAME STATISTICS =====
+    # Identify which stream indices are silent (inside a detected silence window).
+    # Active frames are everything else — this lets us report clean stats
+    # for tracks that use silence intentionally (Helvegen, Feldman, etc.)
+    # without contaminating momentum/pattern_lock with flat-line silence frames.
+    silent_mask = np.zeros(len(m_times), dtype=bool)
+    for s in silences:
+        silent_mask |= (m_times >= s["start"]) & (m_times <= s["end"])
+    active_mask = ~silent_mask
+
+    total_silence_sec = round(sum(s["duration"] for s in silences), 1)
+    active_duration_sec = round(duration - total_silence_sec, 1)
+    silence_pct = round(total_silence_sec / duration * 100, 1) if duration > 0 else 0.0
+
+    # Active-frame momentum and pattern_lock (only meaningful if there's significant silence)
+    if active_mask.any():
+        active_momentum = momentum[active_mask]
+        active_disruption = disruption[active_mask]
+        mean_momentum_active = round(float(np.mean(active_momentum)), 3)
+        mean_pattern_lock_active = round(1.0 - float(np.mean(active_disruption)), 3)
+        momentum_range_active = [
+            round(float(np.min(active_momentum)), 3),
+            round(float(np.max(active_momentum)), 3),
+        ]
+    else:
+        mean_momentum_active = round(float(np.mean(momentum)), 3)
+        mean_pattern_lock_active = round(1.0 - float(np.mean(disruption)), 3)
+        momentum_range_active = [round(float(np.min(momentum)), 3), round(float(np.max(momentum)), 3)]
+
     # ===== PERCEPTION REPORT =====
+    summary = {
+        # Whole-track averages (backward compatible — unchanged)
+        "mean_momentum": round(float(np.mean(momentum)), 3),
+        "mean_pattern_lock": round(1.0 - float(np.mean(disruption)), 3),
+        "momentum_range": [round(float(np.min(momentum)), 3), round(float(np.max(momentum)), 3)],
+        "total_silence_sec": total_silence_sec,
+        "pattern_break_count": len(pattern_breaks),
+        "breath_positive_pct": round(float(np.mean(breath > 0.05)) * 100, 1),
+        "breath_negative_pct": round(float(np.mean(breath < -0.05)) * 100, 1),
+        "breath_sustain_pct": round(float(np.mean(np.abs(breath) <= 0.05)) * 100, 1),
+        # Active-frame stats (new — additive, not replacing above)
+        "active_duration_sec": active_duration_sec,
+        "silent_duration_sec": total_silence_sec,
+        "silence_pct": silence_pct,
+        "mean_momentum_active": mean_momentum_active,
+        "mean_pattern_lock_active": mean_pattern_lock_active,
+        "momentum_range_active": momentum_range_active,
+    }
+
+    # Count pattern_breaks by type
+    pb_types = ["pattern_break", "momentum_drop", "momentum_gain", "silence"]
+    pb_counts = {t: sum(1 for pb in pattern_breaks if pb["type"] == t) for t in pb_types}
+    summary["pattern_break_counts"] = pb_counts
+
     report = {
         "track": track_name,
         "duration": round(duration, 1),
         "tempo": round(tempo, 1),
         "silences": silences,
         "pattern_breaks": pattern_breaks,
-        "summary": {
-            "mean_momentum": round(float(np.mean(momentum)), 3),
-            "mean_pattern_lock": round(1.0 - float(np.mean(disruption)), 3),
-            "momentum_range": [round(float(np.min(momentum)), 3), round(float(np.max(momentum)), 3)],
-            "total_silence_sec": round(sum(s["duration"] for s in silences), 1),
-            "pattern_break_count": len(pattern_breaks),
-            "pattern_break_counts": {
-                "pattern_break": sum(1 for b in pattern_breaks if b["type"] == "pattern_break"),
-                "momentum_drop": sum(1 for b in pattern_breaks if b["type"] == "momentum_drop"),
-                "momentum_gain": sum(1 for b in pattern_breaks if b["type"] == "momentum_gain"),
-                "silence": sum(1 for b in pattern_breaks if b["type"] == "silence"),
-            },
-            "breath_positive_pct": round(float(np.mean(breath > 0.05)) * 100, 1),
-            "breath_negative_pct": round(float(np.mean(breath < -0.05)) * 100, 1),
-            "breath_sustain_pct": round(float(np.mean(np.abs(breath) <= 0.05)) * 100, 1),
-        },
+        "summary": summary,
         "stream_hop_sec": 0.5,
         "stream_length": len(stream),
     }
