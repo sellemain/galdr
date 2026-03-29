@@ -31,7 +31,7 @@ def test_perception_stream_writes_json(audio_path, tmp_path):
     """generate_perception_stream writes a stream JSON file."""
     from galdr.perceive import generate_perception_stream
 
-    report, stream = generate_perception_stream(audio_path, str(tmp_path), "test-track")
+    report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
     stream_file = tmp_path / "test-track_stream.json"
     assert stream_file.exists()
 
@@ -41,7 +41,8 @@ def test_perception_stream_entry_keys(audio_path, tmp_path):
     """Each stream entry has the expected keys."""
     from galdr.perceive import generate_perception_stream
 
-    report, stream = generate_perception_stream(audio_path, str(tmp_path), "test-track")
+    report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
+    stream = report.get("stream", [])
 
     expected_keys = {"t", "energy", "momentum", "pattern_lock", "breath", "hp_balance",
                      "h_energy", "p_energy"}
@@ -57,7 +58,8 @@ def test_perception_stream_pattern_lock_range(audio_path, tmp_path):
     """pattern_lock values must be between 0.0 and 1.0."""
     from galdr.perceive import generate_perception_stream
 
-    report, stream = generate_perception_stream(audio_path, str(tmp_path), "test-track")
+    report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
+    stream = report.get("stream", [])
 
     for entry in stream:
         assert 0.0 <= entry["pattern_lock"] <= 1.0, (
@@ -70,7 +72,8 @@ def test_perception_stream_momentum_range(audio_path, tmp_path):
     """momentum values must be between 0.0 and 1.0."""
     from galdr.perceive import generate_perception_stream
 
-    report, stream = generate_perception_stream(audio_path, str(tmp_path), "test-track")
+    report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
+    stream = report.get("stream", [])
 
     for entry in stream:
         assert 0.0 <= entry["momentum"] <= 1.0, (

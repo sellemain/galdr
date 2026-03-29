@@ -366,13 +366,29 @@ def _build_frames(context: dict) -> str | None:
 
     for f in frames:
         t = f.get("time", 0)
-        event_label = f.get("event", "")
-        window = f.get("window", [t])
+        kind = f.get("kind", "anchor")
         desc = f.get("description", "")
 
-        # Format: 6:19 — 7.3s silence at -80dB  [6:19 / 6:22 / 6:26]
-        window_str = " / ".join(_fmt_time(w) for w in window)
-        lines.append(f"{_fmt_time(t)} — {event_label}  [{window_str}]")
+        # Build event label from kind + event metadata
+        if kind == "coverage":
+            label = f"[{_fmt_time(t)}] (coverage)"
+        else:
+            ev = f.get("event") or {}
+            if isinstance(ev, dict):
+                etype = ev.get("type", "")
+                intensity = ev.get("intensity")
+                if intensity is not None:
+                    label = f"[{_fmt_time(t)}] ({etype}, intensity {intensity:.2f})"
+                elif etype:
+                    label = f"[{_fmt_time(t)}] ({etype})"
+                else:
+                    label = f"[{_fmt_time(t)}] ({f.get('event', '')})"
+            else:
+                # event is a string label (legacy frame_descriptions format)
+                event_label = ev if isinstance(ev, str) else f.get("event", "")
+                label = f"[{_fmt_time(t)}] ({event_label})" if event_label else f"[{_fmt_time(t)}]"
+
+        lines.append(label)
         lines.append(f"  {desc}")
         lines.append("")
 

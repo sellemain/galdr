@@ -27,21 +27,23 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
-def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
-    """Full audio analysis of a single track."""
-    out = Path(output_dir)
-    out.mkdir(parents=True, exist_ok=True)
+def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
+    """Compute all track features from audio array. No file I/O, no plots.
 
-    print(f"Loading {audio_path}...")
-    y, sr = librosa.load(audio_path, sr=22050, mono=True)
+    Args:
+        y: audio time series (mono, float32)
+        sr: sample rate
+        track_name: track identifier used in report fields
+
+    Returns:
+        report dict with all computed features
+    """
     duration = librosa.get_duration(y=y, sr=sr)
-    print(f"  Duration: {duration:.1f}s, Sample rate: {sr}")
 
     if duration <= 0:
         raise ValueError("Audio too short to analyze")
 
     # --- Tempo and beat tracking ---
-    print("  Beat tracking...")
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
     beat_times = librosa.frames_to_time(beats, sr=sr)
     # tempo may be an array in newer librosa
@@ -59,7 +61,6 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
         beat_regularity = 0.0
 
     # --- Spectral features ---
-    print("  Spectral analysis...")
     # Mel spectrogram
     S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
     S_dB = librosa.power_to_db(S, ref=np.max)
@@ -68,11 +69,9 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
     centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
 
     # --- Chroma (harmonic content) ---
-    print("  Chroma analysis...")
     chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
 
     # --- Energy / RMS ---
-    print("  Energy analysis...")
     rms = librosa.feature.rms(y=y)[0]
     rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
 
@@ -96,12 +95,10 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
         })
 
     # --- Onset detection (percussive events) ---
-    print("  Onset detection...")
     onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
     onset_times = librosa.frames_to_time(onset_frames, sr=sr)
 
     # --- Harmonic-percussive separation ---
-    print("  Harmonic-percussive separation...")
     y_harmonic, y_percussive = librosa.effects.hpss(y)
     perc_energy = float(np.mean(librosa.feature.rms(y=y_percussive)[0]))
     harm_energy = float(np.mean(librosa.feature.rms(y=y_harmonic)[0]))
@@ -113,81 +110,7 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
     # --- Dynamics ---
     dynamic_range = float(np.max(rms) / np.min(rms[rms > 0])) if np.any(rms > 0) else 0
 
-    # ===== VISUALIZATIONS =====
-
-    fig_w, fig_h = 16, 4
-
-    # 1. Mel spectrogram
-    print("  Generating spectrogram...")
-    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
-    librosa.display.specshow(S_dB, sr=sr, x_axis="time", y_axis="mel", ax=ax, cmap="magma")
-    ax.set_title(f"{track_name} — Mel Spectrogram", fontsize=14)
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Frequency (Hz)")
-    plt.colorbar(ax.collections[0], ax=ax, format="%+2.0f dB")
-    plt.tight_layout()
-    plt.savefig(out / f"{track_name}_spectrogram.png", dpi=150)
-    plt.close()
-
-    # 2. Energy + beats
-    print("  Generating energy + beat plot...")
-    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
-    ax.plot(rms_times, rms, color="#e74c3c", linewidth=0.8, label="Energy (RMS)")
-    for bt in beat_times:
-        ax.axvline(x=bt, color="#3498db", alpha=0.15, linewidth=0.5)
-    ax.set_title(f"{track_name} — Energy & Beats (tempo: {tempo:.0f} BPM)", fontsize=14)
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Energy")
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig(out / f"{track_name}_energy_beats.png", dpi=150)
-    plt.close()
-
-    # 3. Chroma
-    print("  Generating chroma plot...")
-    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
-    librosa.display.specshow(chroma, sr=sr, x_axis="time", y_axis="chroma", ax=ax, cmap="coolwarm")
-    ax.set_title(f"{track_name} — Chromagram (harmonic content)", fontsize=14)
-    plt.tight_layout()
-    plt.savefig(out / f"{track_name}_chroma.png", dpi=150)
-    plt.close()
-
-    # 4. Spectral centroid (brightness over time)
-    print("  Generating brightness plot...")
-    cent_times = librosa.frames_to_time(np.arange(len(centroid)), sr=sr)
-    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
-    ax.plot(cent_times, centroid, color="#9b59b6", linewidth=0.8)
-    ax.fill_between(cent_times, centroid, alpha=0.2, color="#9b59b6")
-    ax.set_title(f"{track_name} — Spectral Centroid (brightness)", fontsize=14)
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel("Hz")
-    plt.tight_layout()
-    plt.savefig(out / f"{track_name}_brightness.png", dpi=150)
-    plt.close()
-
-    # 5. Percussive vs harmonic waveform comparison
-    print("  Generating harmonic/percussive plot...")
-    fig, axes = plt.subplots(2, 1, figsize=(fig_w, fig_h * 1.5), sharex=True)
-    t = np.linspace(0, duration, len(y_harmonic))
-    # Downsample for plotting
-    step = max(1, len(t) // 10000)
-    axes[0].plot(t[::step], y_harmonic[::step], color="#2ecc71", linewidth=0.3)
-    axes[0].set_title("Harmonic (voices, strings, sustained tones)")
-    axes[0].set_ylabel("Amplitude")
-    axes[1].plot(t[::step], y_percussive[::step], color="#e67e22", linewidth=0.3)
-    axes[1].set_title("Percussive (drums, impacts, transients)")
-    axes[1].set_ylabel("Amplitude")
-    axes[1].set_xlabel("Time (s)")
-    plt.suptitle(f"{track_name} — Harmonic vs Percussive", fontsize=14, y=1.01)
-    plt.tight_layout()
-    plt.savefig(out / f"{track_name}_harm_perc.png", dpi=150)
-    plt.close()
-
     # --- Novelty-based segmentation ---
-    print("  Computing structural segments...")
-    # Use spectral novelty to find natural section boundaries
-    # instead of arbitrary 10-segment split
-    # Recurrence matrix → novelty curve
     try:
         # Chroma-based novelty for structural boundaries
         bound_frames = librosa.segment.agglomerative(chroma, k=None)
@@ -281,9 +204,145 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
             f"{track_name}_brightness.png",
             f"{track_name}_harm_perc.png",
         ],
+        # Store intermediate arrays for visualization (not serialized to JSON)
+        "_S_dB": S_dB,
+        "_centroid": centroid,
+        "_chroma": chroma,
+        "_rms": rms,
+        "_rms_times": rms_times,
+        "_beat_times": beat_times,
+        "_tempo": tempo,
+        "_y_harmonic": y_harmonic,
+        "_y_percussive": y_percussive,
+        "_duration": duration,
     }
 
-    # Save report
+    return report
+
+
+def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_name: str) -> None:
+    """Generate and save all visualization plots. No return value."""
+    fig_w, fig_h = 16, 4
+
+    # Extract cached intermediates from report (set by compute_track_features)
+    S_dB = report.pop("_S_dB", None)
+    centroid = report.pop("_centroid", None)
+    chroma = report.pop("_chroma", None)
+    rms = report.pop("_rms", None)
+    rms_times = report.pop("_rms_times", None)
+    beat_times = report.pop("_beat_times", None)
+    tempo = report.pop("_tempo", report.get("tempo_bpm", 0))
+    y_harmonic = report.pop("_y_harmonic", None)
+    y_percussive = report.pop("_y_percussive", None)
+    duration = report.pop("_duration", report.get("duration_seconds", 0))
+
+    # Recompute if needed (shouldn't happen in normal flow)
+    if S_dB is None:
+        S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
+        S_dB = librosa.power_to_db(S, ref=np.max)
+    if centroid is None:
+        centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
+    if chroma is None:
+        chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
+    if rms is None:
+        rms = librosa.feature.rms(y=y)[0]
+        rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
+    if beat_times is None:
+        _, beats = librosa.beat.beat_track(y=y, sr=sr)
+        beat_times = librosa.frames_to_time(beats, sr=sr)
+    if y_harmonic is None or y_percussive is None:
+        y_harmonic, y_percussive = librosa.effects.hpss(y)
+
+    # 1. Mel spectrogram
+    print("  Generating spectrogram...")
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    librosa.display.specshow(S_dB, sr=sr, x_axis="time", y_axis="mel", ax=ax, cmap="magma")
+    ax.set_title(f"{track_name} — Mel Spectrogram", fontsize=14)
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Frequency (Hz)")
+    plt.colorbar(ax.collections[0], ax=ax, format="%+2.0f dB")
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_spectrogram.png", dpi=150)
+    plt.close()
+
+    # 2. Energy + beats
+    print("  Generating energy + beat plot...")
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    ax.plot(rms_times, rms, color="#e74c3c", linewidth=0.8, label="Energy (RMS)")
+    for bt in beat_times:
+        ax.axvline(x=bt, color="#3498db", alpha=0.15, linewidth=0.5)
+    ax.set_title(f"{track_name} — Energy & Beats (tempo: {tempo:.0f} BPM)", fontsize=14)
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Energy")
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_energy_beats.png", dpi=150)
+    plt.close()
+
+    # 3. Chroma
+    print("  Generating chroma plot...")
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    librosa.display.specshow(chroma, sr=sr, x_axis="time", y_axis="chroma", ax=ax, cmap="coolwarm")
+    ax.set_title(f"{track_name} — Chromagram (harmonic content)", fontsize=14)
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_chroma.png", dpi=150)
+    plt.close()
+
+    # 4. Spectral centroid (brightness over time)
+    print("  Generating brightness plot...")
+    cent_times = librosa.frames_to_time(np.arange(len(centroid)), sr=sr)
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+    ax.plot(cent_times, centroid, color="#9b59b6", linewidth=0.8)
+    ax.fill_between(cent_times, centroid, alpha=0.2, color="#9b59b6")
+    ax.set_title(f"{track_name} — Spectral Centroid (brightness)", fontsize=14)
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Hz")
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_brightness.png", dpi=150)
+    plt.close()
+
+    # 5. Percussive vs harmonic waveform comparison
+    print("  Generating harmonic/percussive plot...")
+    fig, axes = plt.subplots(2, 1, figsize=(fig_w, fig_h * 1.5), sharex=True)
+    t = np.linspace(0, duration, len(y_harmonic))
+    # Downsample for plotting
+    step = max(1, len(t) // 10000)
+    axes[0].plot(t[::step], y_harmonic[::step], color="#2ecc71", linewidth=0.3)
+    axes[0].set_title("Harmonic (voices, strings, sustained tones)")
+    axes[0].set_ylabel("Amplitude")
+    axes[1].plot(t[::step], y_percussive[::step], color="#e67e22", linewidth=0.3)
+    axes[1].set_title("Percussive (drums, impacts, transients)")
+    axes[1].set_ylabel("Amplitude")
+    axes[1].set_xlabel("Time (s)")
+    plt.suptitle(f"{track_name} — Harmonic vs Percussive", fontsize=14, y=1.01)
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_harm_perc.png", dpi=150)
+    plt.close()
+
+
+def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
+    """Full audio analysis of a single track."""
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    print(f"Loading {audio_path}...")
+    y, sr = librosa.load(audio_path, sr=22050, mono=True)
+    duration = librosa.get_duration(y=y, sr=sr)
+    print(f"  Duration: {duration:.1f}s, Sample rate: {sr}")
+
+    if duration <= 0:
+        raise ValueError("Audio too short to analyze")
+
+    print("  Beat tracking...")
+    print("  Spectral analysis...")
+    print("  Chroma analysis...")
+    print("  Energy analysis...")
+    print("  Onset detection...")
+    print("  Harmonic-percussive separation...")
+
+    report = compute_track_features(y, sr, track_name)
+    _save_visualizations(y, sr, report, out, track_name)
+
     report_path = out / f"{track_name}_report.json"
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)

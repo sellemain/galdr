@@ -265,27 +265,27 @@ def compute_harmonic_percussive_momentum(y, sr, duration,
     return times, h_energy, p_energy, balance
 
 
-def generate_perception_stream(audio_path, output_dir, track_name):
-    """Generate a second-by-second perception stream.
+def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
+    """Compute perception stream and report from audio array. No file I/O, no plots.
 
-    This is the core output: a temporal narrative of what the music
-    does to perception as it unfolds through time.
+    Calls the existing pure DSP functions (compute_momentum, compute_disruption,
+    compute_breath, detect_silences, compute_harmonic_percussive_momentum),
+    assembles the stream, builds the report, and embeds stream under report["stream"].
 
-    Returns (report_dict, stream_list) where report_dict contains
-    summary statistics and stream_list is the per-timestep data.
+    Args:
+        y: audio time series (mono, float32)
+        sr: sample rate
+        track_name: track identifier used in report fields
+
+    Returns:
+        report dict with "stream" key embedded
     """
-    out = Path(output_dir)
-    out.mkdir(parents=True, exist_ok=True)
-
-    print(f"Perceiving {audio_path}...")
-    y, sr = librosa.load(audio_path, sr=22050, mono=True)
     duration = librosa.get_duration(y=y, sr=sr)
 
     if duration <= 0:
         raise ValueError("Audio too short to analyze")
 
     # Beat tracking
-    print("  Tracking beats...")
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
     beat_times = librosa.frames_to_time(beats, sr=sr)
     if hasattr(tempo, '__len__'):
@@ -296,21 +296,16 @@ def generate_perception_stream(audio_path, output_dir, track_name):
     rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
 
     # Compute perception dimensions
-    print("  Computing momentum...")
     m_times, momentum = compute_momentum(beat_times, duration)
 
-    print("  Computing pattern lock...")
     s_times, disruption, d_beat, d_spectral, d_energy = compute_disruption(
         y, sr, beat_times, duration
     )
 
-    print("  Computing breath...")
     b_times, breath = compute_breath(y, sr, duration)
 
-    print("  Detecting silences...")
     silences = detect_silences(y, sr)
 
-    print("  Computing harmonic/percussive balance...")
     hp_times, h_energy, p_energy, hp_balance = compute_harmonic_percussive_momentum(
         y, sr, duration
     )
@@ -413,6 +408,12 @@ def generate_perception_stream(audio_path, output_dir, track_name):
             "momentum_range": [round(float(np.min(momentum)), 3), round(float(np.max(momentum)), 3)],
             "total_silence_sec": round(sum(s["duration"] for s in silences), 1),
             "pattern_break_count": len(pattern_breaks),
+            "pattern_break_counts": {
+                "pattern_break": sum(1 for b in pattern_breaks if b["type"] == "pattern_break"),
+                "momentum_drop": sum(1 for b in pattern_breaks if b["type"] == "momentum_drop"),
+                "momentum_gain": sum(1 for b in pattern_breaks if b["type"] == "momentum_gain"),
+                "silence": sum(1 for b in pattern_breaks if b["type"] == "silence"),
+            },
             "breath_positive_pct": round(float(np.mean(breath > 0.05)) * 100, 1),
             "breath_negative_pct": round(float(np.mean(breath < -0.05)) * 100, 1),
             "breath_sustain_pct": round(float(np.mean(np.abs(breath) <= 0.05)) * 100, 1),
@@ -421,81 +422,126 @@ def generate_perception_stream(audio_path, output_dir, track_name):
         "stream_length": len(stream),
     }
 
+    report["stream"] = stream
+    return report
+
+
+def generate_perception_stream(audio_path, output_dir, track_name):
+    """Generate a second-by-second perception stream.
+
+    This is the core output: a temporal narrative of what the music
+    does to perception as it unfolds through time.
+
+    Thin wrapper: loads audio, calls compute_perception(), saves files,
+    generates plots, returns the report dict with embedded stream.
+    """
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    print(f"Perceiving {audio_path}...")
+    y, sr = librosa.load(audio_path, sr=22050, mono=True)
+
+    print("  Tracking beats...")
+    print("  Computing momentum...")
+    print("  Computing pattern lock...")
+    print("  Computing breath...")
+    print("  Detecting silences...")
+    print("  Computing harmonic/percussive balance...")
+
+    report = compute_perception(y, sr, track_name)
+    stream = report.get("stream", [])
+    silences = report.get("silences", [])
+    duration = report.get("duration", librosa.get_duration(y=y, sr=sr))
+
+    # Recompute DSP arrays for visualizations
+    tempo_val = report.get("tempo", 0)
+    _, beats = librosa.beat.beat_track(y=y, sr=sr)
+    beat_times_viz = librosa.frames_to_time(beats, sr=sr)
+    m_times, momentum = compute_momentum(beat_times_viz, duration)
+    s_times, disruption, d_beat, d_spectral, d_energy = compute_disruption(
+        y, sr, beat_times_viz, duration
+    )
+    b_times, breath = compute_breath(y, sr, duration)
+    hp_times, h_energy_viz, p_energy_viz, hp_balance = compute_harmonic_percussive_momentum(
+        y, sr, duration
+    )
+
     # Save stream (separate file — it's large)
     stream_path = out / f"{track_name}_stream.json"
     with open(stream_path, "w") as f:
         json.dump(stream, f)
     print(f"  Stream saved: {stream_path} ({len(stream)} entries)")
 
-    # Save report
+    # Save report (without stream to keep file manageable)
+    report_for_disk = {k: v for k, v in report.items() if k != "stream"}
     report_path = out / f"{track_name}_perception.json"
     with open(report_path, "w") as f:
-        json.dump(report, f, indent=2)
+        json.dump(report_for_disk, f, indent=2)
     print(f"  Perception report saved: {report_path}")
 
     # ===== VISUALIZATIONS =====
-    fig_w, fig_h = 16, 3
+    if m_times is not None and momentum is not None:
+        fig_w, fig_h = 16, 3
 
-    # 1. Momentum + Surprise (the listener plot)
-    print("  Generating perception plot...")
-    fig, axes = plt.subplots(3, 1, figsize=(fig_w, fig_h * 3), sharex=True)
+        # 1. Momentum + Surprise (the listener plot)
+        print("  Generating perception plot...")
+        fig, axes = plt.subplots(3, 1, figsize=(fig_w, fig_h * 3), sharex=True)
 
-    # Momentum
-    axes[0].fill_between(m_times, momentum, alpha=0.4, color="#2ecc71")
-    axes[0].plot(m_times, momentum, color="#27ae60", linewidth=1)
-    axes[0].set_ylabel("Momentum")
-    axes[0].set_ylim(-0.05, 1.05)
-    axes[0].set_title(f"{track_name} — Rhythmic Momentum (listener)", fontsize=13)
-    # Mark silences
-    for s in silences:
-        axes[0].axvspan(s["start"], s["end"], alpha=0.3, color="#e74c3c", label="silence")
+        # Momentum
+        axes[0].fill_between(m_times, momentum, alpha=0.4, color="#2ecc71")
+        axes[0].plot(m_times, momentum, color="#27ae60", linewidth=1)
+        axes[0].set_ylabel("Momentum")
+        axes[0].set_ylim(-0.05, 1.05)
+        axes[0].set_title(f"{track_name} — Rhythmic Momentum (listener)", fontsize=13)
+        for s in silences:
+            axes[0].axvspan(s["start"], s["end"], alpha=0.3, color="#e74c3c", label="silence")
 
-    # Pattern Lock (inverted disruption: high = locked in)
-    pattern_lock_total = 1.0 - disruption
-    pattern_lock_beat = 1.0 - d_beat
-    pattern_lock_spectral = 1.0 - d_spectral
-    pattern_lock_energy = 1.0 - d_energy
-    axes[1].fill_between(s_times, pattern_lock_total, alpha=0.3, color="#2980b9")
-    axes[1].plot(s_times, pattern_lock_beat, color="#e67e22", linewidth=0.8, alpha=0.7, label="beat")
-    axes[1].plot(s_times, pattern_lock_spectral, color="#9b59b6", linewidth=0.8, alpha=0.7, label="spectral")
-    axes[1].plot(s_times, pattern_lock_energy, color="#3498db", linewidth=0.8, alpha=0.7, label="energy")
-    axes[1].set_ylabel("Pattern Lock")
-    axes[1].set_ylim(-0.05, 1.05)
-    axes[1].set_title("Pattern Lock (prediction accuracy)", fontsize=13)
-    axes[1].legend(loc="lower right", fontsize=9)
+        # Pattern Lock (inverted disruption: high = locked in)
+        pattern_lock_total = 1.0 - disruption
+        pattern_lock_beat = 1.0 - d_beat
+        pattern_lock_spectral = 1.0 - d_spectral
+        pattern_lock_energy = 1.0 - d_energy
+        axes[1].fill_between(s_times, pattern_lock_total, alpha=0.3, color="#2980b9")
+        axes[1].plot(s_times, pattern_lock_beat, color="#e67e22", linewidth=0.8, alpha=0.7, label="beat")
+        axes[1].plot(s_times, pattern_lock_spectral, color="#9b59b6", linewidth=0.8, alpha=0.7, label="spectral")
+        axes[1].plot(s_times, pattern_lock_energy, color="#3498db", linewidth=0.8, alpha=0.7, label="energy")
+        axes[1].set_ylabel("Pattern Lock")
+        axes[1].set_ylim(-0.05, 1.05)
+        axes[1].set_title("Pattern Lock (prediction accuracy)", fontsize=13)
+        axes[1].legend(loc="lower right", fontsize=9)
 
-    # Breath
-    axes[2].fill_between(b_times, breath, where=breath > 0, alpha=0.4, color="#2ecc71", label="building")
-    axes[2].fill_between(b_times, breath, where=breath < 0, alpha=0.4, color="#e74c3c", label="releasing")
-    axes[2].axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
-    axes[2].set_ylabel("Breath")
-    axes[2].set_ylim(-1.05, 1.05)
-    axes[2].set_xlabel("Time (s)")
-    axes[2].set_title("Breath (energy direction)", fontsize=13)
-    axes[2].legend(loc="upper right", fontsize=9)
+        # Breath
+        axes[2].fill_between(b_times, breath, where=breath > 0, alpha=0.4, color="#2ecc71", label="building")
+        axes[2].fill_between(b_times, breath, where=breath < 0, alpha=0.4, color="#e74c3c", label="releasing")
+        axes[2].axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
+        axes[2].set_ylabel("Breath")
+        axes[2].set_ylim(-1.05, 1.05)
+        axes[2].set_xlabel("Time (s)")
+        axes[2].set_title("Breath (energy direction)", fontsize=13)
+        axes[2].legend(loc="upper right", fontsize=9)
 
-    plt.tight_layout()
-    plt.savefig(out / f"{track_name}_perception.png", dpi=150)
-    plt.close()
-    print(f"  Perception plot saved.")
+        plt.tight_layout()
+        plt.savefig(out / f"{track_name}_perception.png", dpi=150)
+        plt.close()
+        print(f"  Perception plot saved.")
 
-    # 2. HP Balance over time
-    print("  Generating HP balance plot...")
-    fig, ax = plt.subplots(figsize=(fig_w, fig_h))
-    ax.fill_between(hp_times, hp_balance, where=hp_balance < 0, alpha=0.4,
-                    color="#2ecc71", label="harmonic dominant")
-    ax.fill_between(hp_times, hp_balance, where=hp_balance > 0, alpha=0.4,
-                    color="#e67e22", label="percussive dominant")
-    ax.axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
-    ax.set_ylabel("<- harmonic | percussive ->")
-    ax.set_xlabel("Time (s)")
-    ax.set_ylim(-1.05, 1.05)
-    ax.set_title(f"{track_name} — Voice vs Drums (who's carrying?)", fontsize=13)
-    ax.legend(loc="upper right", fontsize=9)
-    for s in silences:
-        ax.axvspan(s["start"], s["end"], alpha=0.3, color="#e74c3c")
-    plt.tight_layout()
-    plt.savefig(out / f"{track_name}_hp_balance.png", dpi=150)
-    plt.close()
+        # 2. HP Balance over time
+        print("  Generating HP balance plot...")
+        fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+        ax.fill_between(hp_times, hp_balance, where=hp_balance < 0, alpha=0.4,
+                        color="#2ecc71", label="harmonic dominant")
+        ax.fill_between(hp_times, hp_balance, where=hp_balance > 0, alpha=0.4,
+                        color="#e67e22", label="percussive dominant")
+        ax.axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
+        ax.set_ylabel("<- harmonic | percussive ->")
+        ax.set_xlabel("Time (s)")
+        ax.set_ylim(-1.05, 1.05)
+        ax.set_title(f"{track_name} — Voice vs Drums (who's carrying?)", fontsize=13)
+        ax.legend(loc="upper right", fontsize=9)
+        for s in silences:
+            ax.axvspan(s["start"], s["end"], alpha=0.3, color="#e74c3c")
+        plt.tight_layout()
+        plt.savefig(out / f"{track_name}_hp_balance.png", dpi=150)
+        plt.close()
 
-    return report, stream
+    return report
