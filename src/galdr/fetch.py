@@ -87,7 +87,8 @@ def get_youtube_metadata(url: str) -> dict:
     """
     url = validate_youtube_url(url)
     result = subprocess.run(
-        ["yt-dlp", "--dump-json", "--no-playlist", url],
+        ["yt-dlp", "--dump-json", "--no-playlist",
+         "--js-runtimes", "node:/usr/bin/node", url],
         capture_output=True, text=True, check=True,
     )
     info = json.loads(result.stdout)
@@ -135,13 +136,22 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
         "--sub-lang", "en",
         "--sub-format", "vtt",
         "--no-playlist",
+        "--js-runtimes", "node:/usr/bin/node",
         url,
     ]
 
     print(f"  [yt-dlp] {url}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
+        stderr_snippet = result.stderr[:500]
         print(f"  [yt-dlp] stderr: {result.stderr[:300]}")
+        # Surface a clearer error for common cases
+        if "Video unavailable" in result.stderr:
+            print(f"  [yt-dlp] Video unavailable — likely removed, region-locked, or private.")
+        elif "Sign in" in result.stderr or "age" in result.stderr.lower():
+            print(f"  [yt-dlp] Age-gated or login required — try a SoundCloud URL instead.")
+    else:
+        stderr_snippet = None
 
     audio_file = audio_dir / f"{slug}.mp3"
     # yt-dlp writes VTT as {slug}.en.vtt
@@ -151,7 +161,7 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
         "audio_file": str(audio_file) if audio_file.exists() else None,
         "captions_file": str(vtt_file) if vtt_file.exists() else None,
         "download_ok": audio_file.exists(),
-        "stderr": result.stderr[:500] if result.returncode != 0 else None,
+        "stderr": stderr_snippet,
     }
 
 
