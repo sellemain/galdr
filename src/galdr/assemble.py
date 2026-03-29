@@ -424,10 +424,11 @@ def assemble_prompt(
         if bg:
             sections.append(bg)
 
-    # Track header — artist, title, source URL (always included when available)
-    header = _build_track_header(ctx)
-    if header:
-        sections.append(header)
+    # Track header — artist, title, source URL (withheld in blind mode)
+    if mode != "blind":
+        header = _build_track_header(ctx)
+        if header:
+            sections.append(header)
 
     # Galdr metrics (always included)
     sections.append(_build_metrics(analysis))

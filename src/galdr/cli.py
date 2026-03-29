@@ -23,11 +23,18 @@ def _validate_slug(slug: str) -> str:
             f"Invalid slug {slug!r}. Slugs may only contain letters, digits, "
             "dots, hyphens, and underscores."
         )
+    parts = slug.replace("\\", "/").split("/")
+    if any(p in (".", "..") or p == "" for p in parts):
+        raise ValueError(f"Invalid slug: {slug!r}")
     return slug
+
+
+_module_failed = False
 
 
 def run_module(name, func, *args, **kwargs):
     """Run a module with timing and error handling."""
+    global _module_failed
     print(f"\n{'='*60}")
     print(f"  MODULE: {name}")
     print(f"{'='*60}")
@@ -42,6 +49,7 @@ def run_module(name, func, *args, **kwargs):
         print(f"  x {name} failed ({elapsed:.1f}s): {e}")
         import traceback
         traceback.print_exc()
+        _module_failed = True
         return None
 
 
@@ -192,6 +200,9 @@ def cmd_listen(args):
     print(f"  Total time: {total_elapsed:.1f}s")
     print()
 
+    if _module_failed:
+        sys.exit(1)
+
 
 def cmd_compare(args):
     """Compare two tracks."""
@@ -231,11 +242,11 @@ def cmd_fetch(args):
         except Exception as e:
             print(f"[fetch] Metadata fetch failed: {e}")
             print("[fetch] Pass --name, --artist, --title explicitly to continue.")
-            return
+            sys.exit(1)
 
     if not name or not artist or not title:
         print("[fetch] Error: --name, --artist, and --title are required when no URL is given.")
-        return
+        sys.exit(1)
 
     slug = _validate_slug(name)
 
