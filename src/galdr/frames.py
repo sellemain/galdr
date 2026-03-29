@@ -230,6 +230,9 @@ def select_frames(
     Phase 2 — Coverage fill (remaining slots):
       Bisect the largest uncovered timeline gaps until target is reached.
 
+    Phase 3 — Refill pass:
+      After spacing dedup, if count < target, fill remaining slots via gap-bisection.
+
     Returns a list of frame dicts sorted by time:
       {
         "time":  float,               # timestamp to extract
@@ -238,7 +241,15 @@ def select_frames(
         "event": dict | None,         # originating event (anchors only)
         "group": str | None,          # group ID (anchors share with same event)
       }
+
+    Raises:
+      ValueError: if target <= 0 or anchor_ratio not in [0, 1].
     """
+    if target <= 0:
+        raise ValueError(f"target must be > 0, got {target}")
+    if anchor_ratio < 0 or anchor_ratio > 1:
+        raise ValueError(f"anchor_ratio must be between 0 and 1, got {anchor_ratio}")
+
     raw_events = _load_events(perception)
     anchor_budget = round(target * anchor_ratio)
 
@@ -318,6 +329,25 @@ def select_frames(
                 # Replace the kept frame with the higher-priority one
                 kept[closest_idx] = f
                 kept_times[closest_idx] = ts
+
+    # Phase 3 — Refill pass: spacing dedup may have dropped frames below target.
+    # Add coverage frames to bring the count back up to exactly target.
+    shortfall = target - len(kept)
+    if shortfall > 0:
+        refill_times = _fill_coverage_gaps(
+            existing_times=[f["time"] for f in kept],
+            duration=duration,
+            n=shortfall,
+        )
+        for ts in refill_times:
+            kept.append({
+                "time": ts,
+                "kind": "coverage",
+                "role": "coverage",
+                "event": None,
+                "group": None,
+            })
+        kept.sort(key=lambda f: f["time"])
 
     return kept
 

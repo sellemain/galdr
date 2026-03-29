@@ -27,7 +27,11 @@ Templates:
     first    FIRST-LISTEN: impressionistic, no chords
 """
 
-__version__ = "0.1.0"
+from importlib.metadata import version, PackageNotFoundError
+try:
+    __version__ = version("galdr")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 # ─── Analysis pipeline ────────────────────────────────────────────────────────
 from .analyze import analyze_track
