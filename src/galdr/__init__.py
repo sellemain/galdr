@@ -9,7 +9,7 @@ Quick start (Python API):
     result = analyze_track("helvegen.mp3", "analysis/", "7-helvegen")
 
     # Build prompt (default: full context, no template)
-    ctx = load_context("7-helvegen")
+    ctx = load_context("7-helvegen", "analysis/")
     prompt = assemble_prompt(result, context=ctx)
 
     # Or with mode + template
