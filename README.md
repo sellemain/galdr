@@ -30,13 +30,16 @@ Just what shaped the reasoning.
 pip install galdr
 ```
 
-Or from source:
+Or from source (reproducible install using the lockfile):
 
 ```bash
 git clone https://github.com/sellemain/galdr.git
 cd galdr
+pip install -r requirements-lock.txt
 pip install -e .
 ```
+
+**Keeping yt-dlp current:** YouTube blocks stale yt-dlp versions. Run `galdr update-deps` periodically (or after a broken download) to pull the latest release.
 
 ## Getting Started
 
