@@ -382,6 +382,28 @@ def cmd_catalog(args):
             print("Catalog is empty")
 
 
+def cmd_update_deps():
+    """Update yt-dlp to the latest release."""
+    import subprocess
+    import sys
+    print("Updating yt-dlp...")
+    # Try yt-dlp's own self-update first (most reliable, version-agnostic)
+    result = subprocess.run(["yt-dlp", "--update"], capture_output=False)
+    if result.returncode != 0:
+        # Fall back to pip --user (works in user-space installs on Debian/Ubuntu)
+        print("Self-update failed, trying pip --user...")
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "--user", "yt-dlp"],
+            capture_output=False,
+        )
+    if result.returncode == 0:
+        ver = subprocess.run(["yt-dlp", "--version"], capture_output=True, text=True)
+        print(f"yt-dlp → {ver.stdout.strip()}")
+    else:
+        print("yt-dlp update failed — run: pip install --user --upgrade yt-dlp", file=sys.stderr)
+        sys.exit(1)
+
+
 def main():
     import importlib.metadata
     try:
@@ -498,6 +520,9 @@ Examples:
     compare_parser.add_argument("track_b", help="Second track name")
     compare_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory")
 
+    # update-deps
+    subparsers.add_parser("update-deps", help="Update yt-dlp to the latest release")
+
     # catalog
     catalog_parser = subparsers.add_parser("catalog", help="View catalog state")
     catalog_parser.add_argument("--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)")
@@ -519,6 +544,8 @@ Examples:
         cmd_compare(args)
     elif args.command == "catalog":
         cmd_catalog(args)
+    elif args.command == "update-deps":
+        cmd_update_deps()
     else:
         parser.print_help()
         sys.exit(1)
