@@ -8,10 +8,22 @@ This primes the model's associative network before it encounters galdr metrics.
 
 import json
 import re
+import shutil
 import subprocess
 import urllib.request
 import urllib.parse
 from pathlib import Path
+
+
+def _yt_dlp_base_cmd() -> list[str]:
+    """Return base yt-dlp command with JS runtime flag if a suitable runtime is found."""
+    cmd = ["yt-dlp"]
+    for runtime in ("node", "deno", "phantomjs"):
+        path = shutil.which(runtime)
+        if path:
+            cmd += ["--js-runtimes", f"{runtime}:{path}"]
+            break
+    return cmd
 
 
 # ─── Input validation ─────────────────────────────────────────────────────────
@@ -87,8 +99,7 @@ def get_youtube_metadata(url: str) -> dict:
     """
     url = validate_youtube_url(url)
     result = subprocess.run(
-        ["yt-dlp", "--dump-json", "--no-playlist",
-         "--js-runtimes", "node:/usr/bin/node", url],
+        _yt_dlp_base_cmd() + ["--dump-json", "--no-playlist", url],
         capture_output=True, text=True, check=True,
     )
     info = json.loads(result.stdout)
@@ -126,8 +137,7 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
     audio_dir.mkdir(parents=True, exist_ok=True)
     audio_out = audio_dir / f"{slug}.%(ext)s"
 
-    cmd = [
-        "yt-dlp",
+    cmd = _yt_dlp_base_cmd() + [
         "--extract-audio",
         "--audio-format", "mp3",
         "--audio-quality", "0",
@@ -136,7 +146,6 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
         "--sub-lang", "en",
         "--sub-format", "vtt",
         "--no-playlist",
-        "--js-runtimes", "node:/usr/bin/node",
         url,
     ]
 
