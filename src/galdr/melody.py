@@ -178,8 +178,8 @@ def analyze_melody(audio_path, output_dir, track_name,
     voiced_interp = np.interp(stream_times, pitch_times, voiced_probs) if len(pitch_times) > 0 else np.zeros_like(stream_times)
 
     for i, t in enumerate(stream_times):
-        pitch_idx = np.searchsorted(pitch_times, t)
-        pitch_idx = min(pitch_idx, len(f0) - 1)
+        pitch_idx = np.searchsorted(pitch_times, t, side="right") - 1
+        pitch_idx = max(0, min(pitch_idx, len(f0) - 1))
         current_f0 = float(f0[pitch_idx]) if not np.isnan(f0[pitch_idx]) else None
         current_note = hz_to_note_name(current_f0) if current_f0 else None
 

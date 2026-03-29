@@ -48,6 +48,9 @@ def validate_slug(slug: str) -> str:
             f"Invalid slug {slug!r}. Slugs may only contain letters, digits, "
             "dots, hyphens, and underscores."
         )
+    parts = slug.replace("\\", "/").split("/")
+    if any(p in (".", "..") or p == "" for p in parts):
+        raise ValueError(f"Invalid slug: {slug!r}")
     return slug
 
 
