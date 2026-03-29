@@ -280,4 +280,5 @@ def analyze_melody(audio_path, output_dir, track_name,
     plt.close()
     print(f"  Melody plot saved.")
 
-    return summary, stream
+    summary["stream"] = stream
+    return summary

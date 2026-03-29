@@ -11,6 +11,17 @@ import numpy as np
 import pytest
 
 
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+
+def _make_short_audio(duration_sec: float = 2.0, sr: int = 22050) -> tuple:
+    """Return (y, sr) for a short synthetic sine-wave audio array."""
+    n_samples = int(sr * duration_sec)
+    t = np.linspace(0, duration_sec, n_samples, endpoint=False)
+    y = (0.3 * np.sin(2 * np.pi * 440.0 * t)).astype(np.float32)
+    return y, sr
+
+
 # ─── 1. Short audio: analyze_track() does not crash ──────────────────────────
 
 
@@ -249,3 +260,92 @@ def test_tonal_center_timestamp_within_audio_duration():
         assert t <= max_valid_time + 1e-6, (
             f"Tonal center timestamp {t:.4f}s exceeds audio duration {max_valid_time:.4f}s"
         )
+
+
+# ─── 8. pattern_break_counts dict in perception summary ──────────────────────
+
+
+def test_pattern_break_counts_present_in_summary():
+    """generate_perception_stream() summary must have pattern_break_counts with all four keys."""
+    from galdr.perceive import compute_perception
+
+    y, sr = _make_short_audio(duration_sec=3.0)
+    report = compute_perception(y, sr, "test-counts")
+
+    summary = report.get("summary", {})
+    assert "pattern_break_counts" in summary, (
+        "summary missing 'pattern_break_counts' key"
+    )
+    pbc = summary["pattern_break_counts"]
+    for key in ("pattern_break", "momentum_drop", "momentum_gain", "silence"):
+        assert key in pbc, f"pattern_break_counts missing key '{key}'"
+    # Values must be non-negative integers
+    for key, val in pbc.items():
+        assert isinstance(val, int) and val >= 0, (
+            f"pattern_break_counts['{key}'] = {val!r}, expected non-negative int"
+        )
+
+
+# ─── 9. generate_perception_stream() returns a dict, not a tuple ─────────────
+
+
+def test_generate_perception_stream_returns_dict(tmp_path):
+    """generate_perception_stream() must return a dict (not a tuple)."""
+    import soundfile as sf
+    from galdr.perceive import generate_perception_stream
+
+    y, sr = _make_short_audio(duration_sec=3.0)
+    wav_path = tmp_path / "test.wav"
+    sf.write(str(wav_path), y, sr)
+
+    result = generate_perception_stream(str(wav_path), str(tmp_path), "test-return")
+    assert isinstance(result, dict), (
+        f"generate_perception_stream() returned {type(result).__name__}, expected dict"
+    )
+    assert "stream" in result, "result dict missing 'stream' key"
+    assert isinstance(result["stream"], list), "'stream' should be a list"
+
+
+# ─── 10. compute_track_features and compute_perception are importable ─────────
+
+
+def test_compute_track_features_importable():
+    """compute_track_features must be importable from galdr."""
+    from galdr import compute_track_features
+    assert callable(compute_track_features)
+
+
+def test_compute_perception_importable():
+    """compute_perception must be importable from galdr."""
+    from galdr import compute_perception
+    assert callable(compute_perception)
+
+
+def test_compute_track_features_callable_with_synthetic_audio():
+    """compute_track_features() must not crash on short synthetic audio."""
+    from galdr import compute_track_features
+
+    y, sr = _make_short_audio(duration_sec=2.0)
+    result = compute_track_features(y, sr, "synth")
+
+    assert isinstance(result, dict)
+    assert "tempo_bpm" in result
+    assert "beat_regularity" in result
+    assert "energy_arc" in result
+    # Private arrays should have been added but are stripped on JSON serialization;
+    # verify the report fields are present.
+    assert result["track"] == "synth"
+
+
+def test_compute_perception_callable_with_synthetic_audio():
+    """compute_perception() must not crash on short synthetic audio."""
+    from galdr import compute_perception
+
+    y, sr = _make_short_audio(duration_sec=2.0)
+    result = compute_perception(y, sr, "synth-perc")
+
+    assert isinstance(result, dict)
+    assert "stream" in result
+    assert isinstance(result["stream"], list)
+    assert "summary" in result
+    assert "pattern_break_counts" in result["summary"]
