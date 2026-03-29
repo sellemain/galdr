@@ -110,26 +110,22 @@ def cmd_listen(args):
     if "perceive" in modules:
         result = run_module("Perception", generate_perception_stream, audio_path, output_dir, track_name)
         if result:
-            report, stream = result
-            results["perception"] = report
+            results["perception"] = result
 
     if "harmony" in modules:
         result = run_module("Harmony", analyze_harmony, audio_path, output_dir, track_name)
         if result:
-            summary, stream = result
-            results["harmony"] = summary
+            results["harmony"] = result
 
     if "melody" in modules:
         result = run_module("Melody", analyze_melody, audio_path, output_dir, track_name)
         if result:
-            summary, stream = result
-            results["melody"] = summary
+            results["melody"] = result
 
     if "overtone" in modules:
         result = run_module("Overtone", analyze_overtones, audio_path, output_dir, track_name)
         if result:
-            summary, stream = result
-            results["overtone"] = summary
+            results["overtone"] = result
 
     # Catalog indexing
     if not args.no_catalog and results:

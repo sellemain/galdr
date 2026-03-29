@@ -492,4 +492,5 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
     plt.close()
     print(f"  Harmony plot saved.")
 
-    return summary, stream
+    summary["stream"] = stream
+    return summary

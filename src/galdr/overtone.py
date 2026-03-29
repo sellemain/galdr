@@ -322,4 +322,5 @@ def analyze_overtones(audio_path, output_dir, track_name):
         plt.close()
         print(f"  Harmonic profile plot saved.")
 
-    return summary, stream
+    summary["stream"] = stream
+    return summary

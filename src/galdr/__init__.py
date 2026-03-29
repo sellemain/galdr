@@ -34,8 +34,8 @@ except PackageNotFoundError:
     __version__ = "unknown"
 
 # ─── Analysis pipeline ────────────────────────────────────────────────────────
-from .analyze import analyze_track
-from .perceive import generate_perception_stream, compute_momentum
+from .analyze import analyze_track, compute_track_features
+from .perceive import generate_perception_stream, compute_momentum, compute_perception
 from .harmony import analyze_harmony, detect_key_kk
 from .melody import analyze_melody
 from .overtone import analyze_overtones
@@ -57,7 +57,9 @@ from .assemble import (
 __all__ = [
     # Analysis
     "analyze_track",
+    "compute_track_features",
     "generate_perception_stream",
+    "compute_perception",
     "compute_momentum",
     "analyze_harmony",
     "detect_key_kk",

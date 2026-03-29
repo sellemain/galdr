@@ -74,10 +74,10 @@ def _load_events(perception: dict) -> list[dict]:
             else:
                 events.append({
                     "time": t,
-                    "type": "break",
+                    "type": btype,
                     "duration": 0,
                     "intensity": b.get("intensity", 0),
-                    "components": b.get("components", {}),
+                    "components": b.get("description", ""),
                 })
     else:
         for s in perception.get("silences", []):
@@ -108,6 +108,11 @@ def _score_event(ev: dict) -> float:
         depth_factor = min(1.0, abs(ev.get("depth_db", -80)) / 80.0)
         dur_factor = min(1.0, ev.get("duration", 0) / 10.0)
         return 2.0 * (depth_factor * 0.4 + dur_factor * 0.6)
+    if ev["type"] in ("momentum_drop", "momentum_gain"):
+        # Score by magnitude of the shift: abs(to - from), capped at 1
+        frm = ev.get("from", 0.0)
+        to = ev.get("to", 0.0)
+        return min(1.0, abs(to - frm)) * 0.8  # slightly lower than a break
     return float(ev.get("intensity", 0))
 
 
@@ -525,6 +530,14 @@ def _fmt_time(seconds: float) -> str:
 def _event_label(ev: dict) -> str:
     if ev["type"] == "silence":
         return f"{ev['duration']:.1f}s silence at {ev['depth_db']:.0f}dB"
+    if ev["type"] == "momentum_drop":
+        frm = ev.get("from", 0.0)
+        to = ev.get("to", 0.0)
+        return f"momentum drop ({frm:.3f} → {to:.3f})"
+    if ev["type"] == "momentum_gain":
+        frm = ev.get("from", 0.0)
+        to = ev.get("to", 0.0)
+        return f"momentum gain ({frm:.3f} → {to:.3f})"
     return f"pattern break (intensity {ev.get('intensity', 0):.3f})"
 
 
