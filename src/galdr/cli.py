@@ -72,11 +72,23 @@ def cmd_listen(args):
 
     # Determine which modules to run
     all_modules = ["report", "perceive", "harmony", "melody", "overtone"]
+    valid_modules = set(all_modules)
     if args.only:
-        modules = [m.strip() for m in args.only.split(",")]
+        requested = [m.strip() for m in args.only.split(",")]
+        invalid = [m for m in requested if m not in valid_modules]
+        if invalid:
+            print(f"Error: unknown module(s) in --only: {', '.join(invalid)}")
+            print(f"  Valid modules: {', '.join(sorted(valid_modules))}")
+            sys.exit(1)
+        modules = requested
     elif args.skip:
-        skip = {m.strip() for m in args.skip.split(",")}
-        modules = [m for m in all_modules if m not in skip]
+        skip_requested = {m.strip() for m in args.skip.split(",")}
+        invalid = [m for m in skip_requested if m not in valid_modules]
+        if invalid:
+            print(f"Error: unknown module(s) in --skip: {', '.join(invalid)}")
+            print(f"  Valid modules: {', '.join(sorted(valid_modules))}")
+            sys.exit(1)
+        modules = [m for m in all_modules if m not in skip_requested]
     else:
         modules = all_modules
 

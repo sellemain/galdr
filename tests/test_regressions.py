@@ -6,6 +6,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+import librosa
 import numpy as np
 import pytest
 
@@ -193,7 +194,7 @@ def test_cli_only_invalid_module_no_audio():
 
 
 def test_cli_only_invalid_module_with_audio():
-    """galdr listen with --only invalid_name produces no module output (runs 0 modules)."""
+    """galdr listen with --only invalid_name exits nonzero (now validated)."""
     with tempfile.TemporaryDirectory() as tmpdir:
         import soundfile as sf
 
@@ -211,11 +212,40 @@ def test_cli_only_invalid_module_with_audio():
             text=True,
             timeout=60,
         )
-        # Either nonzero exit, or combined output has no indication of running any module
-        # In galdr, invalid module names just result in no modules running but exit 0
+        # Invalid module name must cause nonzero exit
+        assert result.returncode != 0, (
+            f"Expected nonzero exit for --only invalid_module_xyz, got {result.returncode}"
+        )
         combined = result.stdout + result.stderr
-        # None of the real module names should appear as "running..."
-        for module in ["Audio Analysis", "Perception", "Harmony", "Melody", "Overtone"]:
-            assert module not in combined, (
-                f"Module '{module}' ran despite --only invalid_module_xyz"
-            )
+        assert "invalid_module_xyz" in combined, (
+            "Error message should mention the invalid module name"
+        )
+
+
+# ─── 7. Tonal center timestamp doesn't exceed audio duration ─────────────────
+
+
+def test_tonal_center_timestamp_within_audio_duration():
+    """compute_tonal_center() timestamps must not exceed the audio duration on short inputs."""
+    from galdr.harmony import compute_tonal_center
+
+    sr = 22050
+    hop_length = 512
+    n_frames = 10  # very short — fewer frames than the default window size
+
+    # Synthetic chroma: 12 pitch classes × 10 frames, all uniform energy
+    rng = np.random.default_rng(42)
+    chroma = rng.random((12, n_frames)).astype(np.float32)
+    chroma /= chroma.sum(axis=0, keepdims=True) + 1e-8  # normalize columns
+
+    times, key_names, modes, stability, major_minor, confidence = compute_tonal_center(
+        chroma, sr=sr, hop_length=hop_length
+    )
+
+    # Maximum representable audio time is the last frame's time
+    max_valid_time = librosa.frames_to_time(n_frames - 1, sr=sr, hop_length=hop_length)
+
+    for t in times:
+        assert t <= max_valid_time + 1e-6, (
+            f"Tonal center timestamp {t:.4f}s exceeds audio duration {max_valid_time:.4f}s"
+        )
