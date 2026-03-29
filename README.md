@@ -35,7 +35,12 @@ Or from source (reproducible install using the lockfile):
 ```bash
 git clone https://github.com/sellemain/galdr.git
 cd galdr
-pip install -r requirements-lock.txt
+uv sync          # installs exact locked versions
+```
+
+Or without uv:
+
+```bash
 pip install -e .
 ```
 
