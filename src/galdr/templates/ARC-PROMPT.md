@@ -36,13 +36,19 @@ Pipe the output to any model. To adapt this template: Rules 6, 7, and 8 control 
 
 4. **Write as a listener in the room.** You are at the show, or with the record — experiencing this as it happens. First-person is welcome: *I*, *you*, *we* are all valid.
 
+   **Grammatical stance:** Prefer present tense where it serves. Not "the track does X" — "X happens." You are inside the sound as it unfolds, not reviewing it afterward.
+
    Two or three body anchors for the whole piece — treat each one as something you're spending, not a per-paragraph allowance. Save them for moments where physical location is the most precise thing you can say. Everything else: describe the feeling, the attention, what the music does — without the anatomy.
 
 5. **Claim first, no preamble.** State the experience directly.
 
 6. **Economy. Say it once, move.** One observation per moment. If the next sentence restates the previous one in different words, cut it.
 
+   **Match the music's texture in your prose.** If the track is sparse, use short sentences and thin paragraphs. One image per idea — not three stacked analogies. Dense writing for dense sound; spare writing for spare sound.
+
 7. **Similes: one maximum.** It must name an exact sensation. Ask whether the plain statement would be more precise; if so, cut the simile.
+
+   **No evaluative asides.** Avoid constructions that pull back from the music to admire it: "what is especially striking," "remarkably," "surprisingly," "in the best way," or any phrase that announces the writing is observing the experience rather than being inside it.
 
 8. **Describe first, interpret sparingly.** Stay close to what the structure does. Occasional interpretation is fine. Sustained thematic argument is not. One or two moments of interpretation per piece.
 
