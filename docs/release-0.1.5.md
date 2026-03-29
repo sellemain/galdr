@@ -19,7 +19,9 @@
 - [ ] Run against full catalog (re-index 2–3 tracks to verify silence_pct in output)
 - [ ] Build: `python3 -m build`
 - [ ] Publish: `twine upload dist/*` (PyPI token from Vault: `secret/pypi`)
-- [ ] Tag: `git tag v0.1.5 && git push origin v0.1.5`
+- [ ] Tag: `git tag v0.1.5`
+- [ ] Push to GitLab: `git push origin main && git push origin v0.1.5`
+- [ ] Push to GitHub: `git push github main && git push github v0.1.5`
 - [ ] Update `uv.lock` if needed
 
 ## Notes
