@@ -248,9 +248,8 @@ def compute_tonal_center(chroma, sr, hop_length=512,
 
         profile = np.mean(window, axis=1)
         total = np.sum(profile)
-        times[i] = librosa.frames_to_time(
-            start + window_frames // 2, sr=sr, hop_length=hop_length
-        )
+        ts_frame = min(start + window_frames // 2, n_frames - 1)
+        times[i] = librosa.frames_to_time(ts_frame, sr=sr, hop_length=hop_length)
 
         if total < TONAL_CENTER_MIN_ENERGY:
             key_names.append("?")
