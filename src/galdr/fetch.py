@@ -95,13 +95,15 @@ def get_youtube_metadata(url: str) -> dict:
     """Fetch video metadata from YouTube without downloading audio.
 
     Returns dict with 'title', 'uploader', 'channel' keys (strings).
-    Raises subprocess.CalledProcessError on failure.
+    Raises RuntimeError on failure (with stderr context).
     """
     url = validate_youtube_url(url)
     result = subprocess.run(
         _yt_dlp_base_cmd() + ["--dump-json", "--no-playlist", url],
-        capture_output=True, text=True, check=True,
+        capture_output=True, text=True, timeout=60,
     )
+    if result.returncode != 0:
+        raise RuntimeError(f"yt-dlp metadata failed: {result.stderr[:300]}")
     info = json.loads(result.stdout)
     return {
         "title": info.get("title", ""),
@@ -150,7 +152,7 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
     ]
 
     print(f"  [yt-dlp] {url}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
     if result.returncode != 0:
         stderr_snippet = result.stderr[:500]
         print(f"  [yt-dlp] stderr: {result.stderr[:300]}")
@@ -163,8 +165,9 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
         stderr_snippet = None
 
     audio_file = audio_dir / f"{slug}.mp3"
-    # yt-dlp writes VTT as {slug}.en.vtt
-    vtt_file = audio_dir / f"{slug}.en.vtt"
+    # yt-dlp language tag varies (en, en-US, en-orig, etc.) — find whatever landed
+    vtt_candidates = sorted(audio_dir.glob(f"{slug}.*.vtt"))
+    vtt_file = vtt_candidates[0] if vtt_candidates else audio_dir / f"{slug}.en.vtt"
 
     return {
         "audio_file": str(audio_file) if audio_file.exists() else None,
