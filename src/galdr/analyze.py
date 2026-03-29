@@ -357,6 +357,11 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
     print("  Harmonic-percussive separation...")
 
     report = compute_track_features(y, sr, track_name)
+
+    # Null signal guard: skip all I/O — no files written, no visualizations.
+    if report.get("null_signal"):
+        return report
+
     _save_visualizations(y, sr, report, out, track_name)
 
     report_path = out / f"{track_name}_report.json"
