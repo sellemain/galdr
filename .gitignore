@@ -43,3 +43,4 @@ venv/
 scripts/legacy/
 video/
 work/
+requirements.lock
