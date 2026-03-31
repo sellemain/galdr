@@ -44,3 +44,4 @@ scripts/legacy/
 video/
 work/
 requirements.lock
+uv.lock
