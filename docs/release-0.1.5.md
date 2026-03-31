@@ -25,7 +25,7 @@
 - [ ] Tag: `git tag v0.1.5`
 - [ ] Push to GitLab: `git push origin main && git push origin v0.1.5`
 - [ ] Push to GitHub: `git push github main && git push github v0.1.5`
-- [ ] Update `uv.lock` if needed
+- [x] Drop `uv.lock` from tracking — library convention, gitignored (f3065c9)
 
 ## Notes
 
