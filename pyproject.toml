@@ -62,6 +62,7 @@ ignore = ["E501", "F401", "F541", "F841"]
 # Skip slow functional tests (real audio analysis) by default.
 # Run them explicitly with: pytest -m slow
 addopts = "-m 'not slow'"
+pythonpath = ["src"]
 markers = [
     "slow: full audio-analysis pipeline (requires audio files in audio/)",
 ]
