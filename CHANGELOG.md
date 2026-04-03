@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-04-03
+
+### Added
+- `galdr update-deps`: command to update yt-dlp and other dependencies in place
+- Active-frame silence stats in perception summary: `silence_pct`, `active_duration_sec`, `silent_duration_sec`, `mean_momentum_active`, `mean_pattern_lock_active`, `momentum_range_active` — when silence exceeds 10%, catalog ranking uses active-frame stats instead of whole-track means
+- Null signal guard: tracks with RMS below threshold exit early with `{null_signal: true}`, no files written, not indexed — prevents degenerate inputs from polluting catalog
+- `pythonpath = ["src"]` in pytest config for correct src-layout test isolation
+
+### Fixed
+- Subprocess timeouts added throughout to prevent hung calls
+- JS runtime path detected dynamically instead of hardcoded `/usr/bin/node`
+- yt-dlp version floor tightened to 2026.1.0
+- VTT filename detection made dynamic (was fragile on some yt-dlp versions)
+- `pattern_break_counts`, frame semantics, and unified return shapes across DSP/IO separation
+
+### Changed
+- `uv.lock` removed from version control (library convention — consumers manage their own lockfiles)
+- Repository canonical source moved from `sm/music-experience` to `sm/galdr` on GitLab
+
 ## [0.1.3] - 2026-03-27
 
 ### Added
