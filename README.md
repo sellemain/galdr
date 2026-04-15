@@ -46,7 +46,20 @@ pip install -e .
 
 **Keeping yt-dlp current:** YouTube blocks stale yt-dlp versions. Run `galdr update-deps` periodically (or after a broken download) to pull the latest release.
 
+## Choose Your Path
+
+Most people land in one of four modes:
+
+- **Generate a listening experience** — fetch a track, analyze it, assemble a prompt, send it to a model.
+- **Do structural music analysis** — run galdr on a local file and inspect the JSON outputs directly.
+- **Compare tracks and build a corpus** — accumulate analyses and use the catalog / compare commands.
+- **Use galdr inside an agent or script** — let galdr produce the analysis and prompt packet, then hand off to your model/runtime.
+
+If you're unsure, start with the first path. It's the shortest end-to-end route to seeing what galdr is for.
+
 ## Getting Started
+
+### 1) Generate a listening experience from YouTube
 
 Point galdr at a YouTube URL. Three commands to a finished listening experience.
 
@@ -68,65 +81,133 @@ cat prompt.txt | claude       # Claude CLI
 
 That produces something like this: **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 
-→ **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
-
-### For humans
-
-If you have the Claude CLI (or [llm](https://llm.datasette.io/)):
+Useful variants:
 
 ```bash
-galdr assemble my-track --template arc | claude
-galdr assemble my-track --template arc | llm
+# Blind listening — structural data only, no lyrics/background
+galdr assemble queen-bohemian-rhapsody --template arc --mode blind | claude
+
+# Data-first output — no template, just the assembled packet
+galdr assemble queen-bohemian-rhapsody --mode full
+
+# Write prompt packet to disk for later reuse
+galdr assemble queen-bohemian-rhapsody --template arc --mode full > prompts/queen.txt
 ```
 
-The assembled prompt is self-contained — no system prompt needed, the template handles everything.
+If you already have the slug and just want to regenerate prose with a different mode/template, you do **not** need to re-run fetch.
 
-### For AI agents
+### 2) Analyze a local file for structural music data
+
+If you care more about the analysis than the prose, start local and inspect the outputs.
+
+```bash
+# Analyze a file and write JSON + plots under analysis/my-track/
+galdr listen track.wav --name my-track
+
+# Run only some modules if you want a narrower pass
+galdr listen track.wav --name my-track --only report,perceive,harmony
+
+# Skip catalog indexing for one-off experiments
+galdr listen track.wav --name my-track --no-catalog
+```
+
+After that you'll have a directory like:
+
+```text
+analysis/my-track/
+├── my-track_report.json
+├── my-track_perception.json
+├── my-track_stream.json
+├── my-track_harmony.json
+├── my-track_melody.json
+├── my-track_overtone.json
+└── *.png
+```
+
+A few concrete things you can do with those files:
+
+```bash
+# Read the perception summary
+jq '.summary' analysis/my-track/my-track_perception.json
+
+# Inspect structural events in time order
+jq '.pattern_breaks[:10]' analysis/my-track/my-track_perception.json
+
+# Look at the second-by-second stream
+jq '.[0:5]' analysis/my-track/my-track_stream.json
+```
+
+This is the right path if you're treating galdr as an analysis engine rather than an experience-writing pipeline.
+
+### 3) Compare tracks and build a catalog
+
+galdr gets more useful once it has heard more than one thing.
+
+```bash
+# Build up the catalog
+galdr listen helvegen.wav --name wardruna-helvegen
+galdr listen bohemian-rhapsody.wav --name queen-bohemian-rhapsody
+galdr listen bach-cello-suite.wav --name bach-cello-suite-1
+
+# View cross-track statistics
+galdr catalog
+
+# Compare two specific tracks
+galdr compare wardruna-helvegen queen-bohemian-rhapsody
+```
+
+This is the path for corpus-building, preference mapping, anomaly hunting, and "what changed between these two listens?" work.
+
+### 4) Use galdr from Python or an agent runtime
 
 If a user asks you to generate a listening experience for a YouTube track, galdr handles the analysis. You handle the prose.
 
 ```python
-import subprocess, re
+import re
+import subprocess
 
 url = "https://www.youtube.com/watch?v=b_YHE4Sx-08"
 
 # Fetch and analyze — slug auto-derived from YouTube title
-fetch = subprocess.run(["galdr", "fetch", url, "--analyze"],
-                       capture_output=True, text=True, check=True)
+fetch = subprocess.run(
+    ["galdr", "fetch", url, "--analyze"],
+    capture_output=True,
+    text=True,
+    check=True,
+)
 slug = re.search(r"Slug\s*:\s*(\S+)", fetch.stdout).group(1)
 
-# Get the assembled prompt
+# Build the prompt packet for your model
 prompt = subprocess.run(
     ["galdr", "assemble", slug, "--template", "arc", "--mode", "full"],
-    capture_output=True, text=True, check=True
+    capture_output=True,
+    text=True,
+    check=True,
 ).stdout
 
-# prompt is a self-contained string — pass it to whatever model your agent uses
+# prompt is now a self-contained string for Claude, llm, OpenAI, etc.
 ```
 
-The prompt includes: source URL, all structural events, harmonic and melodic data, lyrics with timestamps if available, video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
+You can also use galdr as a subprocess-backed analysis stage for local files:
 
----
+```python
+import json
+import subprocess
+from pathlib import Path
 
-### Other commands
+subprocess.run([
+    "galdr", "listen", "track.wav", "--name", "my-track", "--no-catalog"
+], check=True)
 
-Analyze a local file:
-
-```bash
-galdr listen track.wav
+perception = json.loads(
+    Path("analysis/my-track/my-track_perception.json").read_text()
+)
+pattern_breaks = perception["pattern_breaks"]
 ```
 
-Compare two tracks:
+The assembled prompt includes: source URL, structural events, harmonic and melodic data, lyrics with timestamps if available, and video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
 
-```bash
-galdr compare track-a track-b
-```
-
-View catalog (cross-track statistics):
-
-```bash
-galdr catalog
-```
+→ **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
 
 ## What It Measures
 
@@ -192,7 +273,11 @@ from galdr.catalog import CatalogState
 
 # Run individual modules
 report = analyze_track("track.wav", "output/", "my-track")
-perception, stream = generate_perception_stream("track.wav", "output/", "my-track")
+perception = generate_perception_stream("track.wav", "output/", "my-track")
+
+# perception is a dict with a second-by-second stream and summary
+summary = perception["summary"]
+stream = perception["stream"]
 ```
 
 ## Agent Integration
