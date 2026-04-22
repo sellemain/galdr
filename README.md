@@ -20,7 +20,9 @@ What galdr can claim: it measures real structural features of music. The listene
 
 Just what shaped the reasoning.
 
-**[Read a listening experience →](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
+**Listening examples:**
+- **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
+- **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 
 ---
 
@@ -79,7 +81,9 @@ cat prompt.txt | llm          # llm CLI
 cat prompt.txt | claude       # Claude CLI
 ```
 
-That produces something like this: **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
+That produces something like these:
+- **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
+- **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 
 Useful variants:
 

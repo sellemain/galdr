@@ -524,7 +524,10 @@ Examples:
     compare_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory")
 
     # update-deps
-    subparsers.add_parser("update-deps", help="Update yt-dlp to the latest release")
+    subparsers.add_parser(
+        "update-deps",
+        help="Update yt-dlp in the current Python environment",
+    )
 
     # catalog
     catalog_parser = subparsers.add_parser("catalog", help="View catalog state")

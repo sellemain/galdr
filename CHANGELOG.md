@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Public example listening doc for AURORA — `docs/aurora-runaway.md`
+
+### Changed
+- CI now installs and runs through `uv` with locked dependencies to match the documented repo workflow
+- `galdr update-deps` now upgrades `yt-dlp` in the current Python environment instead of using a user-level fallback that could drift from the repo env
+- README example links now point to two public listening docs instead of one
+
 ## [0.1.6] - 2026-04-03
 
 ### Added
@@ -23,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pattern_break_counts`, frame semantics, and unified return shapes across DSP/IO separation
 
 ### Changed
-- `uv.lock` removed from version control (library convention — consumers manage their own lockfiles)
 - Repository canonical source moved from `sm/music-experience` to `sm/galdr` on GitLab
 
 ## [0.1.3] - 2026-03-27
