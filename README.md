@@ -44,7 +44,7 @@ Or without uv:
 pip install -e .
 ```
 
-**Keeping yt-dlp current:** YouTube blocks stale yt-dlp versions. Run `galdr update-deps` periodically (or after a broken download) to pull the latest release.
+**Keeping yt-dlp current:** YouTube blocks stale yt-dlp versions. Run `galdr update-deps` periodically (or after a broken download) to upgrade yt-dlp in the current Python environment. If you're working from the repo with uv, refresh the lock and env together with `uv lock --upgrade-package yt-dlp && uv sync`.
 
 ## Choose Your Path
 

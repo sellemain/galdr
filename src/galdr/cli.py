@@ -383,24 +383,27 @@ def cmd_catalog(args):
 
 
 def cmd_update_deps():
-    """Update yt-dlp to the latest release."""
+    """Update yt-dlp in the current Python environment."""
     import subprocess
     import sys
-    print("Updating yt-dlp...")
-    # Try yt-dlp's own self-update first (most reliable, version-agnostic)
-    result = subprocess.run(["yt-dlp", "--update"], capture_output=False)
-    if result.returncode != 0:
-        # Fall back to pip --user (works in user-space installs on Debian/Ubuntu)
-        print("Self-update failed, trying pip --user...")
-        result = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--upgrade", "--user", "yt-dlp"],
-            capture_output=False,
-        )
+
+    print("Updating yt-dlp in current environment...")
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
+        capture_output=False,
+    )
     if result.returncode == 0:
-        ver = subprocess.run(["yt-dlp", "--version"], capture_output=True, text=True)
+        ver = subprocess.run(
+            [sys.executable, "-m", "yt_dlp", "--version"],
+            capture_output=True,
+            text=True,
+        )
         print(f"yt-dlp → {ver.stdout.strip()}")
     else:
-        print("yt-dlp update failed — run: pip install --user --upgrade yt-dlp", file=sys.stderr)
+        print(
+            "yt-dlp update failed — run: python -m pip install --upgrade yt-dlp",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
