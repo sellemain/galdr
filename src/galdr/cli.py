@@ -423,7 +423,10 @@ def main():
 
     # listen
     listen_parser = subparsers.add_parser("listen", help="Analyze an audio file")
-    listen_parser.add_argument("audio", help="Path to audio file (WAV)")
+    listen_parser.add_argument(
+        "audio",
+        help="Path to audio file (WAV/MP3/FLAC/OGG/M4A/AIFF; ffmpeg-supported)",
+    )
     listen_parser.add_argument("--name", help="Track name (default: from filename)")
     listen_parser.add_argument("--analysis-dir", default="analysis", help="Output directory root")
     listen_parser.add_argument("--skip", help="Comma-separated modules to skip")
