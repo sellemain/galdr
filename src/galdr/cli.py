@@ -422,7 +422,11 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # listen
-    listen_parser = subparsers.add_parser("listen", help="Analyze an audio file")
+    listen_parser = subparsers.add_parser(
+        "listen",
+        aliases=["analyze"],
+        help="Analyze an audio file",
+    )
     listen_parser.add_argument(
         "audio",
         help="Path to audio file (WAV/MP3/FLAC/OGG/M4A/AIFF; ffmpeg-supported)",
@@ -541,7 +545,7 @@ Examples:
 
     args = parser.parse_args()
 
-    if args.command == "listen":
+    if args.command in {"listen", "analyze"}:
         cmd_listen(args)
     elif args.command == "fetch":
         cmd_fetch(args)
