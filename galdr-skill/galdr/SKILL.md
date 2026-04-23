@@ -39,9 +39,48 @@ galdr fetch "https://youtu.be/..." --artist "Oliver Anthony" --title "Rich Men N
 
 ### Local file → Analysis only
 
+> The analysis command is `galdr listen`, not `galdr analyze`.
+
 ```bash
 galdr listen track.wav --name my-track
 galdr assemble my-track --template arc
+```
+
+### Second-by-second analysis (for another AI)
+
+Galdr is strongest when read as a **time-ordered listener-state trace**. The stream is the primary evidence. Whole-track interpretation comes after walking the track through time.
+
+Start with:
+- `analysis/<slug>/<slug>_stream.json`
+- `analysis/<slug>/<slug>_perception.json`
+- `docs/PERCEPTION-MODEL.md`
+
+Useful extras:
+- `*_harmony_stream.json`
+- `*_melody_stream.json`
+- `*_overtone_stream.json`
+- `*_report.json`
+- `galdr assemble <slug> --mode blind`
+
+Reading order:
+1. Read `PERCEPTION-MODEL.md` first.
+2. Treat `*_stream.json` as the main evidence surface.
+3. Walk the track in order.
+4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, breath changes, harmonic movement.
+5. Only then compress upward into a larger interpretation.
+
+Do not:
+- jump straight to a whole-song mood summary
+- treat summary metrics as more important than the stream
+- ignore silence/re-entry structure
+- overclaim emotional certainty from structure alone
+
+Minimal recipe:
+```bash
+galdr listen track.wav --name my-track
+jq '.[0:12]' analysis/my-track/my-track_stream.json
+jq '.summary' analysis/my-track/my-track_perception.json
+galdr assemble my-track --mode blind
 ```
 
 ### Python agent pattern
