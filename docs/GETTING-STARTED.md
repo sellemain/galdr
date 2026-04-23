@@ -74,12 +74,72 @@ galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --no-download --name q
 
 If you have an audio file already:
 
+> The analysis command is `galdr listen`, not `galdr analyze`.
+
 ```bash
 galdr listen track.wav --name my-track
 galdr assemble my-track --template arc --mode full | claude
 ```
 
 Galdr accepts WAV, MP3, FLAC, OGG, M4A, and AIFF via ffmpeg. For freely-licensed recordings: [Free Music Archive](https://freemusicarchive.org), [Internet Archive](https://archive.org/details/audio), [Musopen](https://musopen.org).
+
+---
+
+## Second-by-second analysis
+
+This is the part most likely to be missed.
+
+If you are another AI — or you are prompting one — do not jump straight to a whole-song interpretation. Galdr is strongest when read as a time-ordered trace of listener state.
+
+### Minimum useful inputs
+
+Start with:
+- `analysis/<slug>/<slug>_stream.json`
+- `analysis/<slug>/<slug>_perception.json`
+- `docs/PERCEPTION-MODEL.md`
+
+Useful extras if you want a richer read:
+- `*_harmony_stream.json`
+- `*_melody_stream.json`
+- `*_overtone_stream.json`
+- `*_report.json`
+- `galdr assemble <slug> --mode blind`
+
+### Correct reading order
+
+1. Read `PERCEPTION-MODEL.md` first.
+2. Treat the stream as the primary evidence.
+3. Walk through time in order.
+4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, breath changes, harmonic movement.
+5. Only after that should you compress the track into a larger arc.
+
+### What to avoid
+
+Do not:
+- summarize the whole song first and retrofit the stream afterward
+- treat summary metrics as the real result and the stream as decoration
+- overclaim emotional certainty from structural metrics
+- skip silence structure, return behavior, or collapse/rebuild moments
+
+### Minimal working recipe
+
+```bash
+# 1. Analyze
+galdr listen track.wav --name my-track
+
+# 2. Inspect the time stream
+jq '.[0:10]' analysis/my-track/my-track_stream.json
+
+# 3. Read the metric contract
+sed -n '1,220p' docs/PERCEPTION-MODEL.md
+
+# 4. Optional: build a compact structural packet
+galdr assemble my-track --mode blind > prompt.txt
+```
+
+### Suggested instruction for another AI
+
+> You are reading a time-ordered listener-state trace, not reviewing a finished song from memory. Start from the stream. Walk the track through time. Explain what changes, when it changes, and how attention is being shaped. Use `PERCEPTION-MODEL.md` as the semantic contract for the metrics. Do not jump straight to a whole-song summary and do not claim emotional certainty the data does not justify.
 
 ---
 

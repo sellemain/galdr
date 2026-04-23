@@ -104,6 +104,8 @@ If you already have the slug and just want to regenerate prose with a different 
 
 If you care more about the analysis than the prose, start local and inspect the outputs.
 
+> The analysis command is `galdr listen`, not `galdr analyze`.
+
 ```bash
 # Analyze a file and write JSON + plots under analysis/my-track/
 galdr listen track.wav --name my-track
@@ -142,6 +144,65 @@ jq '.[0:5]' analysis/my-track/my-track_stream.json
 ```
 
 This is the right path if you're treating galdr as an analysis engine rather than an experience-writing pipeline.
+
+### 2.5) Second-by-second analysis (for another AI)
+
+If you are another AI — or you are prompting one — do **not** default to a whole-song summary first.
+
+That misses the point of galdr.
+
+Galdr is strongest when read as a **time-ordered listener-state trace**. The stream is the primary evidence. The whole-track reading should come *after* walking the song through time.
+
+#### Minimum inputs
+
+For a real time-resolved read, start with:
+- `analysis/<slug>/<slug>_stream.json`
+- `analysis/<slug>/<slug>_perception.json`
+- `docs/PERCEPTION-MODEL.md`
+
+Useful optional additions:
+- `analysis/<slug>/<slug>_harmony_stream.json`
+- `analysis/<slug>/<slug>_melody_stream.json`
+- `analysis/<slug>/<slug>_overtone_stream.json`
+- `analysis/<slug>/<slug>_report.json`
+- `galdr assemble <slug> --mode blind` for a compact packet
+
+#### How to read it
+
+1. Read `PERCEPTION-MODEL.md` first so the fields mean what galdr means by them.
+2. Treat `*_stream.json` as the main evidence surface, not a side artifact.
+3. Walk through time in order.
+4. Call out transitions: silences, pattern breaks, momentum ramps, breath reversals, harmonic/timbral shifts.
+5. Only then compress upward into the larger shape of the track.
+
+#### What not to do
+
+Do **not**:
+- flatten the song into one global mood immediately
+- treat summary metrics as more important than the stream
+- overclaim emotional certainty from structure alone
+- ignore silence structure or return/re-entry behavior
+- write as if you already know the song and are merely decorating that prior knowledge
+
+#### Practical workflow
+
+```bash
+# 1. Analyze the track
+galdr listen track.wav --name my-track
+
+# 2. Inspect the time stream directly
+jq '.[0:10]' analysis/my-track/my-track_stream.json
+
+# 3. Read the perception contract
+sed -n '1,220p' docs/PERCEPTION-MODEL.md
+
+# 4. Optionally build a compact blind packet
+galdr assemble my-track --mode blind > prompt.txt
+```
+
+#### Suggested instruction to another model
+
+> You are reading a time-ordered listener-state trace, not reviewing a finished song from memory. Start from the stream. Walk the track through time. Explain what changes, when it changes, and how attention is being shaped. Use `PERCEPTION-MODEL.md` as the semantic contract for the metrics. Do not jump straight to a whole-song summary and do not claim emotional certainty the data does not justify.
 
 ### 3) Compare tracks and build a catalog
 
