@@ -9,15 +9,24 @@ Audio analysis CLI. Generates structural metrics then assembles a prompt for ~80
 
 ## Install
 
+Preferred trusted sources:
+- PyPI: <https://pypi.org/project/galdr/>
+- Source: <https://github.com/sellemain/galdr>
+
 ```bash
-pip install galdr
+pip install galdr==0.1.7
+
+# or from source:
+git clone https://github.com/sellemain/galdr.git
+cd galdr
+pip install -e .
 ```
 
-Check: `galdr --version`. If missing: install before proceeding.
+Check: `galdr --version`. If missing: install before proceeding. If provenance matters, verify the PyPI metadata or install from the source repository above before running it.
 
 ## Core Workflows
 
-### YouTube URL → Experience (most common)
+### YouTube URL → Analysis + prompt (most common)
 
 ```bash
 # Step 1: fetch audio + context (slug auto-derived from title)
@@ -27,9 +36,8 @@ galdr fetch "https://youtu.be/..." --analyze
 #   Slug : artist-song-title
 #   Next : galdr assemble artist-song-title --template arc --mode full
 
-# Step 2: assemble prompt and pipe to model
-galdr assemble artist-song-title --template arc --mode full | claude
-galdr assemble artist-song-title --template arc --mode full | llm
+# Step 2: assemble the prompt locally
+galdr assemble artist-song-title --template arc --mode full > prompt.txt
 ```
 
 Override auto-derived metadata if needed:
@@ -80,10 +88,19 @@ Minimal recipe:
 galdr listen track.wav --name my-track
 jq '.[0:12]' analysis/my-track/my-track_stream.json
 jq '.summary' analysis/my-track/my-track_perception.json
-galdr assemble my-track --mode blind
+galdr assemble my-track --mode blind > prompt.txt
 ```
 
-### Python agent pattern
+### Optional: send an assembled prompt to another model
+
+Only do this if the operator explicitly wants model-written prose. Review the assembled prompt before piping it to `claude`, `llm`, or any other external model endpoint.
+
+```bash
+galdr assemble my-track --template arc --mode full | claude
+galdr assemble my-track --template arc --mode full | llm
+```
+
+### Optional Python agent pattern
 
 ```python
 import subprocess, re
@@ -99,7 +116,7 @@ prompt = subprocess.run(
     capture_output=True, text=True, check=True
 ).stdout
 
-# prompt is self-contained — pass to any model
+# Review prompt before sending it to any external model endpoint.
 ```
 
 ### Mode and template flags

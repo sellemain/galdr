@@ -9,11 +9,20 @@ Models a listener's attention as music plays — how engagement builds, holds, a
 
 ## Install
 
+Preferred trusted sources:
+- PyPI: <https://pypi.org/project/galdr/>
+- Source: <https://github.com/sellemain/galdr>
+
 ```bash
-pip install galdr
+pip install galdr==0.1.7
+
 # or from source:
-pip install -e /path/to/galdr
+git clone https://github.com/sellemain/galdr.git
+cd galdr
+pip install -e .
 ```
+
+If provenance matters, verify the PyPI metadata or install from the source repository above before running it.
 
 ## Commands
 
@@ -74,7 +83,16 @@ Minimum practical workflow:
 galdr listen track.wav --name my-track
 jq '.[0:12]' analysis/my-track/my-track_stream.json
 jq '.summary' analysis/my-track/my-track_perception.json
-galdr assemble my-track --mode blind
+galdr assemble my-track --mode blind > prompt.txt
+```
+
+### Optional: send an assembled prompt to another model
+
+Only do this if the operator explicitly wants model-written prose. Review the assembled prompt before piping it to `claude`, `llm`, or any other external model endpoint.
+
+```bash
+galdr assemble my-track --template arc --mode full | claude
+galdr assemble my-track --template arc --mode full | llm
 ```
 
 ### compare — contrast two analyzed tracks
