@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-04-23
+
+### Added
+- Real `analyze` alias for `listen`, so `galdr analyze` works instead of failing as an invalid command
+
+### Changed
+- README and getting-started docs now make the second-by-second, stream-first workflow explicit for human and AI operators
+- `listen --help` now states the broader local audio-format support instead of implying WAV-only input
+- SKILL docs and packaged `galdr.skill` now make install provenance explicit and treat external model piping as optional, review-first behavior
+
+
 ## [0.1.7] - 2026-04-22
 
 ### Added
