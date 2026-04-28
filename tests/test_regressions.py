@@ -1,5 +1,6 @@
 """Regression tests for galdr — guards against specific previously-fixed bugs."""
 
+import json
 import os
 import subprocess
 import sys
@@ -304,6 +305,70 @@ def test_generate_perception_stream_returns_dict(tmp_path):
     )
     assert "stream" in result, "result dict missing 'stream' key"
     assert isinstance(result["stream"], list), "'stream' should be a list"
+
+
+def test_cli_null_audio_skips_remaining_modules(tmp_path):
+    """galdr listen should stop after null_signal and not write analysis artifacts."""
+    import soundfile as sf
+
+    wav_path = tmp_path / "null.wav"
+    y = np.zeros(22050, dtype=np.float32)
+    sf.write(str(wav_path), y, 22050)
+
+    analysis_dir = tmp_path / "analysis"
+    result = subprocess.run(
+        [
+            sys.executable, "-m", "galdr.cli",
+            "listen", str(wav_path),
+            "--name", "null-cli",
+            "--analysis-dir", str(analysis_dir),
+            "--no-catalog",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "remaining modules skipped" in result.stdout
+    out_dir = analysis_dir / "null-cli"
+    assert not out_dir.exists() or not any(out_dir.iterdir())
+
+
+def test_assemble_unknown_slug_raises(tmp_path):
+    """assemble_prompt_from_disk should not fabricate zero metrics for missing slugs."""
+    from galdr.assemble import assemble_prompt_from_disk
+
+    with pytest.raises(ValueError, match="No analysis or context found"):
+        assemble_prompt_from_disk("missing-slug", tmp_path)
+
+
+def test_assemble_context_only_reports_missing_structural_analysis(tmp_path):
+    """Context-only tracks should not emit fabricated zero-valued metrics."""
+    from galdr.assemble import assemble_prompt_from_disk
+
+    slug = "context-only"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / "context.json").write_text(json.dumps({
+        "slug": slug,
+        "artist": "Example Artist",
+        "title": "Example Track",
+    }))
+
+    prompt = assemble_prompt_from_disk(slug, tmp_path)
+
+    assert "No structural analysis files found" in prompt
+    assert "Duration: 0:00" not in prompt
+    assert "Tempo: 0.0 BPM" not in prompt
+
+
+def test_frames_download_rejects_non_youtube_url(tmp_path):
+    """frames video download should reuse the strict YouTube URL allowlist."""
+    from galdr.frames import download_video
+
+    with pytest.raises(ValueError, match="Invalid YouTube URL"):
+        download_video("https://example.com/video.mp4", tmp_path, "safe-slug")
 
 
 # ─── 10. compute_track_features and compute_perception are importable ─────────

@@ -339,7 +339,6 @@ def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_
 def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
     """Full audio analysis of a single track."""
     out = Path(output_dir)
-    out.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading {audio_path}...")
     y, sr = librosa.load(audio_path, sr=22050, mono=True)
@@ -362,6 +361,7 @@ def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
     if report.get("null_signal"):
         return report
 
+    out.mkdir(parents=True, exist_ok=True)
     _save_visualizations(y, sr, report, out, track_name)
 
     report_path = out / f"{track_name}_report.json"

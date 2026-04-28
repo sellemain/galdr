@@ -106,6 +106,16 @@ def cmd_listen(args):
         result = run_module("Audio Analysis", analyze_track, audio_path, output_dir, track_name)
         if result:
             results["report"] = result
+            if result.get("null_signal"):
+                total_elapsed = time.time() - total_start
+                print(f"\n{'#'*60}")
+                print(f"  SUMMARY: {track_name} ({total_elapsed:.1f}s total)")
+                print(f"{'#'*60}\n")
+                print("  Null or near-silent audio detected; remaining modules skipped.")
+                print(f"  RMS: {result.get('rms', '?')}")
+                print("  No analysis files written and catalog indexing skipped.")
+                print()
+                return
 
     if "perceive" in modules:
         result = run_module("Perception", generate_perception_stream, audio_path, output_dir, track_name)

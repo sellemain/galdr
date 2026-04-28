@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Source install docs and CI now use the no-lockfile library workflow (`uv sync`) instead of assuming a committed `uv.lock`.
+- CI now runs the default non-slow test suite and lints tests as well as source.
+
+### Fixed
+- `galdr listen` now stops after null-signal detection instead of running the remaining modules and writing degenerate analysis files.
+- `galdr frames --url` now reuses the strict YouTube URL allowlist and yt-dlp runtime setup from `fetch`.
+- `galdr assemble` now errors on completely unknown slugs and reports missing structural analysis instead of emitting zero-valued metrics for context-only tracks.
+
 ## [0.1.8] - 2026-04-23
 
 ### Added

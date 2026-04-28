@@ -32,12 +32,12 @@ Just what shaped the reasoning.
 pip install galdr
 ```
 
-Or from source (reproducible install using the lockfile):
+Or from source:
 
 ```bash
 git clone https://github.com/sellemain/galdr.git
 cd galdr
-uv sync          # installs exact locked versions
+uv sync          # creates a local dev environment with compatible dependencies
 ```
 
 Or without uv:
@@ -46,7 +46,7 @@ Or without uv:
 pip install -e .
 ```
 
-**Keeping yt-dlp current:** YouTube blocks stale yt-dlp versions. Run `galdr update-deps` periodically (or after a broken download) to upgrade yt-dlp in the current Python environment. If you're working from the repo with uv, refresh the lock and env together with `uv lock --upgrade-package yt-dlp && uv sync`.
+**Keeping yt-dlp current:** YouTube blocks stale yt-dlp versions. Run `galdr update-deps` periodically (or after a broken download) to upgrade yt-dlp in the current Python environment. If you're working from the repo with uv, refresh the environment with `uv sync --upgrade-package yt-dlp`.
 
 ## Choose Your Path
 

@@ -188,6 +188,10 @@ def _build_metrics(analysis: dict) -> str:
     perception = analysis.get("perception") or {}
     harmony = analysis.get("harmony") or {}
     melody = analysis.get("melody") or {}
+    overtone = analysis.get("overtone") or {}
+
+    if not any([report, perception, harmony, melody, overtone]):
+        return "## Galdr Analysis\n\nNo structural analysis files found for this track."
 
     lines = ["## Galdr Analysis\n"]
 
@@ -487,4 +491,8 @@ def assemble_prompt_from_disk(
     """
     analysis = load_analysis(slug, analysis_dir)
     context = load_context(slug, analysis_dir)
+    if not any(analysis.values()) and not context:
+        raise ValueError(
+            f"No analysis or context found for slug '{slug}' in {analysis_dir / slug}"
+        )
     return assemble_prompt(analysis, context, mode=mode, template=template, docs_dir=docs_dir)

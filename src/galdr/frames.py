@@ -40,6 +40,8 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
+from .fetch import _yt_dlp_base_cmd, validate_slug, validate_youtube_url
+
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -492,11 +494,12 @@ def _call_vision_api(content: list, api_key: str) -> str:
 
 def download_video(url: str, video_dir: Path, slug: str) -> Path | None:
     """Download video at up to 720p via yt-dlp. Returns path or None on failure."""
+    url = validate_youtube_url(url)
+    slug = validate_slug(slug)
     video_dir.mkdir(parents=True, exist_ok=True)
     out_template = video_dir / f"{slug}.%(ext)s"
 
-    cmd = [
-        "yt-dlp",
+    cmd = _yt_dlp_base_cmd() + [
         "--format", (
             "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]"
             "/best[height<=720][ext=mp4]/best[height<=720]"
@@ -508,7 +511,11 @@ def download_video(url: str, video_dir: Path, slug: str) -> Path | None:
     ]
 
     print(f"  [frames] downloading video: {url}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    except subprocess.TimeoutExpired:
+        print("  [frames] download timed out after 300s")
+        return None
 
     for ext in ["mp4", "mkv", "webm"]:
         p = video_dir / f"{slug}.{ext}"
@@ -601,6 +608,7 @@ def extract_visual_moments(
     Results stored in analysis/{slug}/context.json under 'frame_descriptions'.
     Each entry: {time, kind, role, event (label str), window, description}
     """
+    slug = validate_slug(slug)
     track_dir = analysis_dir / slug
 
     # Load perception data
