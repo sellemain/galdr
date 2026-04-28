@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-04-28
+
 ### Changed
 - Source install docs and CI now use the no-lockfile library workflow (`uv sync`) instead of assuming a committed `uv.lock`.
 - CI now runs the default non-slow test suite and lints tests as well as source.
