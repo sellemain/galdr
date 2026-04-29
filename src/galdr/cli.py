@@ -14,6 +14,7 @@ import time
 from pathlib import Path
 
 _SLUG_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+YT_DLP_UPGRADE_SPEC = "yt-dlp[default,curl-cffi]"
 
 
 def _validate_slug(slug: str) -> str:
@@ -53,9 +54,21 @@ def run_module(name, func, *args, **kwargs):
         return None
 
 
+def _print_null_signal_summary(track_name, total_start, result):
+    """Print the standard early-exit summary for null or near-silent audio."""
+    total_elapsed = time.time() - total_start
+    print(f"\n{'#'*60}")
+    print(f"  SUMMARY: {track_name} ({total_elapsed:.1f}s total)")
+    print(f"{'#'*60}\n")
+    print("  Null or near-silent audio detected; remaining modules skipped.")
+    print(f"  RMS: {result.get('rms', '?')}")
+    print("  No analysis files written and catalog indexing skipped.")
+    print()
+
+
 def cmd_listen(args):
     """Run full analysis pipeline on an audio file."""
-    from .analyze import analyze_track
+    from .analyze import analyze_track, detect_null_signal
     from .perceive import generate_perception_stream
     from .harmony import analyze_harmony
     from .melody import analyze_melody
@@ -102,19 +115,22 @@ def cmd_listen(args):
     total_start = time.time()
     results = {}
 
+    if "report" not in modules:
+        try:
+            result = detect_null_signal(audio_path, track_name)
+        except Exception as e:
+            print(f"Error: null-signal check failed: {e}")
+            sys.exit(1)
+        if result:
+            _print_null_signal_summary(track_name, total_start, result)
+            return
+
     if "report" in modules:
         result = run_module("Audio Analysis", analyze_track, audio_path, output_dir, track_name)
         if result:
             results["report"] = result
             if result.get("null_signal"):
-                total_elapsed = time.time() - total_start
-                print(f"\n{'#'*60}")
-                print(f"  SUMMARY: {track_name} ({total_elapsed:.1f}s total)")
-                print(f"{'#'*60}\n")
-                print("  Null or near-silent audio detected; remaining modules skipped.")
-                print(f"  RMS: {result.get('rms', '?')}")
-                print("  No analysis files written and catalog indexing skipped.")
-                print()
+                _print_null_signal_summary(track_name, total_start, result)
                 return
 
     if "perceive" in modules:
@@ -392,26 +408,165 @@ def cmd_catalog(args):
             print("Catalog is empty")
 
 
+def _package_status(import_name, dist_name=None):
+    """Return a short installed/missing status for an optional Python package."""
+    import importlib.metadata
+    import importlib.util
+
+    if importlib.util.find_spec(import_name) is None:
+        return "missing"
+    try:
+        version = importlib.metadata.version(dist_name or import_name)
+        return f"installed ({version})"
+    except importlib.metadata.PackageNotFoundError:
+        return "installed (version unknown)"
+
+
+def _run_probe(cmd, timeout=10):
+    """Run a small diagnostic command and return a single-line status."""
+    import subprocess
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except FileNotFoundError:
+        return "missing"
+    except subprocess.TimeoutExpired:
+        return "timed out"
+
+    text = (result.stdout or result.stderr or "").strip()
+    first_line = text.splitlines()[0] if text else f"exit {result.returncode}"
+    if result.returncode != 0:
+        return f"failed: {first_line}"
+    return first_line
+
+
+def _tool_status(name, args=("--version",), timeout=10):
+    """Return a diagnostic status for an executable on PATH."""
+    import shutil
+
+    path = shutil.which(name)
+    if not path:
+        return "missing"
+    return f"{_run_probe([path, *args], timeout=timeout)} ({path})"
+
+
+def _yt_dlp_version_line():
+    """Return yt-dlp version using the same command path as downloads."""
+    from .fetch import _yt_dlp_base_cmd
+
+    return _run_probe(_yt_dlp_base_cmd() + ["--version"], timeout=10)
+
+
+def _print_yt_dlp_component_versions():
+    """Print yt-dlp and helper component versions after diagnostics/updates."""
+    print(f"yt-dlp → {_yt_dlp_version_line()}")
+    print(f"yt-dlp-ejs → {_package_status('yt_dlp_ejs', 'yt-dlp-ejs')}")
+    print(f"curl_cffi → {_package_status('curl_cffi')}")
+
+
+def cmd_doctor():
+    """Print local runtime diagnostics for fetch/download reliability."""
+    import importlib.metadata
+    import platform
+    import sys
+
+    from .fetch import _yt_dlp_base_cmd
+
+    try:
+        galdr_version = importlib.metadata.version("galdr")
+    except importlib.metadata.PackageNotFoundError:
+        galdr_version = "dev"
+
+    print("galdr doctor")
+    print("=" * 60)
+    print(f"galdr: {galdr_version}")
+    print(f"Python: {platform.python_version()} ({sys.executable})")
+    print()
+
+    print("yt-dlp")
+    print("-" * 60)
+    print(f"command: {' '.join(_yt_dlp_base_cmd())}")
+    _print_yt_dlp_component_versions()
+    print()
+
+    print("System media tools")
+    print("-" * 60)
+    print(f"ffmpeg: {_tool_status('ffmpeg', ('-version',))}")
+    print(f"ffprobe: {_tool_status('ffprobe', ('-version',))}")
+    print()
+
+    print("JavaScript runtimes")
+    print("-" * 60)
+    print(f"deno: {_tool_status('deno')}")
+    print(f"node: {_tool_status('node')}")
+    print(f"phantomjs: {_tool_status('phantomjs')}")
+    print()
+
+    print("Impersonation targets")
+    print("-" * 60)
+    target_cmd = _yt_dlp_base_cmd() + ["--list-impersonate-targets"]
+    import subprocess
+    try:
+        result = subprocess.run(target_cmd, capture_output=True, text=True, timeout=15)
+    except subprocess.TimeoutExpired:
+        print("timed out")
+        return
+
+    if result.returncode != 0:
+        text = (result.stderr or result.stdout or "").strip()
+        print(f"failed: {text.splitlines()[0] if text else 'unknown error'}")
+        return
+
+    lines = [
+        line for line in result.stdout.splitlines()
+        if line.strip()
+        and not line.startswith("[info]")
+        and not line.startswith("Client")
+        and not line.startswith("-")
+    ]
+    if not lines:
+        print("none available")
+        return
+    print(f"available: {len(lines)}")
+    for line in lines[:8]:
+        print(f"  {line}")
+    if len(lines) > 8:
+        print(f"  ... {len(lines) - 8} more")
+    print()
+
+
 def cmd_update_deps():
     """Update yt-dlp in the current Python environment."""
+    import shutil
     import subprocess
     import sys
 
-    print("Updating yt-dlp in current environment...")
-    result = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
-        capture_output=False,
+    print(f"Updating {YT_DLP_UPGRADE_SPEC} in current environment...")
+    pip_check = subprocess.run(
+        [sys.executable, "-m", "pip", "--version"],
+        capture_output=True,
+        text=True,
     )
-    if result.returncode == 0:
-        ver = subprocess.run(
-            [sys.executable, "-m", "yt_dlp", "--version"],
-            capture_output=True,
-            text=True,
-        )
-        print(f"yt-dlp → {ver.stdout.strip()}")
+    if pip_check.returncode == 0:
+        cmd = [sys.executable, "-m", "pip", "install", "--upgrade", YT_DLP_UPGRADE_SPEC]
+    elif shutil.which("uv"):
+        print("pip is not available in this environment; using uv pip instead.")
+        cmd = ["uv", "pip", "install", "--python", sys.executable, "--upgrade", YT_DLP_UPGRADE_SPEC]
     else:
         print(
-            "yt-dlp update failed — run: python -m pip install --upgrade yt-dlp",
+            "yt-dlp update failed — pip is unavailable. Run: "
+            f'python -m pip install --upgrade "{YT_DLP_UPGRADE_SPEC}"',
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    result = subprocess.run(cmd, capture_output=False)
+    if result.returncode == 0:
+        _print_yt_dlp_component_versions()
+    else:
+        print(
+            "yt-dlp update failed — run: "
+            f'python -m pip install --upgrade "{YT_DLP_UPGRADE_SPEC}"',
             file=sys.stderr,
         )
         sys.exit(1)
@@ -546,6 +701,12 @@ Examples:
         help="Update yt-dlp in the current Python environment",
     )
 
+    # doctor
+    subparsers.add_parser(
+        "doctor",
+        help="Show local dependency diagnostics for YouTube/audio downloads",
+    )
+
     # catalog
     catalog_parser = subparsers.add_parser("catalog", help="View catalog state")
     catalog_parser.add_argument("--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)")
@@ -569,6 +730,8 @@ Examples:
         cmd_catalog(args)
     elif args.command == "update-deps":
         cmd_update_deps()
+    elif args.command == "doctor":
+        cmd_doctor()
     else:
         parser.print_help()
         sys.exit(1)

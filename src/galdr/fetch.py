@@ -10,20 +10,69 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 import urllib.request
 import urllib.parse
 from pathlib import Path
 
 
-def _yt_dlp_base_cmd() -> list[str]:
-    """Return base yt-dlp command with JS runtime flag if a suitable runtime is found."""
-    cmd = ["yt-dlp"]
+_EJS_FAILURE_MARKERS = (
+    "remote components challenge solver",
+    "challenge solving failed",
+    "n challenge",
+    "some formats may be missing",
+    "ejs",
+)
+
+
+def _yt_dlp_base_cmd(remote_components: bool = False) -> list[str]:
+    """Return yt-dlp command for the current Python environment.
+
+    Using ``python -m yt_dlp`` avoids accidentally picking up a stale system
+    yt-dlp binary from PATH when galdr is installed in a virtual environment.
+    """
+    cmd = [sys.executable, "-m", "yt_dlp"]
+    if remote_components:
+        cmd += ["--remote-components", "ejs:github"]
     for runtime in ("node", "deno", "phantomjs"):
         path = shutil.which(runtime)
         if path:
             cmd += ["--js-runtimes", f"{runtime}:{path}"]
             break
     return cmd
+
+
+def _looks_like_ejs_failure(stderr: str) -> bool:
+    """Return True when yt-dlp failed in a YouTube JS challenge/EJS path."""
+    text = (stderr or "").lower()
+    return any(marker in text for marker in _EJS_FAILURE_MARKERS)
+
+
+def _run_yt_dlp(args: list[str], timeout: int) -> subprocess.CompletedProcess:
+    """Run yt-dlp and retry once with remote EJS components for challenge failures.
+
+    The first attempt relies on locally installed yt-dlp EJS support. If YouTube
+    still reports challenge/EJS failure, retry once with yt-dlp's explicit
+    remote EJS component source. This downloads solver code from GitHub, so the
+    retry is logged visibly.
+    """
+    cmd = _yt_dlp_base_cmd() + args
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    if result.returncode == 0 or not _looks_like_ejs_failure(result.stderr):
+        return result
+
+    print("  [yt-dlp] YouTube challenge/EJS failure detected; retrying with remote EJS components from GitHub")
+    retry_cmd = _yt_dlp_base_cmd(remote_components=True) + args
+    retry = subprocess.run(retry_cmd, capture_output=True, text=True, timeout=timeout)
+    if retry.returncode == 0:
+        return retry
+
+    retry.stderr = (
+        f"{result.stderr}\n"
+        "--- remote EJS retry stderr ---\n"
+        f"{retry.stderr}"
+    )
+    return retry
 
 
 # ─── Input validation ─────────────────────────────────────────────────────────
@@ -98,10 +147,7 @@ def get_youtube_metadata(url: str) -> dict:
     Raises RuntimeError on failure (with stderr context).
     """
     url = validate_youtube_url(url)
-    result = subprocess.run(
-        _yt_dlp_base_cmd() + ["--dump-json", "--no-playlist", url],
-        capture_output=True, text=True, timeout=60,
-    )
+    result = _run_yt_dlp(["--dump-json", "--no-playlist", url], timeout=60)
     if result.returncode != 0:
         raise RuntimeError(f"yt-dlp metadata failed: {result.stderr[:300]}")
     info = json.loads(result.stdout)
@@ -133,38 +179,57 @@ def derive_artist_title(yt_title: str, uploader: str) -> tuple[str, str]:
 
 
 def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
-    """Download audio and auto-captions from a YouTube URL via yt-dlp."""
+    """Download audio and auto-captions from a YouTube URL via yt-dlp.
+
+    Audio and captions are deliberately separate calls. YouTube caption requests
+    can fail with rate limits or missing subtitles; that should not block audio
+    analysis when the media download itself succeeded.
+    """
     url = validate_youtube_url(url)
     slug = validate_slug(slug)
     audio_dir.mkdir(parents=True, exist_ok=True)
     audio_out = audio_dir / f"{slug}.%(ext)s"
 
-    cmd = _yt_dlp_base_cmd() + [
+    audio_args = [
         "--extract-audio",
         "--audio-format", "mp3",
         "--audio-quality", "0",
         "--output", str(audio_out),
-        "--write-auto-sub",
-        "--sub-lang", "en",
-        "--sub-format", "vtt",
         "--no-playlist",
         url,
     ]
 
     print(f"  [yt-dlp] {url}")
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-    if result.returncode != 0:
-        stderr_snippet = result.stderr[:500]
-        print(f"  [yt-dlp] stderr: {result.stderr[:300]}")
+    audio_result = _run_yt_dlp(audio_args, timeout=300)
+    if audio_result.returncode != 0:
+        audio_stderr = audio_result.stderr[:500]
+        print(f"  [yt-dlp] stderr: {audio_result.stderr[:300]}")
         # Surface a clearer error for common cases
-        if "Video unavailable" in result.stderr:
+        if "Video unavailable" in audio_result.stderr:
             print(f"  [yt-dlp] Video unavailable — likely removed, region-locked, or private.")
-        elif "Sign in" in result.stderr or "age" in result.stderr.lower():
+        elif "Sign in" in audio_result.stderr or "age" in audio_result.stderr.lower():
             print(f"  [yt-dlp] Age-gated or login required — try a SoundCloud URL instead.")
     else:
-        stderr_snippet = None
+        audio_stderr = None
 
     audio_file = audio_dir / f"{slug}.mp3"
+
+    captions_stderr = None
+    if audio_file.exists():
+        captions_args = [
+            "--skip-download",
+            "--write-auto-sub",
+            "--sub-lang", "en",
+            "--sub-format", "vtt",
+            "--output", str(audio_out),
+            "--no-playlist",
+            url,
+        ]
+        captions_result = _run_yt_dlp(captions_args, timeout=120)
+        if captions_result.returncode != 0:
+            captions_stderr = captions_result.stderr[:500]
+            print(f"  [yt-dlp] captions unavailable: {captions_result.stderr[:300]}")
+
     # yt-dlp language tag varies (en, en-US, en-orig, etc.) — find whatever landed
     vtt_candidates = sorted(audio_dir.glob(f"{slug}.*.vtt"))
     vtt_file = vtt_candidates[0] if vtt_candidates else audio_dir / f"{slug}.en.vtt"
@@ -173,7 +238,9 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
         "audio_file": str(audio_file) if audio_file.exists() else None,
         "captions_file": str(vtt_file) if vtt_file.exists() else None,
         "download_ok": audio_file.exists(),
-        "stderr": stderr_snippet,
+        "stderr": audio_stderr or captions_stderr,
+        "audio_stderr": audio_stderr,
+        "captions_stderr": captions_stderr,
     }
 
 

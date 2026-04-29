@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-29
+
+### Added
+- `galdr doctor` reports local YouTube download diagnostics, including the active Python executable, yt-dlp, helper packages, ffmpeg/ffprobe, JavaScript runtimes, and impersonation targets.
+
+### Changed
+- Agent skill install examples now use the current PyPI package instead of a stale pinned version.
+- `src/galdr/SKILL.md` is now declared as package data for built distributions.
+- YouTube downloads now invoke yt-dlp through galdr's current Python environment instead of a PATH binary.
+- The yt-dlp dependency now installs the `default` and `curl-cffi` extras with a current stable version floor for better YouTube reliability.
+- yt-dlp calls now retry once with remote EJS components from GitHub when YouTube challenge solving fails.
+- `galdr update-deps` now upgrades `yt-dlp[default,curl-cffi]` in galdr's current Python environment and prints component versions after success.
+
+### Fixed
+- Null-signal detection now runs even when `galdr listen` skips the `report` module, preventing degenerate output from `--only perceive` and similar narrow runs.
+- YouTube caption/subtitle failures no longer abort successful audio downloads.
+
 ## [0.1.9] - 2026-04-28
 
 ### Changed

@@ -6,6 +6,7 @@ Skip in CI: pytest -m "not slow"
 """
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +14,18 @@ from pathlib import Path
 import pytest
 
 AUDIO_FILE = Path("audio/1-anoana.wav")
+
+
+def _galdr_cli_cmd(*args: str) -> list[str]:
+    return [sys.executable, "-m", "galdr.cli", *args]
+
+
+def _galdr_subprocess_env() -> dict[str, str]:
+    env = os.environ.copy()
+    src_path = str(Path(__file__).resolve().parents[1] / "src")
+    existing = env.get("PYTHONPATH")
+    env["PYTHONPATH"] = src_path if not existing else f"{src_path}{os.pathsep}{existing}"
+    return env
 
 
 @pytest.fixture
@@ -119,15 +132,15 @@ def test_analyze_track_writes_report_json(audio_path, tmp_path):
 def test_cli_listen_subprocess(audio_path, tmp_path):
     """galdr listen via subprocess exits 0 and creates output files."""
     result = subprocess.run(
-        [
-            sys.executable, "-m", "galdr.cli",
+        _galdr_cli_cmd(
             "listen", audio_path,
             "--name", "test-anoana",
             "--analysis-dir", str(tmp_path),
             "--no-catalog",
-        ],
+        ),
         capture_output=True,
         text=True,
+        env=_galdr_subprocess_env(),
         timeout=300,
     )
     assert result.returncode == 0, f"CLI failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"

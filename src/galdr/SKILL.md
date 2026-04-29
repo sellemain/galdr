@@ -14,7 +14,7 @@ Preferred trusted sources:
 - Source: <https://github.com/sellemain/galdr>
 
 ```bash
-pip install galdr==0.1.7
+pip install galdr
 
 # or from source:
 git clone https://github.com/sellemain/galdr.git
@@ -127,7 +127,7 @@ Build a model prompt from analysis data. Template controls voice/format instruct
 galdr fetch <url> [--name NAME] [--analyze]
 ```
 
-Download audio and context via yt-dlp. With `--analyze`, runs the full analysis pipeline after download.
+Download audio and context via yt-dlp. With `--analyze`, runs the full analysis pipeline after download. Audio and captions are downloaded separately, so caption failures do not block audio analysis.
 
 ### frames — extract video frames at structural moments
 
@@ -136,6 +136,15 @@ galdr frames <track-name>
 ```
 
 Extract and describe video frames at structural moments (pattern breaks, silences, momentum shifts).
+
+### doctor / update-deps — YouTube download health
+
+```bash
+galdr doctor
+galdr update-deps
+```
+
+Use `galdr doctor` when YouTube download behavior is flaky. It reports the active Python executable, yt-dlp command/version, ffmpeg/ffprobe, JavaScript runtimes, and impersonation support. Use `galdr update-deps` to upgrade `yt-dlp[default,curl-cffi]` in the same Python environment galdr is using.
 
 ## Interpreting Output
 

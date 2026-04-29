@@ -15,6 +15,25 @@ import pytest
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 
+def _galdr_cli_cmd(*args: str) -> list[str]:
+    """Run the checked-out galdr CLI, not a stale site-packages install.
+
+    Tests may be launched through `pytest` from the system Python by accident.
+    In that case, `sys.executable -m galdr.cli` can resolve to an older
+    installed galdr instead of this working tree. For subprocess tests, force
+    PYTHONPATH to the repository's src/ layout and use the current interpreter.
+    """
+    return [sys.executable, "-m", "galdr.cli", *args]
+
+
+def _galdr_subprocess_env() -> dict[str, str]:
+    env = os.environ.copy()
+    src_path = str(Path(__file__).resolve().parents[1] / "src")
+    existing = env.get("PYTHONPATH")
+    env["PYTHONPATH"] = src_path if not existing else f"{src_path}{os.pathsep}{existing}"
+    return env
+
+
 def _make_short_audio(duration_sec: float = 2.0, sr: int = 22050) -> tuple:
     """Return (y, sr) for a short synthetic sine-wave audio array."""
     n_samples = int(sr * duration_sec)
@@ -196,10 +215,10 @@ def test_catalog_mean_pattern_lock_zero_preserved():
 def test_cli_only_invalid_module_no_audio():
     """galdr listen with --only invalid_name on a non-existent file exits nonzero."""
     result = subprocess.run(
-        [sys.executable, "-m", "galdr.cli", "listen", "/tmp/nonexistent_audio.wav",
-         "--only", "invalid_module_xyz"],
+        _galdr_cli_cmd("listen", "/tmp/nonexistent_audio.wav", "--only", "invalid_module_xyz"),
         capture_output=True,
         text=True,
+        env=_galdr_subprocess_env(),
     )
     # Should fail because audio file doesn't exist
     assert result.returncode != 0
@@ -216,12 +235,15 @@ def test_cli_only_invalid_module_with_audio():
         sf.write(str(wav_path), y, 22050)
 
         result = subprocess.run(
-            [sys.executable, "-m", "galdr.cli", "listen", str(wav_path),
-             "--only", "invalid_module_xyz",
-             "--analysis-dir", tmpdir,
-             "--no-catalog"],
+            _galdr_cli_cmd(
+                "listen", str(wav_path),
+                "--only", "invalid_module_xyz",
+                "--analysis-dir", tmpdir,
+                "--no-catalog",
+            ),
             capture_output=True,
             text=True,
+            env=_galdr_subprocess_env(),
             timeout=60,
         )
         # Invalid module name must cause nonzero exit
@@ -317,21 +339,50 @@ def test_cli_null_audio_skips_remaining_modules(tmp_path):
 
     analysis_dir = tmp_path / "analysis"
     result = subprocess.run(
-        [
-            sys.executable, "-m", "galdr.cli",
+        _galdr_cli_cmd(
             "listen", str(wav_path),
             "--name", "null-cli",
             "--analysis-dir", str(analysis_dir),
             "--no-catalog",
-        ],
+        ),
         capture_output=True,
         text=True,
+        env=_galdr_subprocess_env(),
         timeout=60,
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert "remaining modules skipped" in result.stdout
     out_dir = analysis_dir / "null-cli"
+    assert not out_dir.exists() or not any(out_dir.iterdir())
+
+
+def test_cli_null_audio_only_perceive_skips_outputs(tmp_path):
+    """The null-signal guard should still run when report is not selected."""
+    import soundfile as sf
+
+    wav_path = tmp_path / "null.wav"
+    y = np.zeros(22050, dtype=np.float32)
+    sf.write(str(wav_path), y, 22050)
+
+    analysis_dir = tmp_path / "analysis"
+    result = subprocess.run(
+        _galdr_cli_cmd(
+            "listen", str(wav_path),
+            "--name", "null-only-perceive",
+            "--analysis-dir", str(analysis_dir),
+            "--only", "perceive",
+            "--no-catalog",
+        ),
+        capture_output=True,
+        text=True,
+        env=_galdr_subprocess_env(),
+        timeout=60,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "remaining modules skipped" in result.stdout
+    out_dir = analysis_dir / "null-only-perceive"
     assert not out_dir.exists() or not any(out_dir.iterdir())
 
 
@@ -369,6 +420,117 @@ def test_frames_download_rejects_non_youtube_url(tmp_path):
 
     with pytest.raises(ValueError, match="Invalid YouTube URL"):
         download_video("https://example.com/video.mp4", tmp_path, "safe-slug")
+
+
+def test_yt_dlp_base_cmd_uses_current_python_environment():
+    """yt-dlp should run from galdr's Python env, not a PATH binary."""
+    from galdr.fetch import _yt_dlp_base_cmd
+
+    cmd = _yt_dlp_base_cmd()
+    assert cmd[:3] == [sys.executable, "-m", "yt_dlp"]
+
+
+def test_download_youtube_caption_failure_keeps_audio(monkeypatch, tmp_path):
+    """Subtitle failures should not make an otherwise-good audio download fail."""
+    from galdr import fetch as fetch_mod
+
+    slug = "caption-fail"
+    calls = []
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if "--skip-download" in cmd:
+            return subprocess.CompletedProcess(cmd, 1, "", "HTTP Error 429: Too Many Requests")
+
+        (tmp_path / f"{slug}.mp3").write_bytes(b"fake mp3")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(fetch_mod.subprocess, "run", fake_run)
+
+    result = fetch_mod.download_youtube(
+        "https://www.youtube.com/watch?v=X7drilHsM6c",
+        tmp_path,
+        slug,
+    )
+
+    assert len(calls) == 2
+    assert "--write-auto-sub" not in calls[0]
+    assert "--skip-download" in calls[1]
+    assert result["download_ok"] is True
+    assert result["audio_file"] == str(tmp_path / f"{slug}.mp3")
+    assert result["captions_file"] is None
+    assert "429" in result["captions_stderr"]
+
+
+def test_run_yt_dlp_retries_remote_ejs_for_challenge_failure(monkeypatch):
+    """YouTube JS challenge failures should retry once with remote EJS components."""
+    from galdr import fetch as fetch_mod
+
+    calls = []
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if "--remote-components" in cmd:
+            return subprocess.CompletedProcess(cmd, 0, '{"title": "ok"}', "")
+        return subprocess.CompletedProcess(
+            cmd,
+            1,
+            "",
+            "WARNING: [youtube] [jsc] Remote components challenge solver script skipped. "
+            "n challenge solving failed: Some formats may be missing.",
+        )
+
+    monkeypatch.setattr(fetch_mod.subprocess, "run", fake_run)
+
+    result = fetch_mod._run_yt_dlp(
+        ["--dump-json", "--no-playlist", "https://www.youtube.com/watch?v=X7drilHsM6c"],
+        timeout=60,
+    )
+
+    assert result.returncode == 0
+    assert len(calls) == 2
+    assert "--remote-components" not in calls[0]
+    assert calls[1][calls[1].index("--remote-components") + 1] == "ejs:github"
+
+
+def test_update_deps_installs_yt_dlp_reliability_extras(monkeypatch):
+    """update-deps should upgrade the same yt-dlp extras galdr depends on."""
+    from galdr import cli
+
+    calls = []
+
+    def fake_run(cmd, capture_output=False, text=False, timeout=None):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    cli.cmd_update_deps()
+
+    assert [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--upgrade",
+        "yt-dlp[default,curl-cffi]",
+    ] in calls
+
+
+def test_cli_doctor_subprocess():
+    """galdr doctor should print local diagnostics and exit cleanly."""
+    result = subprocess.run(
+        _galdr_cli_cmd("doctor"),
+        capture_output=True,
+        text=True,
+        env=_galdr_subprocess_env(),
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "galdr doctor" in result.stdout
+    assert "yt-dlp" in result.stdout
+    assert "Impersonation targets" in result.stdout
 
 
 # ─── 10. compute_track_features and compute_perception are importable ─────────

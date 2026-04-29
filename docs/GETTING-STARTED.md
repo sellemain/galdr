@@ -62,7 +62,16 @@ That produces something like this: **[Queen — Bohemian Rhapsody](bohemian-rhap
 
 For a 5-minute track, `fetch --analyze` takes 60–90 seconds.
 
-**If YouTube blocks the download** (rate limit, JS runtime missing), galdr will still fetch lyrics and Wikipedia context and print the slug. You can proceed with `galdr assemble` — the prompt will have lyrics and background but no structural analysis. To skip audio entirely and fetch context only:
+**If YouTube blocks the download** (rate limit, JS challenge, JS runtime missing), run:
+
+```bash
+galdr doctor
+galdr update-deps
+```
+
+`galdr doctor` shows the active Python environment, yt-dlp version, ffmpeg, JavaScript runtime, and impersonation support. `galdr update-deps` upgrades `yt-dlp[default,curl-cffi]` in that same Python environment.
+
+If captions fail but audio succeeds, analysis can still continue. If audio cannot be downloaded, galdr will still fetch lyrics and Wikipedia context and print the slug. You can proceed with `galdr assemble` — the prompt will have lyrics and background but no structural analysis. To skip audio entirely and fetch context only:
 
 ```bash
 galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --no-download --name queen-bohemian-rhapsody --artist "Queen" --title "Bohemian Rhapsody"
