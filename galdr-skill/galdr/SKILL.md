@@ -14,7 +14,7 @@ Preferred trusted sources:
 - Source: <https://github.com/sellemain/galdr>
 
 ```bash
-pip install galdr==0.1.7
+pip install galdr
 
 # or from source:
 git clone https://github.com/sellemain/galdr.git
@@ -44,6 +44,14 @@ Override auto-derived metadata if needed:
 ```bash
 galdr fetch "https://youtu.be/..." --artist "Oliver Anthony" --title "Rich Men North of Richmond" --analyze
 ```
+
+If YouTube download behavior is flaky:
+```bash
+galdr doctor
+galdr update-deps
+```
+
+`galdr doctor` reports the active Python executable, yt-dlp command/version, ffmpeg/ffprobe, JavaScript runtimes, and impersonation support. `galdr update-deps` upgrades `yt-dlp[default,curl-cffi]` in the same Python environment galdr is using.
 
 ### Local file → Analysis only
 
@@ -158,6 +166,8 @@ galdr compare track-a track-b          # side-by-side structural comparison
 galdr frames slug                      # extract + describe video frames at structural moments
 galdr fetch "url" --no-download        # context only (Wikipedia + lyrics), no audio
 galdr fetch "url" --censor             # sanitize explicit lyrics before saving
+galdr doctor                           # inspect yt-dlp/media runtime health
+galdr update-deps                      # upgrade yt-dlp reliability extras
 galdr catalog                          # list all indexed tracks
 galdr catalog --track NAME             # summary card for one track
 ```

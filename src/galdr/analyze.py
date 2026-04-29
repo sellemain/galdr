@@ -28,6 +28,35 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
+def _null_signal_report(y: np.ndarray, sr: int, track_name: str) -> dict | None:
+    """Return a null-signal report when audio is degenerate, otherwise None."""
+    duration = librosa.get_duration(y=y, sr=sr)
+
+    if duration <= 0:
+        raise ValueError("Audio too short to analyze")
+
+    rms_check = float(np.sqrt(np.mean(y.astype(np.float64) ** 2)))
+    if rms_check >= NULL_SIGNAL_RMS_THRESHOLD:
+        return None
+
+    print(f"\n  [null signal] RMS={rms_check:.2e} < threshold={NULL_SIGNAL_RMS_THRESHOLD:.0e}")
+    print("  Null or near-silent audio detected — no analysis performed.")
+    print("  (To analyze intentional silence, use a track with natural floor noise.)")
+    return {
+        "track": track_name,
+        "null_signal": True,
+        "rms": rms_check,
+        "duration_seconds": round(duration, 1),
+        "reason": "rms_below_threshold",
+    }
+
+
+def detect_null_signal(audio_path: str, track_name: str) -> dict | None:
+    """Load an audio file and return a null-signal report if it is degenerate."""
+    y, sr = librosa.load(audio_path, sr=22050, mono=True)
+    return _null_signal_report(y, sr, track_name)
+
+
 def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     """Compute all track features from audio array. No file I/O, no plots.
 
@@ -39,25 +68,13 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     Returns:
         report dict with all computed features
     """
-    duration = librosa.get_duration(y=y, sr=sr)
-
-    if duration <= 0:
-        raise ValueError("Audio too short to analyze")
-
     # Null signal guard: degenerate/empty audio produces misleading metrics.
     # Return early with a clear message rather than indexing garbage into the catalog.
-    rms_check = float(np.sqrt(np.mean(y.astype(np.float64) ** 2)))
-    if rms_check < NULL_SIGNAL_RMS_THRESHOLD:
-        print(f"\n  [null signal] RMS={rms_check:.2e} < threshold={NULL_SIGNAL_RMS_THRESHOLD:.0e}")
-        print(f"  Null or near-silent audio detected — no analysis performed.")
-        print(f"  (To analyze intentional silence, use a track with natural floor noise.)")
-        return {
-            "track": track_name,
-            "null_signal": True,
-            "rms": rms_check,
-            "duration_seconds": round(duration, 1),
-            "reason": "rms_below_threshold",
-        }
+    null_report = _null_signal_report(y, sr, track_name)
+    if null_report:
+        return null_report
+
+    duration = librosa.get_duration(y=y, sr=sr)
 
     # --- Tempo and beat tracking ---
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)

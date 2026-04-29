@@ -40,7 +40,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-from .fetch import _yt_dlp_base_cmd, validate_slug, validate_youtube_url
+from .fetch import _run_yt_dlp, validate_slug, validate_youtube_url
 
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -499,7 +499,7 @@ def download_video(url: str, video_dir: Path, slug: str) -> Path | None:
     video_dir.mkdir(parents=True, exist_ok=True)
     out_template = video_dir / f"{slug}.%(ext)s"
 
-    cmd = _yt_dlp_base_cmd() + [
+    args = [
         "--format", (
             "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]"
             "/best[height<=720][ext=mp4]/best[height<=720]"
@@ -512,7 +512,7 @@ def download_video(url: str, video_dir: Path, slug: str) -> Path | None:
 
     print(f"  [frames] downloading video: {url}")
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        result = _run_yt_dlp(args, timeout=300)
     except subprocess.TimeoutExpired:
         print("  [frames] download timed out after 300s")
         return None

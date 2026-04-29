@@ -92,3 +92,27 @@ def test_public_api_exports():
     import galdr
     for name in galdr.__all__:
         assert hasattr(galdr, name), f"Missing export: {name}"
+
+
+def test_skill_markdown_declared_as_package_data():
+    """The agent skill reference should be included in built distributions."""
+    from pathlib import Path
+
+    pyproject = Path("pyproject.toml").read_text()
+    assert 'galdr = ["SKILL.md", "templates/*.md"]' in pyproject
+
+
+def test_yt_dlp_dependency_includes_reliability_extras():
+    """Fetch reliability depends on yt-dlp's default and curl-cffi extras."""
+    from pathlib import Path
+
+    pyproject = Path("pyproject.toml").read_text()
+    assert '"yt-dlp[default,curl-cffi]>=2026.3.17"' in pyproject
+
+
+def test_yt_dlp_reliability_extras_importable():
+    """The synced environment should include yt-dlp's EJS and impersonation helpers."""
+    import importlib.util
+
+    assert importlib.util.find_spec("curl_cffi") is not None
+    assert importlib.util.find_spec("yt_dlp_ejs") is not None

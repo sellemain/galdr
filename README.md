@@ -23,6 +23,7 @@ Just what shaped the reasoning.
 **Listening examples:**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 - **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
+- **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
 
 ---
 
@@ -46,7 +47,7 @@ Or without uv:
 pip install -e .
 ```
 
-**Keeping yt-dlp current:** YouTube blocks stale yt-dlp versions. Run `galdr update-deps` periodically (or after a broken download) to upgrade yt-dlp in the current Python environment. If you're working from the repo with uv, refresh the environment with `uv sync --upgrade-package yt-dlp`.
+**YouTube download health:** YouTube blocks stale download clients. Run `galdr doctor` to inspect the active Python environment, yt-dlp, ffmpeg, JavaScript runtimes, and impersonation support. Run `galdr update-deps` periodically, or after a broken download, to upgrade `yt-dlp[default,curl-cffi]` in the current Python environment.
 
 ## Choose Your Path
 
@@ -84,6 +85,7 @@ cat prompt.txt | claude       # Claude CLI
 That produces something like these:
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 - **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
+- **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
 
 Useful variants:
 
@@ -273,6 +275,15 @@ pattern_breaks = perception["pattern_breaks"]
 The assembled prompt includes: source URL, structural events, harmonic and melodic data, lyrics with timestamps if available, and video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
 
 → **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
+
+## Troubleshooting YouTube Downloads
+
+```bash
+galdr doctor       # show yt-dlp, ffmpeg, JS runtime, and impersonation diagnostics
+galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python environment
+```
+
+`galdr fetch` downloads audio separately from captions. If captions fail but audio succeeds, analysis can still continue; if audio fails, run `galdr doctor` first, then `galdr update-deps`.
 
 ## What It Measures
 
