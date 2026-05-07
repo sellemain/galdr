@@ -23,6 +23,7 @@ from .constants import (
     ENERGY_ARC_SEGMENTS,
     NULL_SIGNAL_RMS_THRESHOLD,
 )
+from .tempo import estimate_tempo_profile, windowed_beat_tempos
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -84,6 +85,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         tempo = float(tempo[0]) if len(tempo) > 0 else 0.0
     else:
         tempo = float(tempo)
+    tempo_profile = estimate_tempo_profile(tempo, window_tempos=windowed_beat_tempos(y, sr))
 
     # Beat intervals for rhythm analysis
     if len(beat_times) > 1:
@@ -183,6 +185,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         "track": track_name,
         "duration_seconds": round(duration, 1),
         "tempo_bpm": round(tempo, 1),
+        **tempo_profile,
         "beat_count": len(beat_times),
         "beat_regularity": round(beat_regularity, 3),  # 1.0 = perfectly regular
         "rhythm_description": (

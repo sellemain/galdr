@@ -94,12 +94,28 @@ def test_public_api_exports():
         assert hasattr(galdr, name), f"Missing export: {name}"
 
 
-def test_skill_markdown_declared_as_package_data():
-    """The agent skill reference should be included in built distributions."""
+def test_templates_declared_as_package_data():
+    """Prompt templates should be included in built distributions."""
     from pathlib import Path
 
     pyproject = Path("pyproject.toml").read_text()
-    assert 'galdr = ["SKILL.md", "templates/*.md"]' in pyproject
+    assert 'galdr = ["templates/*.md"]' in pyproject
+
+
+def test_skill_bundle_declared_in_sdist_manifest():
+    """The canonical agent skill bundle should ship in source distributions."""
+    from pathlib import Path
+
+    manifest = Path("MANIFEST.in").read_text()
+    assert "recursive-include galdr-skill *.md *.skill" in manifest
+
+
+def test_only_one_skill_markdown_in_repo():
+    """Avoid multiple discoverable SKILL.md files with unclear authority."""
+    from pathlib import Path
+
+    skill_files = [p.as_posix() for p in Path(".").glob("**/SKILL.md") if ".git" not in p.parts]
+    assert skill_files == ["galdr-skill/galdr/SKILL.md"]
 
 
 def test_yt_dlp_dependency_includes_reliability_extras():
