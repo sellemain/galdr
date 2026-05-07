@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-07
+
+### Added
+- Python API helpers for listening, assembling, fetching, and DataFrame-oriented catalog exploration.
+- Notebook and FastAPI examples for agent and application integration.
+- Tempo profile validation with candidate tempos, confidence scoring, ambiguity flags, and windowed cross-checks.
+- LUFS-based loudness and breath/pressure analysis using `pyloudnorm`.
+- Perception stream fields for loudness, LUFS breath delta, pressure state, and loudness-aware silence.
+- Perception-first roadmap and listening-test templates for future metric validation.
+- GitHub issue templates for bug reports and usage questions.
+- Public support/contact guidance in the README.
+
+### Changed
+- Breath and assembled prose now describe pressure/build/release/sustain instead of raw loudness jargon.
+- Package author email now uses the public galdr alias at `galdr@sellemain.com`.
+- Security policy now reflects the current supported release line and fallback contact path.
+- Agent skill packaging now uses `galdr-skill/galdr/SKILL.md` as the canonical distributable skill, with `docs/AGENT-CLI-REFERENCE.md` as the no-frontmatter CLI reference.
+
 ## [0.2.0] - 2026-04-29
 
 ### Added

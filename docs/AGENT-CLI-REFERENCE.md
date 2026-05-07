@@ -1,6 +1,6 @@
 # galdr agent CLI reference
 
-Models a listener's attention as music plays — how engagement builds, holds, and dissolves. Produces time-series perception data, harmony analysis, melody contour, and overtone structure.
+Music perception SDK for AI agents — turns tracks into listener-state traces: momentum, breath, silence, tempo confidence, harmony, melody, overtones.
 
 ## Install
 

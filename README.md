@@ -418,7 +418,7 @@ cp -R galdr-skill/galdr ~/.hermes/skills/media/galdr
 
 Some Hermes builds may also support direct single-file URL installs or external skill directories. If yours does, point it at `galdr-skill/galdr/SKILL.md` or the checked-out `galdr-skill/` parent directory. Use the clone/copy path when you want bundled references such as `references/metrics.md`.
 
-For [OpenClaw](https://openclaw.ai) users, `galdr-skill/` also contains a pre-built OpenClaw skill package (`.skill` file) installable via clawhub, with an experience-generation workflow optimized for OpenClaw's agent context.
+For [OpenClaw](https://openclaw.ai) users, `galdr-skill/` also contains a pre-built OpenClaw skill package (`.skill` file) for local install or later ClawHub publication, with an experience-generation workflow optimized for OpenClaw's agent context.
 
 ### What agents can do with this data
 
@@ -441,6 +441,14 @@ What agents shouldn't do: assert emotional meaning directly from structural data
 - Python >= 3.10
 - librosa, numpy, scipy, matplotlib, soundfile
 - ffmpeg (recommended for MP3, M4A, and video audio extraction)
+
+## Questions and Issues
+
+Use [GitHub Issues](https://github.com/sellemain/galdr/issues) for bugs, usage questions, and feature requests.
+
+For security vulnerabilities, do **not** open a public issue. Use [GitHub private vulnerability reporting](https://github.com/sellemain/galdr/security/advisories/new).
+
+Maintainer contact: [galdr@sellemain.com](mailto:galdr@sellemain.com).
 
 ## License
 
