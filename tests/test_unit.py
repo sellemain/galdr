@@ -227,6 +227,24 @@ class TestAssemblePrompt:
             assert "120" in result or "bpm" in result.lower(), \
                 f"Metrics missing from mode={mode}"
 
+    def test_ambiguous_tempo_not_presented_as_plain_truth(self):
+        analysis = {
+            "report": {
+                "duration_seconds": 200.0,
+                "tempo_bpm": 92.3,
+                "perceived_tempo_bpm": 140.8,
+                "tempo_confidence": 0.68,
+                "tempo_ambiguous": True,
+                "tempo_note": "detected pulse conflicts with repeated windowed beat tracking",
+            }
+        }
+        result = self.fn(analysis, mode="blind")
+
+        assert "Tempo: 92.3 BPM" not in result
+        assert "perceived ~140.8 BPM" in result
+        assert "detected pulse 92.3 BPM" in result
+        assert "ambiguous/suspect" in result
+
 
 # ── Null Signal Guard ─────────────────────────────────────────────────────────
 
@@ -274,6 +292,23 @@ class TestNullSignalGuard:
         sf.write(wav, tone, sr)
         result = analyze_track(str(wav), str(tmp_path / "out"), "tone-test")
         assert result.get("null_signal") is None or result.get("null_signal") is False
+
+    def test_compute_track_features_adds_tempo_validation_fields(self):
+        import numpy as np
+        from galdr.analyze import compute_track_features
+
+        sr = 22050
+        t = np.linspace(0, 2.0, sr * 2)
+        tone = (np.sin(2 * np.pi * 440 * t) * 0.5).astype(np.float32)
+        result = compute_track_features(tone, sr, "tone-test")
+
+        assert "tempo_bpm" in result
+        assert "detected_pulse_bpm" in result
+        assert "perceived_tempo_bpm" in result
+        assert "tempo_candidates" in result
+        assert "tempo_confidence" in result
+        assert "tempo_ambiguous" in result
+        assert "tempo_note" in result
 
 
 # ── Active-Frame Silence Stats ────────────────────────────────────────────────

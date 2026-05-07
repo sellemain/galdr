@@ -1,9 +1,4 @@
----
-name: galdr
-description: Analyze audio tracks to understand musical perception — how listener attention engages, holds, and dissolves over time. Use when asked to analyze a music or audio file, describe what a track does to a listener, compare two tracks, or build a catalog of perceptual data. Outputs momentum, breath, hp_balance, pattern_lock, temperament_alignment, and silence events as time-series data. Requires galdr installed (pip install galdr or pip install -e . from source). NOT for: audio editing, format conversion, or tasks that don't involve perceptual analysis.
----
-
-# galdr
+# galdr agent CLI reference
 
 Models a listener's attention as music plays — how engagement builds, holds, and dissolves. Produces time-series perception data, harmony analysis, melody contour, and overtone structure.
 

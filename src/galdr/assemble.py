@@ -182,6 +182,31 @@ def _fmt_time(seconds: float) -> str:
     return f"{m}:{s:02d}"
 
 
+def _fmt_tempo(report: dict) -> str:
+    """Format tempo without presenting suspect alternate pulses as plain truth."""
+    tempo = report.get("tempo_bpm", 0)
+    perceived = report.get("perceived_tempo_bpm")
+    confidence = report.get("tempo_confidence")
+    ambiguous = bool(report.get("tempo_ambiguous"))
+    note = report.get("tempo_note")
+
+    if perceived is None:
+        return f"Tempo: {tempo:.1f} BPM"
+
+    if ambiguous or abs(float(perceived) - float(tempo)) >= 1.0:
+        line = f"Tempo: perceived ~{float(perceived):.1f} BPM"
+        if tempo:
+            line += f" (detected pulse {float(tempo):.1f} BPM; ambiguous/suspect)"
+    else:
+        line = f"Tempo: {float(perceived):.1f} BPM"
+
+    if confidence is not None:
+        line += f"; confidence {float(confidence):.2f}"
+    if note:
+        line += f" — {note}"
+    return line
+
+
 def _build_metrics(analysis: dict) -> str:
     """Build core galdr metrics section."""
     report = analysis.get("report") or {}
@@ -197,14 +222,13 @@ def _build_metrics(analysis: dict) -> str:
 
     # Track identity — field names from report.json
     duration = report.get("duration_seconds", 0)
-    tempo = report.get("tempo_bpm", 0)
     beat_reg = report.get("beat_regularity", 0)
     har_e = report.get("harmonic_energy", 0)
     perc_e = report.get("percussive_energy", 0)
     character = report.get("character", "")
 
     lines.append(f"Duration: {_fmt_time(duration)} ({duration:.1f}s)")
-    lines.append(f"Tempo: {tempo:.1f} BPM")
+    lines.append(_fmt_tempo(report))
 
     # Perception summary — handles both new schema (mean_pattern_lock) and
     # old schema (mean_surprise = disruption, pattern_lock = 1 - surprise)
