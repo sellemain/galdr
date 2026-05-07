@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Python API helpers for listening, assembling, fetching, and DataFrame-oriented catalog exploration.
-- Notebook and FastAPI examples for agent and application integration.
+- Notebook and script examples for agent and application integration.
 - Tempo profile validation with candidate tempos, confidence scoring, ambiguity flags, and windowed cross-checks.
 - LUFS-based loudness and breath/pressure analysis using `pyloudnorm`.
 - Perception stream fields for loudness, LUFS breath delta, pressure state, and loudness-aware silence.

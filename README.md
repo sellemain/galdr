@@ -382,7 +382,7 @@ pip install "galdr[notebook]"  # Jupyter + pandas + Plotly
 python -m galdr --help         # module entrypoint works too
 ```
 
-See `docs/PYTHON-API.md`, `examples/python_api.py`, `examples/fastapi_app.py`, and `examples/notebooks/` for more integration shapes.
+See `docs/PYTHON-API.md`, `examples/python_api.py`, and `examples/notebooks/` for more integration shapes.
 
 ## Agent Integration
 
