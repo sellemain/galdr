@@ -1,0 +1,58 @@
+name: Bug report
+description: Report a reproducible problem with galdr.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a galdr bug. Please include enough detail to reproduce it.
+
+        For security vulnerabilities, do not open a public issue. Use GitHub private vulnerability reporting if available: https://github.com/sellemain/galdr/security/advisories/new
+
+        If private vulnerability reporting is unavailable, email galdr@sellemain.com.
+  - type: input
+    id: version
+    attributes:
+      label: galdr version
+      description: Run `galdr --version` or check `pip show galdr`.
+      placeholder: "0.2.1"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version and OS
+      placeholder: "Python 3.12 on macOS 15 / Ubuntu 24.04 / Windows 11"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or code
+      description: Paste the exact command or smallest code sample that triggers the issue.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the full error output or traceback when possible.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: If this involves YouTube/downloads, paste `galdr doctor` output.
+      render: text
+    validations:
+      required: false

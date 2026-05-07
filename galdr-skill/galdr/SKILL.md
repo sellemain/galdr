@@ -1,14 +1,14 @@
 ---
 name: galdr
-description: "Analyze music and generate impressionistic listening experiences using galdr, an open-source audio analysis CLI. Use when a user asks to analyze a song or track, generate a listening experience or music essay, understand what makes a piece of music work structurally, compare two tracks, or extract video frames from a music video for visual-structural analysis. Works with YouTube URLs (auto-downloads) or local audio files. Produces structural metrics (pattern lock, momentum, harmonic balance, breath shape, silences) and can assemble a self-contained model prompt that generates ~800-word first-person prose. NOT for lyrics-only requests, music recommendations without analysis, or tasks requiring real-time audio capture."
-version: 0.2.0
+description: Music perception SDK for AI agents — turns tracks into listener-state traces: momentum, breath, silence, tempo confidence, harmony, melody, overtones.
+version: 0.2.1
 author: Sellemain
 license: MIT
 platforms: [linux, macos]
 ---
 # galdr
 
-Audio analysis CLI. Generates structural metrics then assembles a prompt for ~800-word listening experience prose.
+Music perception SDK for AI agents — turns tracks into listener-state traces: momentum, breath, silence, tempo confidence, harmony, melody, overtones.
 
 ## Install
 

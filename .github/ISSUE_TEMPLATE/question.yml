@@ -1,0 +1,20 @@
+name: Question or usage help
+description: Ask about using galdr, interpreting output, or integrating it with an agent.
+title: "Question: "
+labels: ["question"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What are you trying to do, and where are you stuck?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Include relevant commands, snippets, or output files if useful.
+      render: text
+    validations:
+      required: false

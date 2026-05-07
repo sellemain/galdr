@@ -4,7 +4,8 @@
 
 | Version | Supported |
 |---------|-----------|
-| 0.1.x   | ✅ Yes    |
+| 0.2.x   | ✅ Yes    |
+| < 0.2   | ❌ No     |
 
 ## Reporting a Vulnerability
 
@@ -12,6 +13,8 @@ Please **do not** open a public GitHub issue for security vulnerabilities.
 
 Use GitHub's private vulnerability reporting:
 **[Report a vulnerability](https://github.com/sellemain/galdr/security/advisories/new)**
+
+If private vulnerability reporting is unavailable, contact [galdr@sellemain.com](mailto:galdr@sellemain.com).
 
 Include:
 - Description of the vulnerability
