@@ -44,6 +44,14 @@ Changelog = "https://github.com/sellemain/galdr/blob/main/CHANGELOG.md"
 galdr = "galdr.cli:main"
 
 [project.optional-dependencies]
+data = [
+    "pandas>=2.0.0",
+]
+notebook = [
+    "jupyter>=1.0.0",
+    "pandas>=2.0.0",
+    "plotly>=5.0.0",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -74,4 +82,4 @@ where = ["src"]
 # Ship prompt templates as package data so they're available after pip install.
 # Templates live in src/galdr/templates/ and are accessed via importlib.resources.
 # docs/ is the canonical source; templates/ is the bundled copy shipped with the package.
-galdr = ["SKILL.md", "templates/*.md"]
+galdr = ["templates/*.md"]

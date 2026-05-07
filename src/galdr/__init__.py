@@ -3,17 +3,16 @@
 Stateful listener, pattern analysis, harmonic decomposition.
 
 Quick start (Python API):
-    from galdr import analyze_track, assemble_prompt, load_context
+    from galdr import listen, assemble
 
-    # Analyze audio — writes JSON to output_dir/track_name/
-    result = analyze_track("helvegen.mp3", "analysis/", "7-helvegen")
+    # Analyze audio — writes JSON to analysis/helvegen/
+    analysis = listen("helvegen.mp3")
 
     # Build prompt (default: full context, no template)
-    ctx = load_context("7-helvegen", "analysis/")
-    prompt = assemble_prompt(result, context=ctx)
+    prompt = analysis.to_prompt()
 
     # Or with mode + template
-    prompt = assemble_prompt(result, context=ctx, mode="blind", template="arc")
+    prompt = assemble(analysis, mode="blind", template="arc")
 
 Modes:
     full     Everything available — background, lyrics, frames (default)
@@ -53,8 +52,21 @@ from .assemble import (
     load_context,              # loads context.json for a slug -> dict
     MODES,                     # mode definitions dict
 )
+from .api import (
+    Analysis,
+    assemble,
+    listen,
+    load_stream_df,
+    load_streams_df,
+)
 
 __all__ = [
+    # High-level API
+    "Analysis",
+    "assemble",
+    "listen",
+    "load_stream_df",
+    "load_streams_df",
     # Analysis
     "analyze_track",
     "compute_track_features",
