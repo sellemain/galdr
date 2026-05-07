@@ -245,7 +245,17 @@ def _build_metrics(analysis: dict) -> str:
         lines.append(f"\nMomentum: {momentum:.3f} (listener engagement, 0–1)")
         lines.append(f"Pattern lock: {pattern_lock:.3f} (predictability/hold, 0–1)")
         lines.append(f"Beat regularity: {beat_reg:.3f} (metronomic pulse stability)")
-        lines.append(f"Breath: {breath_pos:.1f}% building / {breath_neg:.1f}% releasing / {breath_sus:.1f}% sustaining")
+        lines.append(
+            f"Breath: {breath_pos:.1f}% pressure building / "
+            f"{breath_neg:.1f}% releasing / {breath_sus:.1f}% sustaining"
+        )
+        if summary.get("integrated_lufs") is not None:
+            silence_pct = summary.get("loudness_silence_pct", 0)
+            lines.append(
+                f"Heard pressure: {silence_pct:.1f}% silence-aware floor; "
+                "describe movement as pressure, build, release, or sustain "
+                "rather than meter readings"
+            )
 
     # HP balance derived from report harmonic/percussive energy ratio
     if har_e or perc_e:

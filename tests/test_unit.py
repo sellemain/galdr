@@ -389,3 +389,99 @@ class TestActiveFrameStats:
         indexed = cat.tracks["test-quiet-track"]
         # Should use whole-track momentum (silence not significant)
         assert indexed["mean_momentum"] == pytest.approx(0.40, abs=0.01)
+
+
+# ── SM-300 LUFS Breath ───────────────────────────────────────────────────────
+
+
+class TestLufsBreath:
+    def _tone(self, amp=0.2, duration_sec=6.0, sr=22050):
+        import numpy as np
+        t = np.linspace(0, duration_sec, int(sr * duration_sec), endpoint=False)
+        return (np.sin(2 * np.pi * 440 * t) * amp).astype(np.float32), sr
+
+    def test_loudness_treats_silence_as_silence_aware(self):
+        import numpy as np
+        from galdr.perceive import compute_loudness
+
+        sr = 22050
+        y = np.zeros(sr * 6, dtype=np.float32)
+        loudness = compute_loudness(y, sr, 6.0)
+
+        assert loudness["integrated_lufs"] is None
+        assert loudness["silence_mask"].all()
+        assert np.allclose(loudness["breath"], 0.0)
+
+    def test_steady_loudness_sustains(self):
+        import numpy as np
+        from galdr.perceive import compute_loudness
+
+        y, sr = self._tone(amp=0.2)
+        loudness = compute_loudness(y, sr, 6.0)
+
+        assert loudness["integrated_lufs"] is not None
+        assert not loudness["silence_mask"].all()
+        assert float(np.mean(np.abs(loudness["breath"]))) < 0.2
+
+    def test_building_pressure_goes_positive(self):
+        import numpy as np
+        from galdr.perceive import compute_loudness
+
+        sr = 22050
+        t = np.linspace(0, 8.0, sr * 8, endpoint=False)
+        amp = np.linspace(0.03, 0.5, len(t))
+        y = (np.sin(2 * np.pi * 440 * t) * amp).astype(np.float32)
+        loudness = compute_loudness(y, sr, 8.0)
+
+        assert float(np.mean(loudness["breath"][2:-2])) > 0.25
+
+    def test_release_pressure_goes_negative(self):
+        import numpy as np
+        from galdr.perceive import compute_loudness
+
+        sr = 22050
+        t = np.linspace(0, 8.0, sr * 8, endpoint=False)
+        amp = np.linspace(0.5, 0.03, len(t))
+        y = (np.sin(2 * np.pi * 440 * t) * amp).astype(np.float32)
+        loudness = compute_loudness(y, sr, 8.0)
+
+        assert float(np.mean(loudness["breath"][2:-2])) < -0.25
+
+    def test_perception_stream_keeps_rms_and_adds_lufs_pressure_fields(self):
+        from galdr.perceive import compute_perception
+
+        y, sr = self._tone(amp=0.2)
+        report = compute_perception(y, sr, "steady-tone")
+        entry = report["stream"][0]
+        summary = report["summary"]
+
+        assert "energy" in entry  # legacy RMS field
+        assert "loudness_lufs" in entry
+        assert "breath_lufs_delta" in entry
+        assert "pressure_state" in entry
+        assert "integrated_lufs" in summary
+        assert summary["integrated_lufs"] is not None
+
+    def test_assembled_metrics_use_pressure_language_not_lufs_first(self):
+        from galdr.assemble import assemble_prompt
+
+        analysis = {
+            "report": {"duration_seconds": 60.0, "tempo_bpm": 90.0, "beat_regularity": 0.8},
+            "perception": {
+                "summary": {
+                    "mean_momentum": 0.5,
+                    "mean_pattern_lock": 0.8,
+                    "breath_positive_pct": 45.0,
+                    "breath_negative_pct": 35.0,
+                    "breath_sustain_pct": 20.0,
+                    "integrated_lufs": -18.5,
+                    "loudness_silence_pct": 10.0,
+                }
+            },
+        }
+        prompt = assemble_prompt(analysis, mode="blind")
+
+        assert "pressure building" in prompt
+        assert "releasing" in prompt
+        assert "silence-aware" in prompt
+        assert "LUFS" not in prompt

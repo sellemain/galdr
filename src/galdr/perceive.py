@@ -15,6 +15,7 @@ from pathlib import Path
 
 import librosa
 import librosa.display
+import pyloudnorm as pyln
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -158,31 +159,89 @@ def compute_disruption(y, sr, beat_times, duration, hop_sec=MOMENTUM_HOP_SEC):
     return times, disruption_total, disruption_beat, disruption_spectral, disruption_energy
 
 
-def compute_breath(y, sr, duration, hop_sec=MOMENTUM_HOP_SEC):
-    """The rate of energy change — building, sustaining, or releasing.
+def compute_loudness(y, sr, duration, hop_sec=MOMENTUM_HOP_SEC):
+    """EBU R128 loudness curve for heard pressure.
 
-    Returns (times, breath) where:
-    - Positive = building (energy increasing)
-    - Zero = sustaining (stable)
-    - Negative = releasing (energy decreasing)
+    Returns a dict with integrated LUFS plus a silence-aware short-term curve
+    aligned to the perception stream. Non-finite/near-floor windows are carried
+    as silence rather than coerced into bogus numeric motion.
     """
-    rms = librosa.feature.rms(y=y)[0]
-    rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
-
-    smoothed = uniform_filter1d(rms, size=BREATH_SMOOTH_FRAMES)
-
-    if len(smoothed) > 1:
-        breath_raw = np.gradient(smoothed)
-        max_abs = np.max(np.abs(breath_raw))
-        if max_abs > 0:
-            breath_raw = breath_raw / max_abs
-    else:
-        breath_raw = np.zeros_like(smoothed)
+    meter = pyln.Meter(sr)
+    y64 = np.asarray(y, dtype=np.float64)
+    try:
+        integrated = float(meter.integrated_loudness(y64))
+    except ValueError:
+        integrated = float("-inf")
+    integrated_lufs = None if not np.isfinite(integrated) else round(integrated, 2)
 
     times = np.arange(0, duration, hop_sec)
-    breath = np.interp(times, rms_times, breath_raw)
+    window_sec = 3.0
+    floor_lufs = -70.0
+    curve = np.full(len(times), np.nan, dtype=float)
+    silence_mask = np.zeros(len(times), dtype=bool)
 
-    return times, breath
+    for i, t in enumerate(times):
+        start = int(max(0, (t - window_sec / 2) * sr))
+        end = int(min(len(y64), (t + window_sec / 2) * sr))
+        segment = y64[start:end]
+        if len(segment) == 0 or float(np.sqrt(np.mean(segment ** 2))) < 1e-7:
+            silence_mask[i] = True
+            continue
+
+        try:
+            value = float(meter.integrated_loudness(segment))
+        except ValueError:
+            value = float("-inf")
+        if not np.isfinite(value) or value <= floor_lufs:
+            silence_mask[i] = True
+        else:
+            curve[i] = value
+
+    active = curve[~silence_mask & np.isfinite(curve)]
+    if len(active) == 0:
+        filled = np.full(len(curve), floor_lufs, dtype=float)
+    else:
+        filled = curve.copy()
+        valid_idx = np.flatnonzero(np.isfinite(filled))
+        filled[~np.isfinite(filled)] = np.interp(
+            np.flatnonzero(~np.isfinite(filled)), valid_idx, filled[valid_idx]
+        )
+
+    smoothed = uniform_filter1d(filled, size=min(BREATH_SMOOTH_FRAMES, max(1, len(filled))))
+    if len(smoothed) > 1:
+        delta = np.gradient(smoothed)
+        delta[silence_mask] = 0.0
+        # Ignore sub-audible numerical flutter in steady material. LUFS breath
+        # should describe real pressure motion, not floating point dust.
+        delta[np.abs(delta) < 0.05] = 0.0
+        max_abs = np.max(np.abs(delta))
+        breath = delta / max_abs if max_abs > 0 else np.zeros_like(delta)
+    else:
+        delta = np.zeros_like(smoothed)
+        breath = np.zeros_like(smoothed)
+
+    return {
+        "times": times,
+        "integrated_lufs": integrated_lufs,
+        "short_term_lufs": curve,
+        "smoothed_lufs": smoothed,
+        "loudness_delta": delta,
+        "breath": breath,
+        "silence_mask": silence_mask,
+        "floor_lufs": floor_lufs,
+    }
+
+
+def compute_breath(y, sr, duration, hop_sec=MOMENTUM_HOP_SEC):
+    """Heard-pressure breath — building, sustaining, or releasing.
+
+    Returns (times, breath) where:
+    - Positive = building (perceived pressure increasing)
+    - Zero = sustaining (stable or silence-aware)
+    - Negative = releasing (perceived pressure decreasing)
+    """
+    loudness = compute_loudness(y, sr, duration, hop_sec=hop_sec)
+    return loudness["times"], loudness["breath"]
 
 
 def detect_silences(y, sr, threshold_db=SILENCE_THRESHOLD_DB,
@@ -303,7 +362,9 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         y, sr, beat_times, duration
     )
 
-    b_times, breath = compute_breath(y, sr, duration)
+    loudness = compute_loudness(y, sr, duration)
+    b_times = loudness["times"]
+    breath = loudness["breath"]
 
     silences = detect_silences(y, sr)
 
@@ -323,6 +384,18 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
             "momentum": round(float(momentum[i]), 3),
             "pattern_lock": round(1.0 - float(disruption[i]), 3),
             "breath": round(float(breath[i]), 3),
+            "loudness_lufs": (
+                None if not np.isfinite(loudness["short_term_lufs"][i])
+                else round(float(loudness["short_term_lufs"][i]), 2)
+            ),
+            "breath_lufs_delta": round(float(loudness["loudness_delta"][i]), 3),
+            "pressure_state": (
+                "silence" if loudness["silence_mask"][i]
+                else "building" if breath[i] > EVENT_BREATH_BUILDING
+                else "releasing" if breath[i] < EVENT_BREATH_RELEASING
+                else "sustaining"
+            ),
+            "loudness_silence": bool(loudness["silence_mask"][i]),
             "hp_balance": round(float(hp_balance[i]), 3),
             "h_energy": round(float(h_energy[i]), 4),
             "p_energy": round(float(p_energy[i]), 4),
@@ -436,6 +509,9 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         "breath_positive_pct": round(float(np.mean(breath > 0.05)) * 100, 1),
         "breath_negative_pct": round(float(np.mean(breath < -0.05)) * 100, 1),
         "breath_sustain_pct": round(float(np.mean(np.abs(breath) <= 0.05)) * 100, 1),
+        "integrated_lufs": loudness["integrated_lufs"],
+        "loudness_floor_lufs": loudness["floor_lufs"],
+        "loudness_silence_pct": round(float(np.mean(loudness["silence_mask"])) * 100, 1),
         # Active-frame stats (new — additive, not replacing above)
         "active_duration_sec": active_duration_sec,
         "silent_duration_sec": total_silence_sec,
