@@ -274,6 +274,8 @@ pattern_breaks = perception["pattern_breaks"]
 
 The assembled prompt includes: source URL, structural events, harmonic and melodic data, lyrics with timestamps if available, and video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
 
+Perception-first implementation work is tracked in [docs/PERCEPTION-FIRST-ROADMAP.md](docs/PERCEPTION-FIRST-ROADMAP.md), with reusable comparison notes under [docs/listening-tests/](docs/listening-tests/).
+
 → **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
 
 ## Troubleshooting YouTube Downloads
@@ -339,22 +341,48 @@ analysis/my-track/
 
 ## Python API
 
+The easy path:
+
+```python
+from galdr import listen
+
+analysis = listen("track.wav")
+print(analysis.report)
+
+prompt = analysis.to_prompt(template="arc", mode="full")
+frames = analysis.to_dataframes()  # requires pip install "galdr[data]"
+```
+
+Load existing analysis:
+
+```python
+from galdr import Analysis, assemble, load_stream_df
+
+analysis = Analysis.from_slug("my-track", analysis_dir="analysis")
+prompt = assemble(analysis, mode="blind")
+perception_df = load_stream_df("analysis/my-track/my-track_perception_stream.json")
+```
+
+Lower-level module APIs are still available when you want explicit control:
+
 ```python
 from galdr.analyze import analyze_track
 from galdr.perceive import generate_perception_stream
-from galdr.harmony import analyze_harmony
-from galdr.melody import analyze_melody
-from galdr.overtone import analyze_overtones
-from galdr.catalog import CatalogState
 
-# Run individual modules
-report = analyze_track("track.wav", "output/", "my-track")
-perception = generate_perception_stream("track.wav", "output/", "my-track")
-
-# perception is a dict with a second-by-second stream and summary
-summary = perception["summary"]
-stream = perception["stream"]
+report = analyze_track("track.wav", "analysis/my-track", "my-track")
+perception = generate_perception_stream("track.wav", "analysis/my-track", "my-track")
 ```
+
+Install shapes:
+
+```bash
+pip install galdr
+pip install "galdr[data]"      # pandas dataframe helpers
+pip install "galdr[notebook]"  # Jupyter + pandas + Plotly
+python -m galdr --help         # module entrypoint works too
+```
+
+See `docs/PYTHON-API.md`, `examples/python_api.py`, `examples/fastapi_app.py`, and `examples/notebooks/` for more integration shapes.
 
 ## Agent Integration
 
@@ -376,9 +404,21 @@ The assembled prompt includes the source URL (so a reader can listen along), all
 
 ### Tool definitions
 
-If your agent framework supports tool definitions (LangChain tools, MCP, OpenClaw skills, etc.), `[src/galdr/SKILL.md](https://github.com/sellemain/galdr/blob/main/src/galdr/SKILL.md)` is a lean command reference designed to be included as agent context. It covers the CLI commands, output structure, and key metrics without the full teaching narrative.
+There is one canonical `SKILL.md` in this repo: `galdr-skill/galdr/SKILL.md`. That directory is the distributable agent skill for OpenClaw and AgentSkill-compatible runtimes, including Hermes-style consumers. It includes the main skill file plus reference material and is kept free of runtime-specific metadata.
 
-For [OpenClaw](https://openclaw.ai) users, `galdr-skill/` contains a pre-built OpenClaw skill package (`.skill` file) installable via clawhub, with an experience-generation workflow optimized for OpenClaw's agent context.
+For agents that do not consume `SKILL.md` directly, [`docs/AGENT-CLI-REFERENCE.md`](https://github.com/sellemain/galdr/blob/main/docs/AGENT-CLI-REFERENCE.md) provides a lean command reference without skill frontmatter.
+
+Hermes-compatible runtimes can use the directory from a clone:
+
+```bash
+# Copy into a Hermes/global skill tree
+mkdir -p ~/.hermes/skills/media
+cp -R galdr-skill/galdr ~/.hermes/skills/media/galdr
+```
+
+Some Hermes builds may also support direct single-file URL installs or external skill directories. If yours does, point it at `galdr-skill/galdr/SKILL.md` or the checked-out `galdr-skill/` parent directory. Use the clone/copy path when you want bundled references such as `references/metrics.md`.
+
+For [OpenClaw](https://openclaw.ai) users, `galdr-skill/` also contains a pre-built OpenClaw skill package (`.skill` file) installable via clawhub, with an experience-generation workflow optimized for OpenClaw's agent context.
 
 ### What agents can do with this data
 

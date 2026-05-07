@@ -12,6 +12,7 @@ from pathlib import Path
 
 import librosa
 import librosa.display
+import pyloudnorm as pyln
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -23,6 +24,7 @@ from .constants import (
     ENERGY_ARC_SEGMENTS,
     NULL_SIGNAL_RMS_THRESHOLD,
 )
+from .tempo import estimate_tempo_profile, windowed_beat_tempos
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -84,6 +86,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         tempo = float(tempo[0]) if len(tempo) > 0 else 0.0
     else:
         tempo = float(tempo)
+    tempo_profile = estimate_tempo_profile(tempo, window_tempos=windowed_beat_tempos(y, sr))
 
     # Beat intervals for rhythm analysis
     if len(beat_times) > 1:
@@ -140,7 +143,13 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     # --- Zero crossing rate (texture) ---
     zcr = librosa.feature.zero_crossing_rate(y)[0]
 
-    # --- Dynamics ---
+    # --- Loudness / dynamics ---
+    meter = pyln.Meter(sr)
+    try:
+        integrated_lufs_raw = float(meter.integrated_loudness(y.astype(np.float64)))
+    except ValueError:
+        integrated_lufs_raw = float("-inf")
+    integrated_lufs = None if not np.isfinite(integrated_lufs_raw) else round(integrated_lufs_raw, 2)
     dynamic_range = float(np.max(rms) / np.min(rms[rms > 0])) if np.any(rms > 0) else 0
 
     # --- Novelty-based segmentation ---
@@ -183,6 +192,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         "track": track_name,
         "duration_seconds": round(duration, 1),
         "tempo_bpm": round(tempo, 1),
+        **tempo_profile,
         "beat_count": len(beat_times),
         "beat_regularity": round(beat_regularity, 3),  # 1.0 = perfectly regular
         "rhythm_description": (
@@ -208,6 +218,8 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
             else "warm" if np.mean(centroid) > 1200
             else "dark/deep"
         ),
+        "integrated_lufs": integrated_lufs,
+        "loudness_lufs": integrated_lufs,
         "dynamic_range_ratio": round(dynamic_range, 1),
         "dynamics": (
             "very dynamic" if dynamic_range > 50
