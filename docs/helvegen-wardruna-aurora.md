@@ -18,11 +18,11 @@ The final minute is the true event. Harmonic movement rises sharply after `6:00`
 
 The first sound does not enter as a beginning. It feels uncovered. There is a low human mass already there, dark and close to the floor, and the room has to adjust around it.
 
-For a few seconds, the music is almost all threshold. Pressure comes forward slowly. The pulse is not yet something the body can walk with, but the track is already making a demand: stay still enough to hear it arrive.
+For a few seconds, the music is almost all threshold. Pressure comes forward slowly. The fast pulse is present as a grid before it becomes something the body can walk with. What the body eventually finds is heavier and slower: a half-time ritual gait underneath the detected pulse. The track is already making a demand: stay still enough to hear it arrive.
 
 By `0:20`, the hold has formed. The music does not become busy. It becomes certain. The voice is not carried by brightness or decoration; it is carried by weight. The rhythm underneath is steady enough that the body can surrender to it, but the surface remains rough, old-edged, not polished into comfort.
 
-That is the first strange split. The timing feels trustworthy. The pitch world does not. The harmony keeps brushing against the tuned grid instead of sitting neatly inside it. Nothing about that reads as wrong. It reads as weathered. The sound is centered because it has ritual gravity, not because it has cleaned itself up for the ear.
+That is the first strange split. The timing feels trustworthy. The pitch world does not. The harmony keeps brushing against the tuned grid instead of sitting neatly inside it. The exact key label matters less than the darkened center of gravity. Nothing about that reads as wrong. It reads as weathered. The sound is centered because it has ritual gravity, not because it has cleaned itself up for the ear.
 
 From the first minute onward, the track settles into a long act of carrying. Momentum stays high. Pattern lock stays high. The pressure mostly holds. The result is not forward motion in the usual sense. It is procession. Time keeps passing, but the listener is not being taken through scenes. The listener is being kept inside one condition.
 
