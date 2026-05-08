@@ -1,7 +1,7 @@
 """Tempo validation helpers for galdr.
 
 Librosa's single beat-tracking estimate can lock to an alternate pulse. These helpers keep
-that legacy detected pulse, then add a small candidate/perceived-tempo layer backed by
+the detected pulse, then add a small candidate/felt-pulse layer backed by
 windowed cross-checks.
 """
 
@@ -126,9 +126,9 @@ def estimate_tempo_profile(
 ) -> dict:
     """Build additive tempo validation fields from detected and windowed candidates.
 
-    The legacy `tempo_bpm` remains the raw detected pulse. `perceived_tempo_bpm` may differ
-    when repeated window evidence favors an alternate pulse, in which case the profile is
-    marked ambiguous/suspect rather than presenting the raw pulse as plain truth.
+    `detected_pulse_bpm` remains the raw beat-tracker estimate. `felt_pulse_bpm` may
+    differ when repeated window evidence favors an alternate pulse, in which case the
+    profile is marked ambiguous/suspect rather than presenting the raw pulse as plain truth.
     """
     detected = normalize_tempo_scalar(detected_tempo_bpm)
     values: list[tuple[float, str]] = []
@@ -144,11 +144,11 @@ def estimate_tempo_profile(
     if not candidates:
         return {
             "detected_pulse_bpm": round(detected, 1) if detected else 0.0,
-            "perceived_tempo_bpm": round(detected, 1) if detected else 0.0,
+            "felt_pulse_bpm": round(detected, 1) if detected else 0.0,
             "tempo_candidates": [],
-            "tempo_confidence": 0.0,
-            "tempo_ambiguous": True,
-            "tempo_note": "tempo could not be validated",
+            "pulse_confidence": 0.0,
+            "pulse_ambiguous": True,
+            "pulse_note": "tempo could not be validated",
         }
 
     detected_candidate = min(candidates, key=lambda c: abs(c.bpm - detected)) if detected else None
@@ -166,7 +166,7 @@ def estimate_tempo_profile(
             ambiguous = True
             note = (
                 "detected pulse conflicts with repeated windowed beat tracking; "
-                "perceived tempo uses stronger alternate-pulse evidence"
+                "felt pulse uses stronger alternate-pulse evidence"
             )
         else:
             note = "tempo supported by repeated windowed beat tracking"
@@ -181,11 +181,11 @@ def estimate_tempo_profile(
 
     return {
         "detected_pulse_bpm": round(detected, 1) if detected else 0.0,
-        "perceived_tempo_bpm": selected.bpm,
+        "felt_pulse_bpm": selected.bpm,
         "tempo_candidates": [
             {"bpm": c.bpm, "support": c.support, "source": c.source} for c in candidates
         ],
-        "tempo_confidence": round(confidence, 2),
-        "tempo_ambiguous": ambiguous,
-        "tempo_note": note,
+        "pulse_confidence": round(confidence, 2),
+        "pulse_ambiguous": ambiguous,
+        "pulse_note": note,
     }

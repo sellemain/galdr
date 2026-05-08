@@ -291,32 +291,32 @@ galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python env
 
 ### Perception
 
-- **Momentum** — rolling rhythmic consistency (0–1). How locked-in the beat is.
-- **Pattern Lock** — prediction accuracy (inverted disruption). High = expectations met.
-- **Breath** — energy direction. Building, sustaining, or releasing.
-- **Silence** — actual nothing, not just quiet. Often the most significant moments.
+- **Momentum** — how strongly attention is being carried forward by the track. High momentum means the music has grip, even if it is quiet or slow.
+- **Pattern Lock** — how reliably the music keeps its pattern intact. High lock can feel like groove, ritual steadiness, or a structure the listener can surrender to.
+- **Breath / Heard Pressure** — whether the sound is coming forward, holding, releasing, or emptying out. LUFS is the evidence; listener prose should describe pressure, not meter readings.
+- **Silence** — actual absence, not just quietness. Often the moment where attention sharpens or the music deliberately withdraws.
 
 ### Harmony
 
-- **Key Detection** — Krumhansl-Kessler profile correlation.
-- **Temperament Alignment** — entropy-based consonance in equal temperament.
-- **Series Consonance** — harmonic series fit (just intonation ratios).
-- **Tension** — movement rate in tonnetz space.
-- **Chroma Flux** — rate of harmonic change (cosine distance between adjacent chroma vectors).
-- **Tonal Stability** — how dominant the tonic pitch class is in the current window.
-- **Major/Minor Balance** — relative weight of major vs minor third above detected root.
+- **Key Detection** — the most likely tonal center, with confidence for how strongly the music points there.
+- **Tuning Alignment** — how cleanly the harmony sits inside familiar tuned pitch space. High values feel centered and conventionally tuned; low values can feel bent, smeared, folk-natural, or intentionally outside the grid.
+- **Harmonic Series Consonance** — how concentrated the pitch content is around simple, stable harmonic relationships. High values feel settled or fused; low values feel more spread, complex, or harmonically ambiguous.
+- **Harmonic Tension** — how much the harmony is pulling, shifting, or refusing to settle over time.
+- **Chroma Flux** — how quickly the harmonic color changes from one moment to the next.
+- **Tonal Stability** — how strongly the current window stays anchored to its tonal center instead of wandering.
+- **Major/Minor Balance** — whether the harmony leans bright/major, dark/minor, or stays between the two.
 
 ### Melody
 
-- **Pitch Contour** — fundamental frequency tracking via pyin.
-- **Contour Direction** — ascending, descending, or holding.
-- **Vocal Presence** — confidence that a pitched signal exists.
+- **Pitch Contour** — the shape of the foreground pitched line through time.
+- **Contour Direction** — whether that line is rising, falling, or holding its ground.
+- **Vocal Presence** — how much foreground pitched voice is carrying the track, rather than sitting as texture or disappearing into the mix.
 
 ### Overtone
 
-- **Series Fit** — how well spectral peaks match integer multiples of f0.
-- **Richness** — fraction of possible harmonics present.
-- **Inharmonicity** — mean deviation from ideal harmonic positions (cents).
+- **Harmonic Series Fit** — how strongly the sound locks onto natural overtone relationships. High values feel pure, fused, bell-like, vocal, or resonant.
+- **Overtone Richness** — how many upper harmonics are present in the sound. High richness feels dense, bright, or saturated; low richness feels simpler or more hollow.
+- **Inharmonicity** — how far the overtones drift from ideal harmonic positions. Higher values feel rougher, noisier, more metallic, or more textural.
 
 ### Catalog
 
@@ -360,7 +360,7 @@ from galdr import Analysis, assemble, load_stream_df
 
 analysis = Analysis.from_slug("my-track", analysis_dir="analysis")
 prompt = assemble(analysis, mode="blind")
-perception_df = load_stream_df("analysis/my-track/my-track_perception_stream.json")
+perception_df = load_stream_df("analysis/my-track/my-track_stream.json")
 ```
 
 Lower-level module APIs are still available when you want explicit control:
@@ -382,7 +382,7 @@ pip install "galdr[notebook]"  # Jupyter + pandas + Plotly
 python -m galdr --help         # module entrypoint works too
 ```
 
-See `docs/PYTHON-API.md`, `examples/python_api.py`, `examples/fastapi_app.py`, and `examples/notebooks/` for more integration shapes.
+See `docs/PYTHON-API.md`, `examples/python_api.py`, and `examples/notebooks/` for more integration shapes.
 
 ## Agent Integration
 

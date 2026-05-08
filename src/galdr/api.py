@@ -21,6 +21,12 @@ from .perceive import generate_perception_stream
 
 _DEFAULT_MODULES = ("report", "perception", "harmony", "melody", "overtone")
 _STREAM_MODULES = ("perception", "harmony", "melody", "overtone")
+_STREAM_FILENAMES = {
+    "perception": ("{slug}_stream.json", "{slug}_perception_stream.json"),
+    "harmony": ("{slug}_harmony_stream.json",),
+    "melody": ("{slug}_melody_stream.json",),
+    "overtone": ("{slug}_overtone_stream.json",),
+}
 
 
 @dataclass
@@ -227,7 +233,9 @@ def load_streams_df(slug: str, analysis_dir: str | Path = "analysis") -> dict[st
     root = Path(analysis_dir) / slug
     frames = {}
     for module in _STREAM_MODULES:
-        path = root / f"{slug}_{module}_stream.json"
-        if path.exists():
-            frames[module] = load_stream_df(path)
+        for filename in _STREAM_FILENAMES[module]:
+            path = root / filename.format(slug=slug)
+            if path.exists():
+                frames[module] = load_stream_df(path)
+                break
     return frames

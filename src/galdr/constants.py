@@ -62,7 +62,7 @@ DISRUPTION_ENERGY_SMOOTH_FRAMES = 20
 # Perception — Breath
 # ============================================================
 
-# RMS smoothing window for breath calculation (frames)
+# LUFS-pressure smoothing window for breath calculation (frames)
 BREATH_SMOOTH_FRAMES = 40
 
 
@@ -81,7 +81,7 @@ SILENCE_MIN_DURATION_SEC = 0.5
 # Perception — Harmonic-Percussive Balance
 # ============================================================
 
-# Minimum total energy to compute HP balance (below this = 0.0)
+# Minimum total weight to compute texture balance (below this = 0.0)
 HP_BALANCE_MIN_ENERGY = 0.005
 
 # Smoothing window for HP energy curves (frames)
@@ -254,5 +254,5 @@ SEGMENT_MIN_GAP_SEC = 10.0
 # Minimum duration for trailing segment (seconds)
 SEGMENT_MIN_TAIL_SEC = 5.0
 
-# Number of segments for legacy energy arc
+# Number of segments for legacy energy arc / current weight arc
 ENERGY_ARC_SEGMENTS = 10

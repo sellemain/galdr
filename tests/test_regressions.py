@@ -69,12 +69,12 @@ def test_analyze_track_short_audio_no_crash():
         result = analyze_track(str(wav_path), str(out_dir), "short")
 
     assert isinstance(result, dict)
-    assert "energy_arc" in result
-    # energy_arc must have at least 1 segment and each must have non-empty fields
-    assert len(result["energy_arc"]) >= 1
-    for seg in result["energy_arc"]:
-        assert "mean_energy" in seg
-        assert "peak_energy" in seg
+    assert "weight_arc" in result
+    # weight_arc must have at least 1 segment and each must have non-empty fields
+    assert len(result["weight_arc"]) >= 1
+    for seg in result["weight_arc"]:
+        assert "mean_weight" in seg
+        assert "peak_weight" in seg
 
 
 # ─── 2. Frame target: select_frames() returns exactly `target` ───────────────
@@ -556,9 +556,9 @@ def test_compute_track_features_callable_with_synthetic_audio():
     result = compute_track_features(y, sr, "synth")
 
     assert isinstance(result, dict)
-    assert "tempo_bpm" in result
-    assert "beat_regularity" in result
-    assert "energy_arc" in result
+    assert "detected_pulse_bpm" in result
+    assert "pulse_stability" in result
+    assert "weight_arc" in result
     # Private arrays should have been added but are stripped on JSON serialization;
     # verify the report fields are present.
     assert result["track"] == "synth"

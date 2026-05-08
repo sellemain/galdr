@@ -91,10 +91,10 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     # Beat intervals for rhythm analysis
     if len(beat_times) > 1:
         beat_intervals = np.diff(beat_times)
-        beat_regularity = max(0.0, 1.0 - (np.std(beat_intervals) / np.mean(beat_intervals)))
+        pulse_stability = max(0.0, 1.0 - (np.std(beat_intervals) / np.mean(beat_intervals)))
     else:
         beat_intervals = np.array([])
-        beat_regularity = 0.0
+        pulse_stability = 0.0
 
     # --- Spectral features ---
     # Mel spectrogram
@@ -111,23 +111,23 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     rms = librosa.feature.rms(y=y)[0]
     rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
 
-    # Energy arc: split into segments and track the build
+    # Weight arc: split into segments and track the build
     n_segments = ENERGY_ARC_SEGMENTS
     seg_len = len(rms) // n_segments
     if seg_len == 0:
         # Audio too short to split into n_segments — treat as a single segment
         n_segments = 1
         seg_len = len(rms)
-    energy_arc = []
+    weight_arc = []
     for i in range(n_segments):
         seg = rms[i * seg_len : (i + 1) * seg_len]
         if len(seg) == 0:
             seg = rms  # fallback: use the whole array
-        energy_arc.append({
+        weight_arc.append({
             "segment": i + 1,
             "time_range": f"{rms_times[i * seg_len]:.0f}s-{rms_times[min((i+1)*seg_len, len(rms_times)-1)]:.0f}s",
-            "mean_energy": float(np.mean(seg)),
-            "peak_energy": float(np.max(seg)),
+            "mean_weight": float(np.mean(seg)),
+            "peak_weight": float(np.max(seg)),
         })
 
     # --- Onset detection (percussive events) ---
@@ -179,8 +179,8 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
                     "start": start_t,
                     "end": end_t,
                     "duration": round(end_t - start_t, 1),
-                    "mean_energy": round(float(np.mean(seg_rms)), 6),
-                    "peak_energy": round(float(np.max(seg_rms)), 6),
+                    "mean_weight": round(float(np.mean(seg_rms)), 6),
+                    "peak_weight": round(float(np.max(seg_rms)), 6),
                 })
     except Exception:
         # Fallback: use fixed segments if novelty detection fails
@@ -191,19 +191,18 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     report = {
         "track": track_name,
         "duration_seconds": round(duration, 1),
-        "tempo_bpm": round(tempo, 1),
         **tempo_profile,
         "beat_count": len(beat_times),
-        "beat_regularity": round(beat_regularity, 3),  # 1.0 = perfectly regular
+        "pulse_stability": round(pulse_stability, 3),  # 1.0 = perfectly regular
         "rhythm_description": (
-            "very regular/metronomic" if beat_regularity > 0.9
-            else "steady" if beat_regularity > 0.7
-            else "organic/fluid" if beat_regularity > 0.5
+            "very regular/metronomic" if pulse_stability > 0.9
+            else "steady" if pulse_stability > 0.7
+            else "organic/fluid" if pulse_stability > 0.5
             else "free/rubato"
         ),
-        "percussion_ratio": round(perc_ratio, 3),  # 0=all harmonic, 1=all percussive
-        "harmonic_energy": round(harm_energy, 6),
-        "percussive_energy": round(perc_energy, 6),
+        "texture_balance": round(perc_ratio, 3),  # 0=all harmonic, 1=all percussive
+        "harmonic_weight": round(harm_energy, 6),
+        "percussive_weight": round(perc_energy, 6),
         "character": (
             "heavily percussive" if perc_ratio > 0.6
             else "percussive" if perc_ratio > 0.45
@@ -235,7 +234,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
             else "sparse/spacious" if len(onset_times) / duration > 0.5
             else "very sparse/ambient"
         ),
-        "energy_arc": energy_arc,
+        "weight_arc": weight_arc,
         "structural_segments": structural_segments,
         "structural_boundaries": structural_boundaries,
         "mean_zcr": round(float(np.mean(zcr)), 6),
@@ -276,7 +275,7 @@ def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_
     rms = report.pop("_rms", None)
     rms_times = report.pop("_rms_times", None)
     beat_times = report.pop("_beat_times", None)
-    tempo = report.pop("_tempo", report.get("tempo_bpm", 0))
+    tempo = report.pop("_tempo", report.get("detected_pulse_bpm", 0))
     y_harmonic = report.pop("_y_harmonic", None)
     y_percussive = report.pop("_y_percussive", None)
     duration = report.pop("_duration", report.get("duration_seconds", 0))

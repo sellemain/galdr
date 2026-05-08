@@ -185,8 +185,8 @@ def cmd_listen(args):
     if "report" in results:
         r = results["report"]
         print(f"  Duration: {r.get('duration_seconds', '?')}s | "
-              f"Tempo: {r.get('tempo_bpm', '?')} BPM | "
-              f"Beat reg: {r.get('beat_regularity', '?')} | "
+              f"Pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
+              f"Pulse stability: {r.get('pulse_stability', '?')} | "
               f"Character: {r.get('character', '?')}")
 
     if "perception" in results:
@@ -203,9 +203,9 @@ def cmd_listen(args):
         h = results["harmony"]
         print(f"  Key: {h.get('detected_key', '?')} "
               f"(confidence: {h.get('key_confidence', '?')}) | "
-              f"Temperament: {h.get('mean_temperament_alignment', '?')} | "
-              f"Series: {h.get('mean_consonance_series', '?')}")
-        print(f"  Tension: {h.get('mean_tension', '?')} | "
+              f"Tuning alignment: {h.get('mean_tuning_alignment', '?')} | "
+              f"Harmonic series consonance: {h.get('mean_harmonic_series_consonance', '?')}")
+        print(f"  Harmonic tension: {h.get('mean_harmonic_tension', '?')} | "
               f"Chroma Flux: {h.get('mean_chroma_flux', '?')} | "
               f"Major/minor: {h.get('mean_major_minor', '?')}")
 
@@ -218,8 +218,8 @@ def cmd_listen(args):
 
     if "overtone" in results:
         o = results["overtone"]
-        print(f"  Series fit: {o.get('mean_series_fit', '?')} | "
-              f"Richness: {o.get('mean_richness', '?')} | "
+        print(f"  Harmonic series fit: {o.get('mean_harmonic_series_fit', '?')} | "
+              f"Overtone richness: {o.get('mean_overtone_richness', '?')} | "
               f"Inharmonicity: {o.get('mean_inharmonicity', '?')} cents")
 
     if "layers" in results:

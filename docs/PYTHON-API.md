@@ -56,7 +56,7 @@ frames = analysis.to_dataframes()
 perception = frames["perception"]
 
 # Or load one stream directly
-perception = load_stream_df("analysis/helvegen/helvegen_perception_stream.json")
+perception = load_stream_df("analysis/helvegen/helvegen_stream.json")
 ```
 
 ## Raw prompt assembly
@@ -75,7 +75,7 @@ prompt = assemble(analysis_dict, context=context_dict, mode="blind")
 
 ## Web app shape
 
-See `examples/fastapi_app.py` for a minimal upload-and-analyze FastAPI route.
+See `examples/python_api.py` and `examples/notebooks/` for runnable API examples.
 
 ## Notebooks
 

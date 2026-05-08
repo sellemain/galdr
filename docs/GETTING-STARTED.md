@@ -119,8 +119,9 @@ Useful extras if you want a richer read:
 1. Read `PERCEPTION-MODEL.md` first.
 2. Treat the stream as the primary evidence.
 3. Walk through time in order.
-4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, breath changes, harmonic movement.
-5. Only after that should you compress the track into a larger arc.
+4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, pressure/breath changes, harmonic movement.
+5. Translate pressure fields into listening language: comes forward, holds, releases, empties. Do not quote LUFS values in experience prose.
+6. Only after that should you compress the track into a larger arc.
 
 ### What to avoid
 
@@ -128,6 +129,7 @@ Do not:
 - summarize the whole song first and retrofit the stream afterward
 - treat summary metrics as the real result and the stream as decoration
 - overclaim emotional certainty from structural metrics
+- quote loudness/LUFS readings as if they were the experience
 - skip silence structure, return behavior, or collapse/rebuild moments
 
 ### Minimal working recipe
@@ -156,7 +158,7 @@ galdr assemble my-track --mode blind > prompt.txt
 
 Once you've done a first listen, galdr has more to give.
 
-**Read the perception model first.** The metrics describe listener *attention*, not audio features. High pattern_lock is not mechanical — it may be ritual. Negative breath is not failure — the track may be exhaling. [PERCEPTION-MODEL.md](PERCEPTION-MODEL.md) defines each metric in detail.
+**Read the perception model first.** The metrics describe listener *attention*, not audio features. High pattern_lock is not mechanical — it may be ritual. Negative breath is not failure — the track may be exhaling. LUFS-backed pressure is there to improve the evidence; in prose, write what it means: pressure comes forward, holds, releases, or empties. [PERCEPTION-MODEL.md](PERCEPTION-MODEL.md) defines each metric in detail.
 
 **Focus on one thing.** Run only the harmony module to explore chord structure:
 

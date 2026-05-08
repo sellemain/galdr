@@ -77,11 +77,9 @@ class CatalogState:
                 t["pattern_break_count"] = t.pop("moment_count")
             elif "moment_count" in t:
                 del t["moment_count"]
-            # consonance -> temperament_alignment (legacy)
-            if "mean_temperament_alignment" not in t and "mean_consonance" in t and t["mean_consonance"] is not None:
-                t["mean_temperament_alignment"] = t.pop("mean_consonance")
-            elif "mean_consonance" in t:
-                del t["mean_consonance"]
+            # Remove old harmony fields no longer produced
+            for old_key in ["mean_consonance", "mean_temperament_alignment", "mean_consonance_series", "mean_tension"]:
+                t.pop(old_key, None)
             # Remove chord-related fields (no longer produced)
             for old_key in ["top_chords", "primary_tonal_center", "mean_harmonic_rhythm"]:
                 t.pop(old_key, None)
@@ -134,9 +132,9 @@ class CatalogState:
 
         if harmony:
             metrics.update({
-                "mean_temperament_alignment": harmony.get("mean_temperament_alignment"),
-                "mean_consonance_series": harmony.get("mean_consonance_series"),
-                "mean_tension": harmony.get("mean_tension"),
+                "mean_tuning_alignment": harmony.get("mean_tuning_alignment"),
+                "mean_harmonic_series_consonance": harmony.get("mean_harmonic_series_consonance"),
+                "mean_harmonic_tension": harmony.get("mean_harmonic_tension"),
                 "mean_chroma_flux": harmony.get("mean_chroma_flux"),
                 "mean_tonal_stability": harmony.get("mean_tonal_stability"),
                 "mean_major_minor": harmony.get("mean_major_minor"),
@@ -157,17 +155,18 @@ class CatalogState:
 
         if overtone:
             metrics.update({
-                "mean_series_fit": overtone.get("mean_series_fit"),
-                "mean_richness": overtone.get("mean_richness"),
+                "mean_harmonic_series_fit": overtone.get("mean_harmonic_series_fit"),
+                "mean_overtone_richness": overtone.get("mean_overtone_richness"),
                 "mean_inharmonicity": overtone.get("mean_inharmonicity"),
             })
 
         if report:
             metrics.update({
                 "duration_seconds": report.get("duration_seconds"),
-                "tempo_bpm": report.get("tempo_bpm"),
-                "beat_regularity": report.get("beat_regularity"),
-                "percussion_ratio": report.get("percussion_ratio"),
+                "detected_pulse_bpm": report.get("detected_pulse_bpm"),
+                "felt_pulse_bpm": report.get("felt_pulse_bpm"),
+                "pulse_stability": report.get("pulse_stability"),
+                "texture_balance": report.get("texture_balance"),
                 "spectral_centroid_mean_hz": report.get("spectral_centroid_mean_hz"),
             })
 
@@ -245,21 +244,21 @@ class CatalogState:
         lines = [f"=== {track_name} -- Catalog Position ===\n"]
 
         key_metrics = [
-            ("mean_pattern_lock", "Pattern Lock", "higher = stronger pattern lock"),
-            ("mean_momentum", "Momentum", "higher = more locked in (active frames when silence >= 10%)"),
-            ("silence_pct", "Silence %", "fraction of track that is silence"),
+            ("mean_pattern_lock", "Pattern Lock", "higher = the structure keeps its pattern intact"),
+            ("mean_momentum", "Momentum", "higher = stronger attention grip"),
+            ("silence_pct", "Silence %", "fraction of track that is truly empty"),
             ("active_duration_sec", "Active Duration", "seconds of non-silent audio"),
-            ("mean_temperament_alignment", "Temperament Alignment", "higher = more aligned with equal temperament"),
-            ("mean_consonance_series", "Series Consonance", "higher = closer to harmonic series (JI)"),
-            ("mean_tension", "Tension", "higher = more harmonic movement"),
-            ("mean_chroma_flux", "Chroma Flux", "higher = faster harmonic change"),
-            ("overall_range_semitones", "Melodic Range", "semitones"),
-            ("mean_vocal_presence", "Vocal Presence", "0-1"),
-            ("mean_series_fit", "Overtone Fit", "higher = purer harmonic series"),
-            ("mean_richness", "Overtone Richness", "fraction of harmonics present"),
-            ("beat_regularity", "Beat Regularity", "1.0 = metronomic"),
-            ("key_confidence", "Key Confidence", "KK profile correlation"),
-            ("tempo_bpm", "Tempo", "BPM"),
+            ("mean_tuning_alignment", "Tuning Alignment", "higher = more centered in familiar tuned pitch space"),
+            ("mean_harmonic_series_consonance", "Harmonic Series Consonance", "higher = more settled around simple harmonic relationships"),
+            ("mean_harmonic_tension", "Harmonic Tension", "higher = more harmonic pull, motion, or refusal to settle"),
+            ("mean_chroma_flux", "Chroma Flux", "higher = faster shifts in harmonic color"),
+            ("overall_range_semitones", "Melodic Range", "span of the foreground pitched line"),
+            ("mean_vocal_presence", "Vocal Presence", "higher = foreground voice carries more of the track"),
+            ("mean_harmonic_series_fit", "Overtone Fit", "higher = sound locks more strongly to natural overtone relationships"),
+            ("mean_overtone_richness", "Overtone Richness", "higher = denser upper harmonics"),
+            ("pulse_stability", "Pulse Stability", "higher = steadier body pulse"),
+            ("key_confidence", "Key Confidence", "higher = clearer tonal center"),
+            ("detected_pulse_bpm", "Detected Pulse", "BPM"),
         ]
 
         for metric, label, desc in key_metrics:

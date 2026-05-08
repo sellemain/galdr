@@ -54,7 +54,7 @@ Known failure:
 
 Needed changes:
 - emit candidate tempos, not just a single asserted BPM
-- distinguish **detected pulse** from **perceived tempo candidate** when they diverge
+- distinguish **detected pulse** from **felt pulse candidate** when they diverge
 - attach confidence / ambiguity markers
 - avoid writing a naked BPM as plain truth when confidence is poor
 - add a regression artifact for the CIPHER failure

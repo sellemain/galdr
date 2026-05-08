@@ -6,8 +6,8 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 
 ## Pattern Lock (`pattern_lock`)
 
-**Range:** 0.0–1.0  
-**What it is:** 1.0 minus disruption. How sustained and predictable the listener's engagement is.
+**Range:** 0.0–1.0
+**What it is:** How reliably the music keeps its pattern intact. High pattern_lock means the listener can trust the structure: the pulse, texture, and energy are not suddenly breaking away.
 
 | Value | Meaning |
 |-------|---------|
@@ -22,8 +22,8 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 
 ## Momentum (`momentum`, `mean_momentum`)
 
-**Range:** 0.0–1.0  
-**What it is:** Continuity of listening experience — not speed or rhythm, but whether the forward motion holds. Tracks continuity frame-to-frame.
+**Range:** 0.0–1.0
+**What it is:** How strongly attention is being carried forward by the track. Not speed, loudness, or quality — grip. High momentum means the music keeps the listener coupled even through quiet or sparse passages.
 
 | Value | Meaning |
 |-------|---------|
@@ -36,10 +36,10 @@ After a silence, momentum re-locking above 0.93 signals the listener has been re
 
 ---
 
-## Beat Regularity (`beat_regularity`)
+## Pulse Stability (`pulse_stability`)
 
-**Range:** 0.0–1.0  
-**What it is:** Metronomic consistency of the pulse. Orthogonal to metric complexity — a 7/8 piece can have perfect beat regularity.
+**Range:** 0.0–1.0
+**What it is:** How steady the underlying pulse feels. Orthogonal to metric complexity — a 7/8 piece can have perfect pulse stability if the body can still trust where the beat lives.
 
 | Value | Meaning |
 |-------|---------|
@@ -48,14 +48,14 @@ After a silence, momentum re-locking above 0.93 signals the listener has been re
 | 0.80–0.90 | Loose. Jazz feel, rubato, or intentional groove. |
 | <0.80 | Irregular. Experimental or very free. |
 
-High beat_regularity + complex time signature (5/8, 7/8) = metric complexity is orthogonal to pulse stability.
+High pulse_stability + complex time signature (5/8, 7/8) = metric complexity is orthogonal to pulse stability.
 
 ---
 
-## HP Balance (`hp_balance`, `mean_hp_balance`)
+## Texture Balance (`texture_balance`, `mean_texture_balance`)
 
-**Range:** -1.0 to 1.0  
-**What it is:** Harmonic vs. percussive energy balance. Negative = harmonic dominant. Positive = percussive dominant.
+**Range:** -1.0 to 1.0
+**What it is:** Where the track's weight sits between sustained harmonic sound and percussive impact. Negative values feel more tonal, vocal, droning, or atmospheric; positive values feel more struck, rhythmic, attack-heavy, or drum-forward.
 
 | Value | Meaning |
 |-------|---------|
@@ -65,31 +65,58 @@ High beat_regularity + complex time signature (5/8, 7/8) = metric complexity is 
 | 0.2 to 0.5 | Percussive with harmonic content. |
 | > 0.5 | Strongly percussive. Drum-forward, rhythmic emphasis. |
 
-Deepening negative hp_balance across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
+Deepening negative texture_balance across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
 
 ---
 
-## Breath Balance (`breath_balance`)
+## Breath / Heard Pressure (`breath`, `pressure_state`, `breath_balance`)
 
-**Shape:** Three percentages — building / releasing / sustaining — summing to 100%.  
-**What it is:** The energy shape of the track. Not overall loudness, but the distribution of rising vs. falling vs. held energy.
+**Shape:** Stream fields plus three summary percentages — building / releasing / sustaining — summing to 100%.
+**What it is:** The heard-pressure shape of the track. As of v0.2.1, breath is derived from short-term LUFS rather than raw RMS energy so it tracks whether pressure comes forward, holds, or withdraws.
+
+Stream fields:
+- `breath` — normalized pressure movement; positive builds, negative releases, near-zero sustains
+- `pressure_state` — `building`, `releasing`, `sustaining`, or `silence`
+- `loudness_lufs` — short-term loudness evidence; use for debugging/comparison, not prose
+- `breath_lufs_delta` — short-term pressure delta evidence
+- `loudness_silence` — loudness-floor silence marker
 
 | Pattern | Meaning |
 |---------|---------|
-| ~33/33/33 | Equilibrium. Energy spread evenly — balanced tension, often in metrically complex pieces. |
-| Heavy building (>45%) | Accumulating track. Energy drives forward. |
-| Heavy releasing (>45%) | Descending energy dominates, even if the track feels climactic. |
-| Near-zero sustain (<10%) | No held energy — constant motion up or down. |
-| Heavy sustain (>40%) | Bach-like equilibrium — energy so evenly spread there's nowhere for the body to resolve. |
+| ~33/33/33 | Equilibrium. Pressure gives and takes evenly. |
+| Heavy building (>45%) | Accumulating track. Pressure keeps coming forward. |
+| Heavy releasing (>45%) | Withdrawal dominates, even if the track still feels held. |
+| Near-zero sustain (<10%) | No held pressure — constant motion up or down. |
+| Heavy sustain (>40%) | Stable hold. The music keeps the listener coupled instead of continually climbing or falling. |
 
-Near-symmetry between building and releasing (e.g. 49.6% / 50.0%) indicates the track takes exactly as much as it gives — rare and structurally notable.
+Translation rule: do not write raw LUFS values in experience prose. Write what they mean: pressure comes forward, fills the room, holds, loosens, drops away, empties, or stops carrying attention. LUFS belongs in regression notes and debugging.
+
+Near-symmetry between building and releasing indicates the track takes exactly as much as it gives — rare and structurally notable.
 
 ---
 
-## Mean Tension (`mean_tension`)
+## Tuning Alignment (`mean_tuning_alignment`)
 
-**Range:** 0.0–1.0  
-**What it is:** Harmonic tension — dissonance and unresolved intervals averaged across the track.
+**Range:** 0.0–1.0
+**What it is:** How cleanly the harmony sits inside familiar equal-tempered pitch space. Higher values feel centered, resolved, and conventionally tuned; lower values can feel bent, smeared, folk-natural, microtonal, or intentionally outside the grid.
+
+Do not read low tuning_alignment as a defect by itself. Some traditions deliberately live between the standard pitch bins. Treat it as evidence about tuning world, not as a quality score.
+
+---
+
+## Harmonic Series Consonance (`mean_harmonic_series_consonance`)
+
+**Range:** 0.0–1.0
+**What it is:** How concentrated the pitch content is around simple, stable harmonic relationships. Higher values feel fused, settled, and easy for the ear to organize; lower values feel more spread, complex, or harmonically ambiguous.
+
+This is harmony-side evidence. It describes pitch-class organization, not the raw overtone spectrum.
+
+---
+
+## Harmonic Tension (`mean_harmonic_tension`)
+
+**Range:** 0.0–1.0
+**What it is:** How much the harmony is pulling, shifting, or refusing to settle over time. High values feel like motion, pressure, searching, or harmonic unease; low values feel anchored, suspended, static, or resolved.
 
 | Value | Meaning |
 |-------|---------|
@@ -102,10 +129,54 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 
 ---
 
+## Chroma Flux (`mean_chroma_flux`)
+
+**Range:** 0.0–1.0
+**What it is:** How quickly the harmonic color changes from one moment to the next. High values mean the harmonic surface is restless or actively turning; low values mean the color is steady, droning, or slowly evolving.
+
+---
+
+## Tonal Stability (`mean_tonal_stability`)
+
+**Range:** 0.0–1.0
+**What it is:** How strongly the current window stays anchored to its tonal center. High values feel grounded or centered; low values feel wandering, suspended, or harmonically diffuse.
+
+---
+
+## Major/Minor Balance (`mean_major_minor`)
+
+**Range:** -1.0 to 1.0
+**What it is:** Whether the harmony leans dark/minor, bright/major, or stays between them. Negative values lean minor; positive values lean major; near-zero can mean modal ambiguity, mixture, or neither color dominating.
+
+---
+
+## Harmonic Series Fit (`mean_harmonic_series_fit`)
+
+**Range:** 0.0–1.0
+**What it is:** How strongly the sound itself locks onto natural overtone relationships. High values feel pure, fused, bell-like, vocal, or resonant; low values feel noisier, rougher, more inharmonic, or more textural.
+
+This is overtone-side evidence. It describes spectral structure around the detected fundamental, not the chord progression.
+
+---
+
+## Overtone Richness (`mean_overtone_richness`)
+
+**Range:** 0.0–1.0
+**What it is:** How many upper harmonics are present in the sound. High richness feels dense, bright, saturated, or full of upper partials; low richness feels simpler, darker, hollower, or more sine-like.
+
+---
+
+## Inharmonicity (`mean_inharmonicity`)
+
+**Unit:** cents
+**What it is:** How far the overtones drift from ideal harmonic positions. Higher values feel rougher, noisier, more metallic, more bell-like in the unstable sense, or more textural. Lower values feel cleaner and more tonally fused.
+
+---
+
 ## Vocal Presence (`mean_vocal_presence`)
 
-**Range:** 0.0–1.0  
-**What it is:** Proportion of signal classified as foreground voice (pitched, sustained, prominent).
+**Range:** 0.0–1.0
+**What it is:** How much foreground pitched voice is carrying the track. High values mean voice or lead pitch is structurally present; low values mean the voice is absent, textural, buried, or not the main carrier.
 
 | Value | Meaning |
 |-------|---------|
@@ -114,7 +185,7 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 | 0.15–0.30 | Clear vocal lead. |
 | >0.30 | Voice dominates the mix. |
 
-Low vocal presence + high hp_balance negative = pure harmonic texture. High presence + descending melody = voice-forward with falling contour (often resignation/descent arc).
+Low vocal presence + high texture_balance negative = pure harmonic texture. High presence + descending melody = voice-forward with falling contour (often resignation/descent arc).
 
 ---
 
@@ -137,11 +208,11 @@ Multiple silences with deepening depth and consistent re-lock = structured withd
 
 ## Melody Contour
 
-**Shape:** Percentage ascending / holding / descending.  
-**What it is:** Average directional tendency of the melodic line.
+**Shape:** Percentage ascending / holding / descending.
+**What it is:** The average shape of the foreground pitched line: whether it rises, falls, or holds its ground over time.
 
-Heavily holding (>60%) with high vocal presence = melody uses repetition or narrow range as expressive strategy — not a limitation.  
-Heavily descending + resigned lyrics = structural confirmation of emotional content.  
+Heavily holding (>60%) with high vocal presence = melody uses repetition or narrow range as expressive strategy — not a limitation.
+Heavily descending + resigned lyrics = structural confirmation of emotional content.
 Ascending contour during climax = conventional arc. Descending during what sounds like climax = tension through contradiction.
 
 ---

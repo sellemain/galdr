@@ -5,7 +5,7 @@ Concepts:
 - Momentum: a rolling measure of rhythmic consistency. High = the listener
   is locked in, tracking confidently.
 - Surprise: where expectations break. A beat that should land and doesn't.
-- Breath: the rate of energy change. Building, sustaining, releasing.
+- Breath: heard-pressure change. Building, sustaining, releasing, or silence.
 - Silence: not just low energy. Actual nothing.
 """
 
@@ -380,7 +380,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
     for i, t in enumerate(m_times):
         entry = {
             "t": round(float(t), 1),
-            "energy": round(float(energy[i]), 4),
+            "weight": round(float(energy[i]), 4),
             "momentum": round(float(momentum[i]), 3),
             "pattern_lock": round(1.0 - float(disruption[i]), 3),
             "breath": round(float(breath[i]), 3),
@@ -396,9 +396,9 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
                 else "sustaining"
             ),
             "loudness_silence": bool(loudness["silence_mask"][i]),
-            "hp_balance": round(float(hp_balance[i]), 3),
-            "h_energy": round(float(h_energy[i]), 4),
-            "p_energy": round(float(p_energy[i]), 4),
+            "texture_balance": round(float(hp_balance[i]), 3),
+            "harmonic_weight": round(float(h_energy[i]), 4),
+            "percussive_weight": round(float(p_energy[i]), 4),
         }
 
         # Mark if we're in a silence
@@ -500,7 +500,6 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
 
     # ===== PERCEPTION REPORT =====
     summary = {
-        # Whole-track averages (backward compatible — unchanged)
         "mean_momentum": round(float(np.mean(momentum)), 3),
         "mean_pattern_lock": round(1.0 - float(np.mean(disruption)), 3),
         "momentum_range": [round(float(np.min(momentum)), 3), round(float(np.max(momentum)), 3)],
@@ -512,7 +511,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         "integrated_lufs": loudness["integrated_lufs"],
         "loudness_floor_lufs": loudness["floor_lufs"],
         "loudness_silence_pct": round(float(np.mean(loudness["silence_mask"])) * 100, 1),
-        # Active-frame stats (new — additive, not replacing above)
+        # Active-frame stats
         "active_duration_sec": active_duration_sec,
         "silent_duration_sec": total_silence_sec,
         "silence_pct": silence_pct,
@@ -632,7 +631,7 @@ def generate_perception_stream(audio_path, output_dir, track_name):
         axes[2].set_ylabel("Breath")
         axes[2].set_ylim(-1.05, 1.05)
         axes[2].set_xlabel("Time (s)")
-        axes[2].set_title("Breath (energy direction)", fontsize=13)
+        axes[2].set_title("Breath (heard pressure direction)", fontsize=13)
         axes[2].legend(loc="upper right", fontsize=9)
 
         plt.tight_layout()
@@ -641,7 +640,7 @@ def generate_perception_stream(audio_path, output_dir, track_name):
         print(f"  Perception plot saved.")
 
         # 2. HP Balance over time
-        print("  Generating HP balance plot...")
+        print("  Generating texture balance plot...")
         fig, ax = plt.subplots(figsize=(fig_w, fig_h))
         ax.fill_between(hp_times, hp_balance, where=hp_balance < 0, alpha=0.4,
                         color="#2ecc71", label="harmonic dominant")
