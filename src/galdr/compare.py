@@ -38,10 +38,10 @@ def flatten_metrics(data):
 
     if "report" in data:
         r = data["report"]
-        for k in ["duration_seconds", "tempo_bpm", "beat_count", "beat_regularity",
-                   "percussion_ratio", "harmonic_energy", "percussive_energy",
-                   "spectral_centroid_mean_hz", "onset_count", "onsets_per_second",
-                   "mean_zcr", "dynamic_range_ratio"]:
+        for k in ["duration_seconds", "detected_pulse_bpm", "felt_pulse_bpm",
+                   "beat_count", "pulse_stability", "texture_balance",
+                   "harmonic_weight", "percussive_weight", "spectral_centroid_mean_hz",
+                   "onset_count", "onsets_per_second", "mean_zcr", "dynamic_range_ratio"]:
             if k in r and isinstance(r[k], (int, float)):
                 metrics[k] = r[k]
 
@@ -56,8 +56,7 @@ def flatten_metrics(data):
 
     if "harmony" in data:
         h = data["harmony"]
-        for k in ["mean_temperament_alignment",
-                   "mean_consonance_series", "mean_tension",
+        for k in ["mean_tuning_alignment", "mean_harmonic_series_consonance", "mean_harmonic_tension",
                    "mean_chroma_flux", "mean_tonal_stability",
                    "mean_major_minor", "key_confidence"]:
             if k in h and isinstance(h[k], (int, float)):
@@ -73,7 +72,7 @@ def flatten_metrics(data):
 
     if "overtone" in data:
         o = data["overtone"]
-        for k in ["mean_series_fit", "mean_richness", "mean_inharmonicity",
+        for k in ["mean_harmonic_series_fit", "mean_overtone_richness", "mean_inharmonicity",
                    "voiced_frames", "total_frames"]:
             if k in o and isinstance(o[k], (int, float)):
                 metrics[k] = o[k]
@@ -130,7 +129,7 @@ def compare_tracks(track_a, track_b, analysis_dir="analysis"):
         if "report" in data:
             r = data["report"]
             parts.append(f"{r.get('duration_seconds', '?')}s")
-            parts.append(f"{r.get('tempo_bpm', '?')} BPM")
+            parts.append(f"{r.get('felt_pulse_bpm', '?')} BPM")
             parts.append(r.get('character', ''))
             parts.append(r.get('brightness', ''))
         if "harmony" in data:

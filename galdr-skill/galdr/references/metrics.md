@@ -36,10 +36,10 @@ After a silence, momentum re-locking above 0.93 signals the listener has been re
 
 ---
 
-## Beat Regularity (`beat_regularity`)
+## Pulse Stability (`pulse_stability`)
 
 **Range:** 0.0–1.0  
-**What it is:** Metronomic consistency of the pulse. Orthogonal to metric complexity — a 7/8 piece can have perfect beat regularity.
+**What it is:** Metronomic consistency of the pulse. Orthogonal to metric complexity — a 7/8 piece can have perfect pulse stability.
 
 | Value | Meaning |
 |-------|---------|
@@ -48,11 +48,11 @@ After a silence, momentum re-locking above 0.93 signals the listener has been re
 | 0.80–0.90 | Loose. Jazz feel, rubato, or intentional groove. |
 | <0.80 | Irregular. Experimental or very free. |
 
-High beat_regularity + complex time signature (5/8, 7/8) = metric complexity is orthogonal to pulse stability.
+High pulse_stability + complex time signature (5/8, 7/8) = metric complexity is orthogonal to pulse stability.
 
 ---
 
-## HP Balance (`hp_balance`, `mean_hp_balance`)
+## Texture Balance (`texture_balance`, `mean_texture_balance`)
 
 **Range:** -1.0 to 1.0  
 **What it is:** Harmonic vs. percussive energy balance. Negative = harmonic dominant. Positive = percussive dominant.
@@ -65,28 +65,37 @@ High beat_regularity + complex time signature (5/8, 7/8) = metric complexity is 
 | 0.2 to 0.5 | Percussive with harmonic content. |
 | > 0.5 | Strongly percussive. Drum-forward, rhythmic emphasis. |
 
-Deepening negative hp_balance across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
+Deepening negative texture_balance across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
 
 ---
 
-## Breath Balance (`breath_balance`)
+## Breath / Heard Pressure (`breath`, `pressure_state`, `breath_balance`)
 
-**Shape:** Three percentages — building / releasing / sustaining — summing to 100%.  
-**What it is:** The energy shape of the track. Not overall loudness, but the distribution of rising vs. falling vs. held energy.
+**Shape:** Stream fields plus three summary percentages — building / releasing / sustaining — summing to 100%.
+**What it is:** The heard-pressure shape of the track. As of v0.2.1, breath is derived from short-term LUFS rather than raw RMS energy so it tracks whether pressure comes forward, holds, or withdraws.
+
+Stream fields:
+- `breath` — normalized pressure movement; positive builds, negative releases, near-zero sustains
+- `pressure_state` — `building`, `releasing`, `sustaining`, or `silence`
+- `loudness_lufs` — short-term loudness evidence; use for debugging/comparison, not prose
+- `breath_lufs_delta` — short-term pressure delta evidence
+- `loudness_silence` — loudness-floor silence marker
 
 | Pattern | Meaning |
 |---------|---------|
-| ~33/33/33 | Equilibrium. Energy spread evenly — balanced tension, often in metrically complex pieces. |
-| Heavy building (>45%) | Accumulating track. Energy drives forward. |
-| Heavy releasing (>45%) | Descending energy dominates, even if the track feels climactic. |
-| Near-zero sustain (<10%) | No held energy — constant motion up or down. |
-| Heavy sustain (>40%) | Bach-like equilibrium — energy so evenly spread there's nowhere for the body to resolve. |
+| ~33/33/33 | Equilibrium. Pressure gives and takes evenly. |
+| Heavy building (>45%) | Accumulating track. Pressure keeps coming forward. |
+| Heavy releasing (>45%) | Withdrawal dominates, even if the track still feels held. |
+| Near-zero sustain (<10%) | No held pressure — constant motion up or down. |
+| Heavy sustain (>40%) | Stable hold. The music keeps the listener coupled instead of continually climbing or falling. |
 
-Near-symmetry between building and releasing (e.g. 49.6% / 50.0%) indicates the track takes exactly as much as it gives — rare and structurally notable.
+Translation rule: do not write raw LUFS values in experience prose. Write what they mean: pressure comes forward, fills the room, holds, loosens, drops away, empties, or stops carrying attention. LUFS belongs in regression notes and debugging.
+
+Near-symmetry between building and releasing indicates the track takes exactly as much as it gives — rare and structurally notable.
 
 ---
 
-## Mean Tension (`mean_tension`)
+## Harmonic Tension (`mean_harmonic_tension`)
 
 **Range:** 0.0–1.0  
 **What it is:** Harmonic tension — dissonance and unresolved intervals averaged across the track.
@@ -114,7 +123,7 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 | 0.15–0.30 | Clear vocal lead. |
 | >0.30 | Voice dominates the mix. |
 
-Low vocal presence + high hp_balance negative = pure harmonic texture. High presence + descending melody = voice-forward with falling contour (often resignation/descent arc).
+Low vocal presence + high texture_balance negative = pure harmonic texture. High presence + descending melody = voice-forward with falling contour (often resignation/descent arc).
 
 ---
 

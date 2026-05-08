@@ -370,11 +370,14 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
         tc_idx = max(0, min(tc_idx, len(tc_key_names) - 1))
         tonal_center = tc_key_names[tc_idx] if tc_idx < len(tc_key_names) else "?"
 
+        tuning_alignment = round(float(consonance_interp[i]), 3)
+        harmonic_series_consonance = round(float(consonance_series_interp[i]), 3)
+        harmonic_tension = round(float(tension_interp[i]), 3)
         entry = {
             "t": round(float(t), 1),
-            "temperament_alignment": round(float(consonance_interp[i]), 3),
-            "consonance_series": round(float(consonance_series_interp[i]), 3),
-            "tension": round(float(tension_interp[i]), 3),
+            "tuning_alignment": tuning_alignment,
+            "harmonic_series_consonance": harmonic_series_consonance,
+            "harmonic_tension": harmonic_tension,
             "chroma_flux": round(float(chroma_flux_interp[i]), 3),
             "tonal_center": tonal_center,
             "tonal_stability": round(float(tc_stability_interp[i]), 3),
@@ -395,21 +398,21 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
         "detected_key": global_key,
         "detected_mode": global_mode,
         "key_confidence": global_confidence,
-        "mean_temperament_alignment": round(float(np.mean(consonance_temp)), 3),
-        "mean_consonance_series": round(float(np.mean(consonance_series)), 3),
-        "mean_tension": round(float(np.mean(tension)), 3),
+        "mean_tuning_alignment": round(float(np.mean(consonance_temp)), 3),
+        "mean_harmonic_series_consonance": round(float(np.mean(consonance_series)), 3),
+        "mean_harmonic_tension": round(float(np.mean(tension)), 3),
         "mean_chroma_flux": round(float(np.mean(chroma_flux)), 3),
         "mean_tonal_stability": round(float(np.mean(tc_stability)), 3),
         "mean_major_minor": round(float(np.mean(tc_major_minor)), 3),
-        "temperament_alignment_range": [
+        "tuning_alignment_range": [
             round(float(np.min(consonance_temp)), 3),
             round(float(np.max(consonance_temp)), 3),
         ],
-        "consonance_series_range": [
+        "harmonic_series_consonance_range": [
             round(float(np.min(consonance_series)), 3),
             round(float(np.max(consonance_series)), 3),
         ],
-        "tension_range": [
+        "harmonic_tension_range": [
             round(float(np.min(tension)), 3),
             round(float(np.max(tension)), 3),
         ],
@@ -437,7 +440,7 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
 
     # Consonance (both measures)
     axes[0].plot(cons_times, consonance_temp, color="#2ecc71", linewidth=1,
-                 label="temperament alignment", alpha=0.8)
+                 label="tuning alignment", alpha=0.8)
     axes[0].fill_between(cons_times, consonance_temp, alpha=0.2, color="#2ecc71")
     axes[0].plot(cons_times, consonance_series, color="#3498db", linewidth=1,
                  label="series (JI)", alpha=0.8)

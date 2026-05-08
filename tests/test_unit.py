@@ -96,14 +96,14 @@ class TestFlattenMetrics:
         assert self.fn({}) == {}
 
     def test_report_section_extracted(self):
-        data = {"report": {"duration_seconds": 180.0, "tempo_bpm": 120.0, "beat_count": 360}}
+        data = {"report": {"duration_seconds": 180.0, "detected_pulse_bpm": 120.0, "beat_count": 360}}
         result = self.fn(data)
         assert result["duration_seconds"] == 180.0
-        assert result["tempo_bpm"] == 120.0
+        assert result["detected_pulse_bpm"] == 120.0
         assert result["beat_count"] == 360
 
     def test_non_numeric_values_skipped(self):
-        data = {"report": {"duration_seconds": 180.0, "track": "some-track", "tempo_bpm": 120.0}}
+        data = {"report": {"duration_seconds": 180.0, "track": "some-track", "detected_pulse_bpm": 120.0}}
         result = self.fn(data)
         assert "track" not in result
         assert "duration_seconds" in result
@@ -127,33 +127,33 @@ class TestFlattenMetrics:
     def test_harmony_section_extracted(self):
         data = {
             "harmony": {
-                "mean_tension": 0.35,
+                "mean_harmonic_tension": 0.35,
                 "key_confidence": 0.72,
                 "mean_chroma_flux": 0.21,
             }
         }
         result = self.fn(data)
-        assert result["mean_tension"] == pytest.approx(0.35)
+        assert result["mean_harmonic_tension"] == pytest.approx(0.35)
         assert result["key_confidence"] == pytest.approx(0.72)
 
     def test_all_sections_combined(self):
         data = {
-            "report": {"duration_seconds": 200.0, "tempo_bpm": 100.0},
+            "report": {"duration_seconds": 200.0, "detected_pulse_bpm": 100.0},
             "perception": {"summary": {"mean_momentum": 0.8, "pattern_break_count": 2}},
-            "harmony": {"mean_tension": 0.4},
+            "harmony": {"mean_harmonic_tension": 0.4},
             "melody": {"mean_direction": 0.1},
         }
         result = self.fn(data)
         assert "duration_seconds" in result
         assert "mean_momentum" in result
-        assert "mean_tension" in result
+        assert "mean_harmonic_tension" in result
         assert "mean_direction" in result
 
     def test_missing_sections_dont_crash(self):
         # Only harmony present — others absent
-        data = {"harmony": {"mean_tension": 0.3}}
+        data = {"harmony": {"mean_harmonic_tension": 0.3}}
         result = self.fn(data)
-        assert result == {"mean_tension": 0.3}
+        assert result == {"mean_harmonic_tension": 0.3}
 
 
 # ── assemble_prompt (pipeline) ───────────────────────────────────────
@@ -166,7 +166,7 @@ class TestAssemblePrompt:
 
     def _minimal_analysis(self):
         return {
-            "report": {"duration_seconds": 200.0, "tempo_bpm": 120.0, "beat_regularity": 0.96},
+            "report": {"duration_seconds": 200.0, "detected_pulse_bpm": 120.0, "felt_pulse_bpm": 120.0, "pulse_stability": 0.96},
             "perception": {"summary": {"mean_momentum": 0.85, "mean_pattern_lock": 0.95}},
         }
 
@@ -231,17 +231,17 @@ class TestAssemblePrompt:
         analysis = {
             "report": {
                 "duration_seconds": 200.0,
-                "tempo_bpm": 92.3,
-                "perceived_tempo_bpm": 140.8,
-                "tempo_confidence": 0.68,
-                "tempo_ambiguous": True,
-                "tempo_note": "detected pulse conflicts with repeated windowed beat tracking",
+                "detected_pulse_bpm": 92.3,
+                "felt_pulse_bpm": 140.8,
+                "pulse_confidence": 0.68,
+                "pulse_ambiguous": True,
+                "pulse_note": "detected pulse conflicts with repeated windowed beat tracking",
             }
         }
         result = self.fn(analysis, mode="blind")
 
         assert "Tempo: 92.3 BPM" not in result
-        assert "perceived ~140.8 BPM" in result
+        assert "felt ~140.8 BPM" in result
         assert "detected pulse 92.3 BPM" in result
         assert "ambiguous/suspect" in result
 
@@ -302,13 +302,13 @@ class TestNullSignalGuard:
         tone = (np.sin(2 * np.pi * 440 * t) * 0.5).astype(np.float32)
         result = compute_track_features(tone, sr, "tone-test")
 
-        assert "tempo_bpm" in result
         assert "detected_pulse_bpm" in result
-        assert "perceived_tempo_bpm" in result
+        assert "detected_pulse_bpm" in result
+        assert "felt_pulse_bpm" in result
         assert "tempo_candidates" in result
-        assert "tempo_confidence" in result
-        assert "tempo_ambiguous" in result
-        assert "tempo_note" in result
+        assert "pulse_confidence" in result
+        assert "pulse_ambiguous" in result
+        assert "pulse_note" in result
 
 
 # ── Active-Frame Silence Stats ────────────────────────────────────────────────
@@ -455,7 +455,7 @@ class TestLufsBreath:
         entry = report["stream"][0]
         summary = report["summary"]
 
-        assert "energy" in entry  # legacy RMS field
+        assert "weight" in entry
         assert "loudness_lufs" in entry
         assert "breath_lufs_delta" in entry
         assert "pressure_state" in entry
@@ -466,7 +466,7 @@ class TestLufsBreath:
         from galdr.assemble import assemble_prompt
 
         analysis = {
-            "report": {"duration_seconds": 60.0, "tempo_bpm": 90.0, "beat_regularity": 0.8},
+            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse_stability": 0.8},
             "perception": {
                 "summary": {
                     "mean_momentum": 0.5,

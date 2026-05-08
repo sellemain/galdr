@@ -291,17 +291,17 @@ galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python env
 
 ### Perception
 
-- **Momentum** — rolling rhythmic consistency (0–1). How locked-in the beat is.
+- **Momentum** — resonance depth (0–1). How strongly attention is coupled to the track.
 - **Pattern Lock** — prediction accuracy (inverted disruption). High = expectations met.
-- **Breath** — energy direction. Building, sustaining, or releasing.
+- **Breath / Heard Pressure** — pressure direction from short-term loudness. Building, sustaining, releasing, or silence. LUFS is evidence; prose should say what it does.
 - **Silence** — actual nothing, not just quiet. Often the most significant moments.
 
 ### Harmony
 
 - **Key Detection** — Krumhansl-Kessler profile correlation.
-- **Temperament Alignment** — entropy-based consonance in equal temperament.
-- **Series Consonance** — harmonic series fit (just intonation ratios).
-- **Tension** — movement rate in tonnetz space.
+- **Tuning Alignment** — entropy-based consonance in equal temperament.
+- **Harmonic Series Fit** — harmonic series fit (just intonation ratios).
+- **Harmonic Tension** — movement rate in tonnetz space.
 - **Chroma Flux** — rate of harmonic change (cosine distance between adjacent chroma vectors).
 - **Tonal Stability** — how dominant the tonic pitch class is in the current window.
 - **Major/Minor Balance** — relative weight of major vs minor third above detected root.
@@ -314,8 +314,8 @@ galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python env
 
 ### Overtone
 
-- **Series Fit** — how well spectral peaks match integer multiples of f0.
-- **Richness** — fraction of possible harmonics present.
+- **Harmonic Series Fit** — how well spectral peaks match integer multiples of f0.
+- **Overtone Richness** — fraction of possible harmonics present.
 - **Inharmonicity** — mean deviation from ideal harmonic positions (cents).
 
 ### Catalog
@@ -360,7 +360,7 @@ from galdr import Analysis, assemble, load_stream_df
 
 analysis = Analysis.from_slug("my-track", analysis_dir="analysis")
 prompt = assemble(analysis, mode="blind")
-perception_df = load_stream_df("analysis/my-track/my-track_perception_stream.json")
+perception_df = load_stream_df("analysis/my-track/my-track_stream.json")
 ```
 
 Lower-level module APIs are still available when you want explicit control:

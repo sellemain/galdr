@@ -85,14 +85,16 @@ Reading order:
 1. Read `PERCEPTION-MODEL.md` first.
 2. Treat `*_stream.json` as the main evidence surface.
 3. Walk the track in order.
-4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, breath changes, harmonic movement.
-5. Only then compress upward into a larger interpretation.
+4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, pressure/breath changes, harmonic movement.
+5. Translate pressure fields into listening language: comes forward, holds, releases, empties. Do not quote LUFS values in experience prose.
+6. Only then compress upward into a larger interpretation.
 
 Do not:
 - jump straight to a whole-song mood summary
 - treat summary metrics as more important than the stream
 - ignore silence/re-entry structure
 - overclaim emotional certainty from structure alone
+- quote loudness/LUFS readings as if they were the experience
 
 Minimal recipe:
 ```bash
@@ -147,8 +149,8 @@ See [references/metrics.md](references/metrics.md) for full metric reference.
 
 **Quick read:**
 - `pattern_lock` near 1.0 → listener is locked; near 0 → constant disruption
-- `hp_balance` negative → harmonic dominant (warm, tonal); positive → percussive dominant
-- `breath_balance` building/releasing/sustaining → energy shape across the track
+- `texture_balance` negative → harmonic dominant (warm, tonal); positive → percussive dominant
+- `breath_balance` building/releasing/sustaining → heard-pressure shape across the track
 - Clustered `pattern_breaks` at the end → planned release; distributed → varied structure
 - `silence` depth below -60dB with re-lock above 0.93 momentum → structured withdrawal/return
 
@@ -158,6 +160,7 @@ When writing experience prose yourself from `galdr assemble` output (no `--templ
 - First-person listener perspective, present tense
 - Timestamps only at structural pivots (silences, pattern breaks, major energy shifts)
 - Translate metrics — describe what they mean, don't quote numbers
+- LUFS/pressure values are evidence, not prose; write “pressure comes forward / holds / releases / empties”
 - Body anchors (chest, jaw, sternum) sparingly — two or three for the whole piece
 - End at the final sound event; no aftermath, no reflection
 - ~800 words, no section headers

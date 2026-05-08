@@ -184,21 +184,21 @@ def _fmt_time(seconds: float) -> str:
 
 def _fmt_tempo(report: dict) -> str:
     """Format tempo without presenting suspect alternate pulses as plain truth."""
-    tempo = report.get("tempo_bpm", 0)
-    perceived = report.get("perceived_tempo_bpm")
-    confidence = report.get("tempo_confidence")
-    ambiguous = bool(report.get("tempo_ambiguous"))
-    note = report.get("tempo_note")
+    detected = report.get("detected_pulse_bpm", 0)
+    felt = report.get("felt_pulse_bpm")
+    confidence = report.get("pulse_confidence")
+    ambiguous = bool(report.get("pulse_ambiguous"))
+    note = report.get("pulse_note")
 
-    if perceived is None:
-        return f"Tempo: {tempo:.1f} BPM"
+    if felt is None:
+        return f"Pulse: detected ~{float(detected):.1f} BPM"
 
-    if ambiguous or abs(float(perceived) - float(tempo)) >= 1.0:
-        line = f"Tempo: perceived ~{float(perceived):.1f} BPM"
-        if tempo:
-            line += f" (detected pulse {float(tempo):.1f} BPM; ambiguous/suspect)"
+    if ambiguous or abs(float(felt) - float(detected)) >= 1.0:
+        line = f"Pulse: felt ~{float(felt):.1f} BPM"
+        if detected:
+            line += f" (detected pulse {float(detected):.1f} BPM; ambiguous/suspect)"
     else:
-        line = f"Tempo: {float(perceived):.1f} BPM"
+        line = f"Pulse: {float(felt):.1f} BPM"
 
     if confidence is not None:
         line += f"; confidence {float(confidence):.2f}"
@@ -222,9 +222,9 @@ def _build_metrics(analysis: dict) -> str:
 
     # Track identity — field names from report.json
     duration = report.get("duration_seconds", 0)
-    beat_reg = report.get("beat_regularity", 0)
-    har_e = report.get("harmonic_energy", 0)
-    perc_e = report.get("percussive_energy", 0)
+    pulse_stability = report.get("pulse_stability", 0)
+    har_e = report.get("harmonic_weight", 0)
+    perc_e = report.get("percussive_weight", 0)
     character = report.get("character", "")
 
     lines.append(f"Duration: {_fmt_time(duration)} ({duration:.1f}s)")
@@ -235,16 +235,14 @@ def _build_metrics(analysis: dict) -> str:
     summary = perception.get("summary", {})
     if summary:
         momentum = summary.get("mean_momentum", 0)
-        # New schema: mean_pattern_lock directly. Old: derive from mean_surprise.
-        val = summary.get("mean_pattern_lock")
-        pattern_lock = val if val is not None else (1.0 - summary.get("mean_surprise", 0))
+        pattern_lock = summary.get("mean_pattern_lock", 0)
         breath_pos = summary.get("breath_positive_pct", 0)
         breath_neg = summary.get("breath_negative_pct", 0)
         breath_sus = summary.get("breath_sustain_pct", 0)
 
         lines.append(f"\nMomentum: {momentum:.3f} (listener engagement, 0–1)")
         lines.append(f"Pattern lock: {pattern_lock:.3f} (predictability/hold, 0–1)")
-        lines.append(f"Beat regularity: {beat_reg:.3f} (metronomic pulse stability)")
+        lines.append(f"Pulse stability: {pulse_stability:.3f} (metronomic regularity)")
         lines.append(
             f"Breath: {breath_pos:.1f}% pressure building / "
             f"{breath_neg:.1f}% releasing / {breath_sus:.1f}% sustaining"
@@ -257,24 +255,24 @@ def _build_metrics(analysis: dict) -> str:
                 "rather than meter readings"
             )
 
-    # HP balance derived from report harmonic/percussive energy ratio
+    # Texture balance derived from report harmonic/percussive weight ratio
     if har_e or perc_e:
         total = har_e + perc_e
         if total > 0:
-            hp = (perc_e - har_e) / total  # negative = harmonic dominant
-            hp_label = "harmonic dominant (tonal, warm)" if hp < -0.2 else "percussive dominant" if hp > 0.2 else "balanced"
-            lines.append(f"HP balance: {hp:.3f} ({hp_label})")
+            texture = (perc_e - har_e) / total  # negative = harmonic dominant
+            texture_label = "harmonic dominant (tonal, warm)" if texture < -0.2 else "percussive dominant" if texture > 0.2 else "balanced"
+            lines.append(f"Texture balance: {texture:.3f} ({texture_label})")
         if character:
             lines.append(f"Character: {character}")
 
     # Harmony — field names from harmony.json
     if harmony:
         mm = harmony.get("mean_major_minor", 0)
-        tension = harmony.get("mean_tension", 0)
+        tension = harmony.get("mean_harmonic_tension", 0)
         mm_label = "minor-leaning" if mm < -0.1 else "major-leaning" if mm > 0.1 else "neutral"
 
         lines.append(f"\nMajor/minor balance: {mm:.3f} ({mm_label})")
-        lines.append(f"Mean tension: {tension:.3f}")
+        lines.append(f"Harmonic tension: {tension:.3f}")
 
         top_chords = harmony.get("top_chords", [])
         if top_chords:

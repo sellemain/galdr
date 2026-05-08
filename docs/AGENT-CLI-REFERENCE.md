@@ -30,12 +30,12 @@ galdr listen <audio.wav> [--name NAME] [--analysis-dir DIR]
 ```
 
 Outputs to `<analysis-dir>/<track-name>/`:
-- `*_report.json` — tempo, beat regularity, energy arc, texture, dominant chroma
-- `*_perception.json` — momentum stream, silences, `listener_locked`/`listener_floating` events, summary
-- `*_stream.json` — per-hop time series (momentum, breath, hp_balance, pattern_lock, silence)
-- `*_harmony.json` — temperament_alignment, tension, tonal center, major/minor
+- `*_report.json` — pulse confidence, pulse stability, weight arc, texture, dominant chroma
+- `*_perception.json` — momentum stream, silences, `listener_locked`/`listener_floating` events, pressure summary
+- `*_stream.json` — per-hop time series (momentum, breath, pressure_state, loudness_lufs, breath_lufs_delta, texture_balance, pattern_lock, silence)
+- `*_harmony.json` — tuning_alignment, harmonic_tension, tonal center, major/minor
 - `*_melody.json` — pitch range, center note, vocal presence
-- `*_overtone.json` — series fit, richness, inharmonicity
+- `*_overtone.json` — harmonic_series_fit, overtone_richness, inharmonicity
 
 Run only specific modules:
 ```bash
@@ -63,14 +63,16 @@ Recommended reading order:
 1. Read `PERCEPTION-MODEL.md` first.
 2. Read `*_stream.json` as the main evidence surface.
 3. Walk the track in order.
-4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, breath changes, harmonic movement.
-5. Compress upward into a larger arc only after the timed pass.
+4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, pressure/breath changes, harmonic movement.
+5. Translate pressure fields into listening language: comes forward, holds, releases, empties. Do not quote LUFS values in experience prose.
+6. Compress upward into a larger arc only after the timed pass.
 
 Do not:
 - default to a whole-song mood summary first
 - treat summary metrics as more important than the stream
 - ignore silence/re-entry structure
 - overclaim emotion from structure alone
+- quote loudness/LUFS readings as if they were the experience
 - decorate prior knowledge of the song instead of reading the evidence
 
 Minimum practical workflow:

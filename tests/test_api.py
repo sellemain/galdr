@@ -48,28 +48,28 @@ def test_load_streams_df_loads_available_modules(tmp_path):
 
     track_dir = tmp_path / "analysis" / "demo"
     track_dir.mkdir(parents=True)
-    (track_dir / "demo_perception_stream.json").write_text(json.dumps([{"t": 0, "energy": 0.3}]))
-    (track_dir / "demo_harmony_stream.json").write_text(json.dumps({"stream": [{"t": 0, "tension": 0.4}]}))
+    (track_dir / "demo_stream.json").write_text(json.dumps([{"t": 0, "weight": 0.3}]))
+    (track_dir / "demo_harmony_stream.json").write_text(json.dumps({"stream": [{"t": 0, "harmonic_tension": 0.4}]}))
 
     frames = load_streams_df("demo", tmp_path / "analysis")
 
     assert set(frames) == {"perception", "harmony"}
-    assert frames["perception"].iloc[0]["energy"] == 0.3
-    assert frames["harmony"].iloc[0]["tension"] == 0.4
+    assert frames["perception"].iloc[0]["weight"] == 0.3
+    assert frames["harmony"].iloc[0]["harmonic_tension"] == 0.4
 
 
 def test_assemble_accepts_raw_analysis_dict():
     from galdr import assemble
 
     prompt = assemble(
-        {"report": {"duration_seconds": 61.0, "tempo_bpm": 90.0}},
+        {"report": {"duration_seconds": 61.0, "detected_pulse_bpm": 90.0}},
         context={"artist": "Example", "title": "Demo"},
         mode="blind",
     )
 
     assert "## Galdr Analysis" in prompt
     assert "Duration: 1:01 (61.0s)" in prompt
-    assert "Tempo: 90.0 BPM" in prompt
+    assert "Pulse: detected ~90.0 BPM" in prompt
 
 
 def test_python_module_entrypoint_help():

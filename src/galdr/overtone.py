@@ -148,9 +148,9 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT):
                 "t": round(t, 2),
                 "f0": None,
                 "harmonics": {},
-                "series_fit": 0.0,
+                "harmonic_series_fit": 0.0,
                 "inharmonicity": 0.0,
-                "richness": 0.0,
+                "overtone_richness": 0.0,
                 "dominant_harmonic": None,
             })
             continue
@@ -173,9 +173,9 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT):
             "t": round(t, 2),
             "f0": round(current_f0, 1),
             "harmonics": {str(k): v for k, v in harmonics.items()},
-            "series_fit": series_fit,
+            "harmonic_series_fit": series_fit,
             "inharmonicity": inharm,
-            "richness": richness,
+            "overtone_richness": richness,
             "dominant_harmonic": dominant,
         })
 
@@ -183,11 +183,14 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT):
         all_richness.append(richness)
         all_inharm.append(inharm)
 
+    mean_harmonic_series_fit = round(float(np.mean(all_fits)), 4) if all_fits else 0.0
+    mean_overtone_richness = round(float(np.mean(all_richness)), 3) if all_richness else 0.0
+    max_harmonic_series_fit = round(float(np.max(all_fits)), 4) if all_fits else 0.0
     return f0_times[:n_frames], stream, f0[:n_frames], {
-        "mean_series_fit": round(float(np.mean(all_fits)), 4) if all_fits else 0.0,
-        "mean_richness": round(float(np.mean(all_richness)), 3) if all_richness else 0.0,
+        "mean_harmonic_series_fit": mean_harmonic_series_fit,
+        "mean_overtone_richness": mean_overtone_richness,
         "mean_inharmonicity": round(float(np.mean(all_inharm)), 1) if all_inharm else 0.0,
-        "max_series_fit": round(float(np.max(all_fits)), 4) if all_fits else 0.0,
+        "max_harmonic_series_fit": max_harmonic_series_fit,
         "voiced_frames": sum(1 for s in stream if s["f0"] is not None),
         "total_frames": n_frames,
     }
@@ -231,8 +234,8 @@ def analyze_overtones(audio_path, output_dir, track_name):
             dominant_counts[d] = dominant_counts.get(d, 0) + 1
 
     fit_times = [s["t"] for s in stream if s["f0"] is not None]
-    fit_values = [s["series_fit"] for s in stream if s["f0"] is not None]
-    richness_values = [s["richness"] for s in stream if s["f0"] is not None]
+    fit_values = [s["harmonic_series_fit"] for s in stream if s["f0"] is not None]
+    richness_values = [s["overtone_richness"] for s in stream if s["f0"] is not None]
 
     # ===== SUMMARY =====
     summary = {
