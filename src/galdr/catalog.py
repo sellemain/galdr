@@ -244,20 +244,20 @@ class CatalogState:
         lines = [f"=== {track_name} -- Catalog Position ===\n"]
 
         key_metrics = [
-            ("mean_pattern_lock", "Pattern Lock", "higher = stronger pattern lock"),
-            ("mean_momentum", "Momentum", "higher = more locked in (active frames when silence >= 10%)"),
-            ("silence_pct", "Silence %", "fraction of track that is silence"),
+            ("mean_pattern_lock", "Pattern Lock", "higher = the structure keeps its pattern intact"),
+            ("mean_momentum", "Momentum", "higher = stronger attention grip"),
+            ("silence_pct", "Silence %", "fraction of track that is truly empty"),
             ("active_duration_sec", "Active Duration", "seconds of non-silent audio"),
-            ("mean_tuning_alignment", "Tuning Alignment", "higher = more aligned with equal temperament"),
-            ("mean_harmonic_series_consonance", "Harmonic Series Consonance", "higher = closer to harmonic series (JI)"),
-            ("mean_harmonic_tension", "Harmonic Tension", "higher = more harmonic movement"),
-            ("mean_chroma_flux", "Chroma Flux", "higher = faster harmonic change"),
-            ("overall_range_semitones", "Melodic Range", "semitones"),
-            ("mean_vocal_presence", "Vocal Presence", "0-1"),
-            ("mean_harmonic_series_fit", "Overtone Fit", "higher = purer harmonic series"),
-            ("mean_overtone_richness", "Overtone Richness", "fraction of harmonics present"),
-            ("pulse_stability", "Pulse Stability", "1.0 = metronomic"),
-            ("key_confidence", "Key Confidence", "KK profile correlation"),
+            ("mean_tuning_alignment", "Tuning Alignment", "higher = more centered in familiar tuned pitch space"),
+            ("mean_harmonic_series_consonance", "Harmonic Series Consonance", "higher = more settled around simple harmonic relationships"),
+            ("mean_harmonic_tension", "Harmonic Tension", "higher = more harmonic pull, motion, or refusal to settle"),
+            ("mean_chroma_flux", "Chroma Flux", "higher = faster shifts in harmonic color"),
+            ("overall_range_semitones", "Melodic Range", "span of the foreground pitched line"),
+            ("mean_vocal_presence", "Vocal Presence", "higher = foreground voice carries more of the track"),
+            ("mean_harmonic_series_fit", "Overtone Fit", "higher = sound locks more strongly to natural overtone relationships"),
+            ("mean_overtone_richness", "Overtone Richness", "higher = denser upper harmonics"),
+            ("pulse_stability", "Pulse Stability", "higher = steadier body pulse"),
+            ("key_confidence", "Key Confidence", "higher = clearer tonal center"),
             ("detected_pulse_bpm", "Detected Pulse", "BPM"),
         ]
 

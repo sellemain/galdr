@@ -38,23 +38,44 @@ Do not write "LUFS rises from -27 to -20" in experience prose. That belongs in d
 ---
 
 ### `texture_balance`
-Ratio of harmonic to percussive energy. Negative = harmonic/vocal dominant. Positive = percussive dominant.
+Where the track's weight sits between sustained harmonic sound and percussive impact. Negative = harmonic/vocal dominant. Positive = percussive dominant.
 
-The deepest negative values typically occur when only a single voice remains.
+Deep negative values often feel like voice, drone, strings, choir, or tonal atmosphere taking over the room. Strong positive values feel like strike, groove, attack, or drum-forward physicality. The deepest negative values typically occur when only a single voice remains.
 
 ---
 
 ### `pattern_lock`
-Two things simultaneously: rhythmic regularity and structural predictability. `pattern_lock = 1.0 - disruption`. High = steady beat, no structural surprises. Low = irregular pulse or sudden break.
+How reliably the music keeps its pattern intact. `pattern_lock = 1.0 - disruption`. High = steady pulse, stable texture, and few structural surprises. Low = irregular pulse, sudden break, or sharp textural reorientation.
 
 High pattern_lock is not rigidity. In ritual and ceremonial music, extreme regularity is intentional — it allows the listener to stop tracking the beat and go somewhere else. High mean_pattern_lock across a track doesn't mean boring; it may mean the music is consistent enough to allow depth.
 
 ---
 
 ### `tuning_alignment`
-How closely pitches align with equal temperament. Low = closer to the harmonic series (just intonation, natural tuning).
+How cleanly the harmony sits inside familiar equal-tempered pitch space. High values feel centered, resolved, and conventionally tuned. Low values can feel smeared, bent, folk-natural, microtonal, or intentionally outside the grid.
 
 Low tuning_alignment is not out-of-tune. Folk traditions, overtone singing, and ritual music frequently sit here by design. Often co-occurs with deeply negative texture_balance.
+
+---
+
+### `harmonic_series_consonance`
+How concentrated the pitch content is around simple, stable harmonic relationships. High values feel fused, settled, and easy for the ear to organize. Low values feel more spread, harmonically complex, or ambiguous.
+
+This is harmony-side evidence: it looks at pitch-class organization, not the raw overtone spectrum.
+
+---
+
+### `harmonic_tension`
+How much the harmony is pulling, shifting, or refusing to settle over time. High values mean the tonal field is moving quickly or uneasily; low values mean it is anchored, suspended, or staying in one harmonic place.
+
+Tension is not automatically negative. A track can use harmonic tension as propulsion, unease, color, or release preparation.
+
+---
+
+### `harmonic_series_fit`
+How strongly the sound itself locks onto natural overtone relationships. High values feel pure, fused, bell-like, vocal, or resonant. Low values feel noisier, rougher, more inharmonic, or more textural.
+
+This is overtone-side evidence: it looks at the spectrum around the detected fundamental, not the chord progression.
 
 ---
 
