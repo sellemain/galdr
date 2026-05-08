@@ -1,7 +1,7 @@
 ---
 name: galdr
 description: Music perception SDK for AI agents — turns tracks into listener-state traces: momentum, breath, silence, tempo confidence, harmony, melody, overtones.
-version: 0.2.1
+version: 0.2.2
 author: Sellemain
 license: MIT
 platforms: [linux, macos]
