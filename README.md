@@ -22,6 +22,7 @@ Just what shaped the reasoning.
 
 **Listening examples:**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
+- **[Helvegen — Wardruna and Aurora](https://github.com/sellemain/galdr/blob/main/docs/helvegen-wardruna-aurora.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 - **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 - **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
@@ -85,6 +86,7 @@ cat prompt.txt | claude       # Claude CLI
 
 That produces something like these:
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
+- **[Helvegen — Wardruna and Aurora](https://github.com/sellemain/galdr/blob/main/docs/helvegen-wardruna-aurora.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 - **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 - **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
