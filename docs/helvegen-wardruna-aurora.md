@@ -32,7 +32,7 @@ From `0:40` onward, the text's central question becomes audible in the body's ex
 
 Around `1:30`, the piece has fully locked. The pulse is strong without becoming percussive in a modern way. The texture stays harmonic and vocal dominant. There is impact, but it is not drum-forward impact. It is the pressure of repeated sound occupying the same place until the place changes shape.
 
-The voice is the condition's spine. It does not dominate the analyzer as a clean foreground pitch all the time, and that matters. Much of the vocal force here is not a neat melody line for pitch tracking to catch. It is grain, mass, breath, vowel, room. The measured vocal presence can look modest while the heard presence is everywhere.
+The voice is the condition's spine. It does not dominate the analyzer as a clean foreground pitch all the time, and that matters. Much of the vocal force here is not a neat melody line for pitch tracking to catch. It is grain, mass, breath, vowel, room. The foreground pitch evidence can look modest while the heard voice is everywhere.
 
 Aurora's role sharpens that point. Her voice does not simply add a prettier upper line. It changes the ritual topology. Wardruna supplies the road, the floor, the ancestral weight. Aurora gives the crossing a human edge: fragile, bright, almost childlike beside the darker mass. The contrast makes the song less like a chant about death and more like someone being accompanied through it.
 

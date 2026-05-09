@@ -33,9 +33,9 @@ Outputs to `<analysis-dir>/<track-name>/`:
 - `*_report.json` — pulse confidence, pulse stability, weight arc, texture, dominant chroma
 - `*_perception.json` — momentum stream, silences, `listener_locked`/`listener_floating` events, pressure summary
 - `*_stream.json` — per-hop time series (momentum, breath, pressure_state, loudness_lufs, breath_lufs_delta, texture_balance, pattern_lock, silence)
-- `*_harmony.json` — tuning_alignment, harmonic_tension, tonal center, major/minor
-- `*_melody.json` — pitch range, center note, vocal presence
-- `*_overtone.json` — harmonic_series_fit, overtone_richness, inharmonicity
+- `*_harmony.json` — harmonic pull, tonal steadiness evidence, harmonic color motion, internal tonal-center evidence
+- `*_melody.json` — foreground pitch evidence, pitch contour, internal range/center evidence
+- `*_overtone.json` — resonance/grain evidence: harmonic fit, upper-harmonic density, inharmonicity
 
 Run only specific modules:
 ```bash
