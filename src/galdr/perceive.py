@@ -305,11 +305,24 @@ def _window_mean(values, times, start, end):
     return float(np.mean(window))
 
 
+def _silence_boundary_position(silence, duration, boundary_sec=2.0, closing_sec=3.0):
+    """Classify whether silence belongs to track boundary context."""
+    start = float(silence["start"])
+    end = float(silence["end"])
+    if start <= boundary_sec:
+        return "opening"
+    if end >= max(duration - closing_sec, 0):
+        return "closing"
+    return "internal"
+
+
 def _classify_reentry(pre_momentum, post_momentum, pre_pressure, post_pressure, silence, duration):
     """Classify what the return after silence does to listener state."""
-    is_terminal = post_momentum is None or silence["end"] >= max(duration - 0.75, 0)
-    if is_terminal:
-        return "withdrawal"
+    boundary_position = _silence_boundary_position(silence, duration)
+    if boundary_position == "opening":
+        return "entry_preparation"
+    if boundary_position == "closing" or post_momentum is None:
+        return "terminal_decay"
 
     pre_m = 0.0 if pre_momentum is None else pre_momentum
     post_m = 0.0 if post_momentum is None else post_momentum
@@ -338,7 +351,8 @@ def compute_silence_reentries(silences, times, momentum, breath, loudness_delta,
     Silence itself is only half the gesture.  This records what happens
     immediately after the gap: how forcefully pressure returns, how long
     listener momentum takes to recover, and whether the return behaves like
-    continuation, rupture, reset, or withdrawal.
+    continuation, rupture, reset, withdrawal, entry preparation, or terminal
+    decay.
     """
     events = []
     if not silences:
@@ -380,11 +394,13 @@ def compute_silence_reentries(silences, times, momentum, breath, loudness_delta,
         if post_loudness_delta is not None:
             force += max(0.0, post_loudness_delta) * 0.15
 
+        boundary_position = _silence_boundary_position(silence, duration)
         shape = _classify_reentry(pre_momentum, post_momentum, pre_pressure, post_pressure, silence, duration)
 
         events.append({
             "silence_start": round(start, 2),
             "silence_end": round(end, 2),
+            "boundary_position": boundary_position,
             "silence_duration": silence["duration"],
             "reentry_time": None if end >= duration else round(end, 2),
             "reentry_shape": shape,
@@ -523,6 +539,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
                 reentry = reentries_by_start.get(round(float(s["start"]), 2))
                 if reentry:
                     entry["post_silence_reentry"] = reentry["reentry_shape"]
+                    entry["boundary_position"] = reentry["boundary_position"]
                     entry["reentry_force"] = reentry["reentry_force"]
                 break
 
@@ -587,6 +604,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         if reentry:
             event.update({
                 "reentry_shape": reentry["reentry_shape"],
+                "boundary_position": reentry["boundary_position"],
                 "reentry_force": reentry["reentry_force"],
                 "recovery_time_sec": reentry["recovery_time_sec"],
                 "recovered": reentry["recovered"],
@@ -648,7 +666,14 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         "silence_reentry_count": len(silence_reentries),
         "silence_reentry_shapes": {
             shape: sum(1 for r in silence_reentries if r["reentry_shape"] == shape)
-            for shape in ("continuation", "rupture", "reset", "withdrawal")
+            for shape in (
+                "entry_preparation", "continuation", "rupture", "reset",
+                "withdrawal", "terminal_decay"
+            )
+        },
+        "silence_boundary_positions": {
+            position: sum(1 for r in silence_reentries if r["boundary_position"] == position)
+            for position in ("opening", "internal", "closing")
         },
     }
 
