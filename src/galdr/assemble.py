@@ -228,6 +228,16 @@ def _build_metrics(analysis: dict) -> str:
 
     lines.append(f"Duration: {_fmt_time(duration)} ({duration:.1f}s)")
     lines.append(_fmt_tempo(report))
+    entrainment = report.get("body_entrainment")
+    entrainment_state = report.get("body_entrainment_state")
+    entrainment_note = report.get("entrainment_note")
+    if entrainment is not None:
+        line = f"Body entrainment: {float(entrainment):.3f}"
+        if entrainment_state:
+            line += f" ({entrainment_state})"
+        if entrainment_note:
+            line += f" — {entrainment_note}"
+        lines.append(line)
 
     # Perception summary — handles both new schema (mean_pattern_lock) and
     # old schema (mean_surprise = disruption, pattern_lock = 1 - surprise)

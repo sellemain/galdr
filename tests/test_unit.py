@@ -607,6 +607,85 @@ class TestLufsBreath:
         assert "silence-aware" in prompt
         assert "LUFS" not in prompt
 
+# ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
+
+
+def test_compute_body_entrainment_separates_body_lock_from_raw_tempo():
+    from galdr.analyze import compute_body_entrainment
+
+    locked = compute_body_entrainment(
+        duration=120.0,
+        beat_count=240,
+        pulse_stability=0.94,
+        pulse_confidence=0.92,
+        pulse_ambiguous=False,
+        texture_balance=0.62,
+        onsets_per_second=3.2,
+    )
+    loose = compute_body_entrainment(
+        duration=120.0,
+        beat_count=240,
+        pulse_stability=0.94,
+        pulse_confidence=0.92,
+        pulse_ambiguous=False,
+        texture_balance=0.05,
+        onsets_per_second=0.15,
+    )
+
+    assert locked["body_entrainment"] > loose["body_entrainment"]
+    assert locked["body_entrainment_state"] == "locked"
+    assert loose["body_entrainment_state"] in {"weak", "emerging"}
+    assert "groove" not in locked["entrainment_note"]
+
+
+def test_compute_body_entrainment_damps_ambiguous_pulse():
+    from galdr.analyze import compute_body_entrainment
+
+    clear = compute_body_entrainment(
+        duration=120.0,
+        beat_count=220,
+        pulse_stability=0.88,
+        pulse_confidence=0.8,
+        pulse_ambiguous=False,
+        texture_balance=0.5,
+        onsets_per_second=2.5,
+    )
+    ambiguous = compute_body_entrainment(
+        duration=120.0,
+        beat_count=220,
+        pulse_stability=0.88,
+        pulse_confidence=0.8,
+        pulse_ambiguous=True,
+        texture_balance=0.5,
+        onsets_per_second=2.5,
+    )
+
+    assert ambiguous["body_entrainment"] < clear["body_entrainment"]
+    assert "ambiguous/alternate-pulse" in ambiguous["entrainment_note"]
+
+
+def test_assembled_metrics_include_body_entrainment_language():
+    from galdr.assemble import assemble_prompt
+
+    analysis = {
+        "report": {
+            "duration_seconds": 60.0,
+            "detected_pulse_bpm": 120.0,
+            "felt_pulse_bpm": 120.0,
+            "pulse_stability": 0.93,
+            "body_entrainment": 0.81,
+            "body_entrainment_state": "locked",
+            "entrainment_note": "strong body-lock with real percussive support",
+        },
+        "perception": {"summary": {"mean_momentum": 0.7, "mean_pattern_lock": 0.9}},
+    }
+
+    prompt = assemble_prompt(analysis, mode="blind")
+
+    assert "Body entrainment: 0.810 (locked)" in prompt
+    assert "strong body-lock" in prompt
+
+
 # ── Silence Re-entry / Recovery ───────────────────────────────────────────────
 
 
