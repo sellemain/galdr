@@ -6,17 +6,21 @@ Before SM-309, galdr could mark silence windows but could not say what happened 
 
 ## Baseline output
 
-Using the existing Aurora Runaway v0.2.2 artifact:
+Using the existing Helvegen / Wardruna + Aurora live source, pre-SM-309 output could only surface silence windows. The exact windows were true, but structurally flat: a half-second ceremonial pause, a late breath gap, and a terminal departure were all just `silence`.
+
+Representative old shape:
 
 ```text
-Heard pressure: 0.6% silence-aware floor; describe movement as pressure, build, release, or sustain rather than meter readings
-0:00 — silence 0.58s at -80.0dB
-0:20 — silence 0.51s at -53.7dB
-0:33 — silence 0.58s at -53.3dB
-4:02 — silence 7.05s at -80.0dB
+Heard pressure: silence-aware floor; describe movement as pressure, build, release, or sustain rather than meter readings
+6:12 — silence 0.57s at -46.2dB
+6:17 — silence 0.56s at -47.4dB
+6:22 — silence 0.68s at -49.3dB
+6:27 — silence 0.56s at -46.8dB
+6:33 — silence 1.56s at -52.8dB
+6:46 — silence 5.26s at -80.0dB
 ```
 
-The windows are true, but structurally flat.
+The windows are true, but the return behavior is missing.
 
 ## Change
 
@@ -32,31 +36,35 @@ Added silence re-entry events in perception:
 
 ## Re-run
 
-Re-ran Aurora from the same `/tmp/galdr-022-eval/audio/aurora-runaway-022-eval.mp3` source through the current branch:
+Re-ran Helvegen from `/home/user/galdr-queue/Wardruna and Aurora - Helvegen (Live).wav` through the current branch:
 
 ```bash
-.venv/bin/python -m galdr.cli listen /tmp/galdr-022-eval/audio/aurora-runaway-022-eval.mp3 \
-  --name aurora-sm309 \
-  --analysis-dir /tmp/galdr-sm309-check/analysis \
+.venv/bin/python -m galdr.cli listen \
+  "/home/user/galdr-queue/Wardruna and Aurora - Helvegen (Live).wav" \
+  --name helvegen-sm309 \
+  --analysis-dir /tmp/galdr-sm309-helvegen/analysis \
   --no-catalog
-.venv/bin/python -m galdr.cli assemble aurora-sm309 \
-  --analysis-dir /tmp/galdr-sm309-check/analysis \
+.venv/bin/python -m galdr.cli assemble helvegen-sm309 \
+  --analysis-dir /tmp/galdr-sm309-helvegen/analysis \
   --mode blind
 ```
 
 New output excerpt:
 
 ```text
-Silence returns: 4 silence outcomes (continuation:2, reset:1, withdrawal:1); describe whether the music resumes as continuation, rupture, reset, or withdrawal
-0:00 — silence 0.58s at -80.0dB; return: reset, re-entry force 0.110, recovery 0.42s
-0:20 — silence 0.51s at -53.7dB; return: continuation, re-entry force 0.016, recovery 0.13s
-0:33 — silence 0.58s at -53.3dB; return: continuation, re-entry force 0.001, recovery 0.09s
-4:02 — silence 7.05s at -80.0dB; return: withdrawal, re-entry force 0.437, no recovery before next withdrawal
+Silence returns: 7 silence outcomes (continuation:4, withdrawal:3); describe whether the music resumes as continuation, rupture, reset, or withdrawal
+0:00 — silence 1.58s at -80.0dB; return: withdrawal, re-entry force 0.000, no recovery before next withdrawal
+6:12 — silence 0.57s at -46.2dB; return: continuation, re-entry force 0.004, recovery 0.10s
+6:17 — silence 0.56s at -47.4dB; return: continuation, re-entry force 0.031, recovery 0.07s
+6:22 — silence 0.68s at -49.3dB; return: withdrawal, re-entry force 0.000, recovery 0.38s
+6:27 — silence 0.56s at -46.8dB; return: continuation, re-entry force 0.073, recovery 0.19s
+6:33 — silence 1.56s at -52.8dB; return: continuation, re-entry force 0.000, no recovery before next withdrawal
+6:46 — silence 5.26s at -80.0dB; return: withdrawal, re-entry force 0.397, no recovery before next withdrawal
 ```
 
 ## Result
 
-Improved: silence is now structural. The same four windows are still visible, but they no longer collapse into identical events. Short gaps that resume are marked as continuation. The opening gap is a reset. The terminal long silence is withdrawal.
+Improved: silence is now structural. The same late Helvegen windows are still visible, but they no longer collapse into identical events. The short ritual gaps mostly resume as continuation. The terminal long silence is withdrawal. The 6:22 gap is flagged as a small withdrawal despite a quick recovery, which is useful as a tuning target: the model is catching a drop in local state, but the label may read harsher than the music feels.
 
 Still wrong / risk: the labels are heuristic and should be treated as listener-state evidence, not final interpretation. `rupture` may need tuning on tracks with dramatic drop-to-hit returns. The current artifact proves the output lane and schema, not universal threshold correctness.
 
