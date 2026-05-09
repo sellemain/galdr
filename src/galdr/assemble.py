@@ -253,6 +253,16 @@ def _build_metrics(analysis: dict) -> str:
                 "describe movement as pressure, build, release, or sustain "
                 "rather than meter readings"
             )
+        shapes = summary.get("silence_reentry_shapes") or {}
+        reentry_count = summary.get("silence_reentry_count", 0)
+        if reentry_count:
+            shape_bits = [f"{shape}:{count}" for shape, count in shapes.items() if count]
+            shape_text = ", ".join(shape_bits) if shape_bits else "none classified"
+            lines.append(
+                f"Silence returns: {reentry_count} silence outcomes "
+                f"({shape_text}); describe whether the music resumes as "
+                "continuation, rupture, reset, or withdrawal"
+            )
 
     # Texture balance derived from report harmonic/percussive weight ratio
     if har_e or perc_e:
@@ -315,7 +325,22 @@ def _build_metrics(analysis: dict) -> str:
             if btype == "silence":
                 dur = b.get("duration", 0)
                 db = b.get("depth_db", -80)
-                events.append((t, f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB"))
+                shape = b.get("reentry_shape")
+                force = b.get("reentry_force")
+                recovery = b.get("recovery_time_sec")
+                if shape:
+                    force_text = f", re-entry force {force:.3f}" if isinstance(force, (int, float)) else ""
+                    recovery_text = (
+                        f", recovery {recovery:.2f}s"
+                        if isinstance(recovery, (int, float)) else ", no recovery before next withdrawal"
+                    )
+                    events.append((
+                        t,
+                        f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB; "
+                        f"return: {shape}{force_text}{recovery_text}"
+                    ))
+                else:
+                    events.append((t, f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB"))
             else:
                 components = b.get("components", {})
                 comp_str = ""
