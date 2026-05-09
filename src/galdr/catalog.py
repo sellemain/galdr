@@ -166,6 +166,7 @@ class CatalogState:
                 "detected_pulse_bpm": report.get("detected_pulse_bpm"),
                 "felt_pulse_bpm": report.get("felt_pulse_bpm"),
                 "pulse_stability": report.get("pulse_stability"),
+                "body_entrainment": report.get("body_entrainment"),
                 "texture_balance": report.get("texture_balance"),
                 "spectral_centroid_mean_hz": report.get("spectral_centroid_mean_hz"),
             })
@@ -252,7 +253,8 @@ class CatalogState:
             ("breath_negative_pct", "Pressure Releasing", "fraction of track letting pressure go"),
             ("breath_sustain_pct", "Pressure Sustaining", "fraction of track holding pressure steady"),
             ("pattern_break_count", "Structural Breaks", "count of silence, momentum shifts, and pattern ruptures"),
-            ("pulse_stability", "Pulse Stability", "higher = steadier body pulse"),
+            ("pulse_stability", "Pulse Stability", "higher = steadier measured pulse"),
+            ("body_entrainment", "Body Entrainment", "higher = stronger felt body-lock"),
             ("texture_balance", "Texture Balance", "negative = harmonic weight, positive = percussive weight"),
             ("mean_harmonic_tension", "Harmonic Pull", "higher = more harmonic pull, motion, or refusal to settle"),
             ("mean_chroma_flux", "Harmonic Color Motion", "higher = faster shifts in harmonic color"),

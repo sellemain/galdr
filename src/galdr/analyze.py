@@ -59,6 +59,79 @@ def detect_null_signal(audio_path: str, track_name: str) -> dict | None:
     return _null_signal_report(y, sr, track_name)
 
 
+def compute_body_entrainment(
+    *,
+    duration: float,
+    beat_count: int,
+    pulse_stability: float,
+    pulse_confidence: float | None,
+    pulse_ambiguous: bool,
+    texture_balance: float,
+    onsets_per_second: float,
+) -> dict:
+    """Estimate felt body-lock separately from raw tempo detection.
+
+    This is a conservative presentation metric.  It rewards stable pulse,
+    real percussive support, enough onset activity to give the body something
+    to grab, and enough beat evidence to trust the estimate.  Ambiguous tempo
+    does not erase entrainment, but it dampens confidence and changes the note.
+    """
+    pulse_conf = 0.5 if pulse_confidence is None else float(np.clip(pulse_confidence, 0.0, 1.0))
+    pulse_component = float(np.clip(pulse_stability, 0.0, 1.0)) * pulse_conf
+    if pulse_ambiguous:
+        pulse_component *= 0.75
+
+    percussive_component = float(np.clip(texture_balance, 0.0, 1.0))
+
+    # Body-lock needs audible events, but extra density stops helping once the
+    # surface is busy enough.  4 onsets/sec is already plenty of handle.
+    onset_component = float(np.clip(onsets_per_second / 4.0, 0.0, 1.0))
+
+    beats_per_second = beat_count / duration if duration > 0 else 0.0
+    # Below ~0.5 beats/sec there is weak beat evidence; 2 beats/sec saturates.
+    beat_component = float(np.clip(beats_per_second / 2.0, 0.0, 1.0))
+
+    score = (
+        0.45 * pulse_component
+        + 0.25 * percussive_component
+        + 0.20 * onset_component
+        + 0.10 * beat_component
+    )
+    if pulse_ambiguous:
+        score *= 0.90
+    score = float(np.clip(score, 0.0, 1.0))
+
+    if score >= 0.75:
+        state = "locked"
+    elif score >= 0.50:
+        state = "emerging"
+    elif score >= 0.25:
+        state = "weak"
+    else:
+        state = "absent"
+
+    if state == "locked":
+        if percussive_component >= 0.45:
+            note = "strong body-lock with real percussive support"
+        else:
+            note = "steady felt pulse; entrainment comes more from regularity than percussion"
+    elif state == "emerging":
+        note = "felt pulse is available but not fully locked"
+    elif state == "weak":
+        note = "some pulse evidence, but the body has little to hold"
+    else:
+        note = "no reliable body-lock detected"
+
+    if pulse_ambiguous:
+        note += "; pulse interpretation is ambiguous/alternate-pulse"
+
+    return {
+        "body_entrainment": round(score, 3),
+        "body_entrainment_state": state,
+        "entrainment_note": note,
+    }
+
+
 def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     """Compute all track features from audio array. No file I/O, no plots.
 
@@ -152,6 +225,17 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     integrated_lufs = None if not np.isfinite(integrated_lufs_raw) else round(integrated_lufs_raw, 2)
     dynamic_range = float(np.max(rms) / np.min(rms[rms > 0])) if np.any(rms > 0) else 0
 
+    onsets_per_second = len(onset_times) / duration
+    body_entrainment = compute_body_entrainment(
+        duration=duration,
+        beat_count=len(beat_times),
+        pulse_stability=pulse_stability,
+        pulse_confidence=tempo_profile.get("pulse_confidence"),
+        pulse_ambiguous=bool(tempo_profile.get("pulse_ambiguous")),
+        texture_balance=perc_ratio,
+        onsets_per_second=onsets_per_second,
+    )
+
     # --- Novelty-based segmentation ---
     try:
         # Chroma-based novelty for structural boundaries
@@ -194,6 +278,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         **tempo_profile,
         "beat_count": len(beat_times),
         "pulse_stability": round(pulse_stability, 3),  # 1.0 = perfectly regular
+        **body_entrainment,
         "rhythm_description": (
             "very regular/metronomic" if pulse_stability > 0.9
             else "steady" if pulse_stability > 0.7
@@ -227,11 +312,11 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
             else "compressed/steady"
         ),
         "onset_count": len(onset_times),
-        "onsets_per_second": round(len(onset_times) / duration, 2),
+        "onsets_per_second": round(onsets_per_second, 2),
         "texture": (
-            "dense/busy" if len(onset_times) / duration > 5
-            else "moderate texture" if len(onset_times) / duration > 2
-            else "sparse/spacious" if len(onset_times) / duration > 0.5
+            "dense/busy" if onsets_per_second > 5
+            else "moderate texture" if onsets_per_second > 2
+            else "sparse/spacious" if onsets_per_second > 0.5
             else "very sparse/ambient"
         ),
         "weight_arc": weight_arc,

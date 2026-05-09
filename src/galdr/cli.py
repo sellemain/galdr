@@ -187,6 +187,8 @@ def cmd_listen(args):
         print(f"  Duration: {r.get('duration_seconds', '?')}s | "
               f"Felt pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
               f"Pulse stability: {r.get('pulse_stability', '?')} | "
+              f"Body entrainment: {r.get('body_entrainment', '?')} "
+              f"({r.get('body_entrainment_state', '?')}) | "
               f"Texture balance: {r.get('texture_balance', '?')}")
 
     if "perception" in results:
