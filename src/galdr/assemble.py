@@ -253,6 +253,20 @@ def _build_metrics(analysis: dict) -> str:
                 "describe movement as pressure, build, release, or sustain "
                 "rather than meter readings"
             )
+        shapes = summary.get("silence_reentry_shapes") or {}
+        boundaries = summary.get("silence_boundary_positions") or {}
+        reentry_count = summary.get("silence_reentry_count", 0)
+        if reentry_count:
+            shape_bits = [f"{shape}:{count}" for shape, count in shapes.items() if count]
+            boundary_bits = [f"{pos}:{count}" for pos, count in boundaries.items() if count]
+            shape_text = ", ".join(shape_bits) if shape_bits else "none classified"
+            boundary_text = f"; boundary {', '.join(boundary_bits)}" if boundary_bits else ""
+            lines.append(
+                f"Silence returns: {reentry_count} silence outcomes "
+                f"({shape_text}{boundary_text}); describe internal returns as "
+                "continuation, rupture, reset, or withdrawal, and boundary "
+                "silence as entry preparation or terminal decay"
+            )
 
     # Texture balance derived from report harmonic/percussive weight ratio
     if har_e or perc_e:
@@ -315,7 +329,28 @@ def _build_metrics(analysis: dict) -> str:
             if btype == "silence":
                 dur = b.get("duration", 0)
                 db = b.get("depth_db", -80)
-                events.append((t, f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB"))
+                shape = b.get("reentry_shape")
+                boundary = b.get("boundary_position")
+                force = b.get("reentry_force")
+                recovery = b.get("recovery_time_sec")
+                if shape:
+                    force_text = f", re-entry force {force:.3f}" if isinstance(force, (int, float)) else ""
+                    if isinstance(recovery, (int, float)):
+                        recovery_text = f", recovery {recovery:.2f}s"
+                    elif boundary == "closing" or shape == "terminal_decay":
+                        recovery_text = ", no recovery before ending"
+                    elif boundary == "opening" or shape == "entry_preparation":
+                        recovery_text = ", entry follows"
+                    else:
+                        recovery_text = ", no recovery before next withdrawal"
+                    boundary_text = f", {boundary}" if boundary in {"opening", "closing"} else ""
+                    events.append((
+                        t,
+                        f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB; "
+                        f"return: {shape}{boundary_text}{force_text}{recovery_text}"
+                    ))
+                else:
+                    events.append((t, f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB"))
             else:
                 components = b.get("components", {})
                 comp_str = ""

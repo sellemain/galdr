@@ -293,6 +293,129 @@ def detect_silences(y, sr, threshold_db=SILENCE_THRESHOLD_DB,
     return silences
 
 
+def _window_mean(values, times, start, end):
+    """Mean over a time window; returns None for empty/non-finite windows."""
+    mask = (times >= start) & (times <= end)
+    if not np.any(mask):
+        return None
+    window = np.asarray(values)[mask]
+    window = window[np.isfinite(window)]
+    if window.size == 0:
+        return None
+    return float(np.mean(window))
+
+
+def _silence_boundary_position(silence, duration, boundary_sec=2.0, closing_sec=3.0):
+    """Classify whether silence belongs to track boundary context."""
+    start = float(silence["start"])
+    end = float(silence["end"])
+    if start <= boundary_sec:
+        return "opening"
+    if end >= max(duration - closing_sec, 0):
+        return "closing"
+    return "internal"
+
+
+def _classify_reentry(pre_momentum, post_momentum, pre_pressure, post_pressure, silence, duration):
+    """Classify what the return after silence does to listener state."""
+    boundary_position = _silence_boundary_position(silence, duration)
+    if boundary_position == "opening":
+        return "entry_preparation"
+    if boundary_position == "closing" or post_momentum is None:
+        return "terminal_decay"
+
+    pre_m = 0.0 if pre_momentum is None else pre_momentum
+    post_m = 0.0 if post_momentum is None else post_momentum
+    pre_p = 0.0 if pre_pressure is None else pre_pressure
+    post_p = 0.0 if post_pressure is None else post_pressure
+
+    momentum_delta = post_m - pre_m
+    pressure_delta = post_p - pre_p
+
+    if post_m >= 0.75 and abs(momentum_delta) <= 0.20 and pressure_delta >= -0.15:
+        return "continuation"
+    if momentum_delta >= 0.25 or pressure_delta >= 0.25:
+        return "rupture"
+    if pre_m < 0.45 and post_m >= 0.60:
+        return "reset"
+    if post_m < 0.45 or pressure_delta <= -0.30:
+        return "withdrawal"
+    return "continuation"
+
+
+def compute_silence_reentries(silences, times, momentum, breath, loudness_delta, duration,
+                              short_window_sec=1.5, recovery_threshold=0.85,
+                              max_recovery_sec=8.0):
+    """Measure return behavior after detected silences.
+
+    Silence itself is only half the gesture.  This records what happens
+    immediately after the gap: how forcefully pressure returns, how long
+    listener momentum takes to recover, and whether the return behaves like
+    continuation, rupture, reset, withdrawal, entry preparation, or terminal
+    decay.
+    """
+    events = []
+    if not silences:
+        return events
+
+    times = np.asarray(times)
+    momentum = np.asarray(momentum)
+    breath = np.asarray(breath)
+    loudness_delta = np.asarray(loudness_delta)
+
+    for silence in silences:
+        start = float(silence["start"])
+        end = float(silence["end"])
+        pre_start = max(0.0, start - short_window_sec)
+        post_end = min(duration, end + short_window_sec)
+
+        pre_momentum = _window_mean(momentum, times, pre_start, start)
+        post_momentum = _window_mean(momentum, times, end, post_end)
+        pre_pressure = _window_mean(breath, times, pre_start, start)
+        post_pressure = _window_mean(breath, times, end, post_end)
+        post_loudness_delta = _window_mean(loudness_delta, times, end, post_end)
+
+        baseline = pre_momentum if pre_momentum is not None else None
+        recovery_time = None
+        recovered = False
+        if baseline is not None and end < duration:
+            target = min(max(baseline * recovery_threshold, 0.35), 0.9)
+            recovery_mask = (times >= end) & (times <= min(duration, end + max_recovery_sec))
+            candidates = np.where(recovery_mask & (momentum >= target))[0]
+            if candidates.size:
+                recovery_time = round(float(times[candidates[0]] - end), 2)
+                recovered = True
+
+        pre_p = 0.0 if pre_pressure is None else pre_pressure
+        post_p = 0.0 if post_pressure is None else post_pressure
+        post_m = 0.0 if post_momentum is None else post_momentum
+        pre_m = 0.0 if pre_momentum is None else pre_momentum
+        force = max(0.0, (post_m - pre_m) * 0.55 + max(0.0, post_p - pre_p) * 0.45)
+        if post_loudness_delta is not None:
+            force += max(0.0, post_loudness_delta) * 0.15
+
+        boundary_position = _silence_boundary_position(silence, duration)
+        shape = _classify_reentry(pre_momentum, post_momentum, pre_pressure, post_pressure, silence, duration)
+
+        events.append({
+            "silence_start": round(start, 2),
+            "silence_end": round(end, 2),
+            "boundary_position": boundary_position,
+            "silence_duration": silence["duration"],
+            "reentry_time": None if end >= duration else round(end, 2),
+            "reentry_shape": shape,
+            "reentry_force": round(float(min(force, 1.0)), 3),
+            "recovery_time_sec": recovery_time,
+            "recovered": recovered,
+            "pre_momentum": None if pre_momentum is None else round(float(pre_momentum), 3),
+            "post_momentum": None if post_momentum is None else round(float(post_momentum), 3),
+            "pre_pressure": None if pre_pressure is None else round(float(pre_pressure), 3),
+            "post_pressure": None if post_pressure is None else round(float(post_pressure), 3),
+        })
+
+    return events
+
+
 def compute_harmonic_percussive_momentum(y, sr, duration,
                                          hop_sec=MOMENTUM_HOP_SEC):
     """Track which channel is carrying the energy over time.
@@ -372,6 +495,11 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         y, sr, duration
     )
 
+    silence_reentries = compute_silence_reentries(
+        silences, m_times, momentum, breath, loudness["loudness_delta"], duration
+    )
+    reentries_by_start = {r["silence_start"]: r for r in silence_reentries}
+
     # Energy interpolated to our time grid
     energy = np.interp(m_times, rms_times, rms)
 
@@ -401,11 +529,18 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
             "percussive_weight": round(float(p_energy[i]), 4),
         }
 
-        # Mark if we're in a silence
+        # Mark if we're in a silence, or just after one.
         for s in silences:
             if s["start"] <= t <= s["end"]:
                 entry["silence"] = True
                 entry["silence_depth_db"] = s["depth_db"]
+                break
+            if s["end"] < t <= s["end"] + 1.0:
+                reentry = reentries_by_start.get(round(float(s["start"]), 2))
+                if reentry:
+                    entry["post_silence_reentry"] = reentry["reentry_shape"]
+                    entry["boundary_position"] = reentry["boundary_position"]
+                    entry["reentry_force"] = reentry["reentry_force"]
                 break
 
         # Narrative flags (for experience write-ups)
@@ -459,12 +594,22 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
 
     # Silences
     for s in silences:
-        pattern_breaks.append({
+        reentry = reentries_by_start.get(round(float(s["start"]), 2), {})
+        event = {
             "time": s["start"],
             "type": "silence",
             "duration": s["duration"],
             "depth_db": s["depth_db"],
-        })
+        }
+        if reentry:
+            event.update({
+                "reentry_shape": reentry["reentry_shape"],
+                "boundary_position": reentry["boundary_position"],
+                "reentry_force": reentry["reentry_force"],
+                "recovery_time_sec": reentry["recovery_time_sec"],
+                "recovered": reentry["recovered"],
+            })
+        pattern_breaks.append(event)
 
     # Sort pattern breaks chronologically
     pattern_breaks.sort(key=lambda m: m["time"])
@@ -518,6 +663,18 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         "mean_momentum_active": mean_momentum_active,
         "mean_pattern_lock_active": mean_pattern_lock_active,
         "momentum_range_active": momentum_range_active,
+        "silence_reentry_count": len(silence_reentries),
+        "silence_reentry_shapes": {
+            shape: sum(1 for r in silence_reentries if r["reentry_shape"] == shape)
+            for shape in (
+                "entry_preparation", "continuation", "rupture", "reset",
+                "withdrawal", "terminal_decay"
+            )
+        },
+        "silence_boundary_positions": {
+            position: sum(1 for r in silence_reentries if r["boundary_position"] == position)
+            for position in ("opening", "internal", "closing")
+        },
     }
 
     # Count pattern_breaks by type
@@ -530,6 +687,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         "duration": round(duration, 1),
         "tempo": round(tempo, 1),
         "silences": silences,
+        "silence_reentries": silence_reentries,
         "pattern_breaks": pattern_breaks,
         "summary": summary,
         "stream_hop_sec": 0.5,

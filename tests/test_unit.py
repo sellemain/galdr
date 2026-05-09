@@ -1,6 +1,7 @@
 """Unit tests for galdr — pure functions and pipeline logic. No audio required."""
 
 import math
+import numpy as np
 import pytest
 
 
@@ -605,3 +606,114 @@ class TestLufsBreath:
         assert "releasing" in prompt
         assert "silence-aware" in prompt
         assert "LUFS" not in prompt
+
+# ── Silence Re-entry / Recovery ───────────────────────────────────────────────
+
+
+def test_compute_silence_reentries_classifies_post_gap_return():
+    from galdr.perceive import compute_silence_reentries
+
+    times = np.arange(0.0, 10.0, 0.5)
+    momentum = np.array([0.8, 0.82, 0.81, 0.8, 0.1, 0.1, 0.76, 0.82, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84])
+    breath = np.array([0.02, 0.02, 0.01, 0.0, -0.5, -0.5, 0.15, 0.12, 0.03, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02])
+    loudness_delta = np.zeros_like(times)
+    silences = [{"start": 4.0, "end": 5.0, "duration": 1.0, "depth_db": -80.0}]
+
+    reentries = compute_silence_reentries(silences, times, momentum, breath, loudness_delta, 10.0)
+
+    assert len(reentries) == 1
+    event = reentries[0]
+    assert event["reentry_shape"] == "continuation"
+    assert event["boundary_position"] == "internal"
+    assert event["reentry_time"] == 5.0
+    assert event["recovered"] is True
+    assert event["recovery_time_sec"] is not None
+    assert "reentry_force" in event
+
+
+def test_perception_report_exposes_silence_reentries():
+    from galdr.perceive import compute_perception
+
+    sr = 22050
+    tone_a = np.sin(2 * np.pi * 220 * np.linspace(0, 1.0, sr, endpoint=False)) * 0.3
+    gap = np.zeros(int(sr * 0.8))
+    tone_b = np.sin(2 * np.pi * 330 * np.linspace(0, 1.2, int(sr * 1.2), endpoint=False)) * 0.35
+    y = np.concatenate([tone_a, gap, tone_b]).astype(np.float32)
+
+    report = compute_perception(y, sr, "silence-return")
+
+    assert report["silence_reentries"]
+    assert "silence_reentry_count" in report["summary"]
+    assert "silence_reentry_shapes" in report["summary"]
+    assert "silence_boundary_positions" in report["summary"]
+    silence_breaks = [b for b in report["pattern_breaks"] if b["type"] == "silence"]
+    assert silence_breaks
+    assert "reentry_shape" in silence_breaks[0]
+    assert "boundary_position" in silence_breaks[0]
+
+
+def test_compute_silence_reentries_marks_boundaries_separately():
+    from galdr.perceive import compute_silence_reentries
+
+    times = np.arange(0.0, 12.0, 0.5)
+    momentum = np.full_like(times, 0.75, dtype=float)
+    breath = np.zeros_like(times)
+    loudness_delta = np.zeros_like(times)
+    silences = [
+        {"start": 0.0, "end": 1.5, "duration": 1.5, "depth_db": -80.0},
+        {"start": 9.4, "end": 11.5, "duration": 2.1, "depth_db": -80.0},
+    ]
+
+    reentries = compute_silence_reentries(silences, times, momentum, breath, loudness_delta, 12.0)
+
+    assert reentries[0]["boundary_position"] == "opening"
+    assert reentries[0]["reentry_shape"] == "entry_preparation"
+    assert reentries[1]["boundary_position"] == "closing"
+    assert reentries[1]["reentry_shape"] == "terminal_decay"
+
+
+def test_assembled_structural_events_include_reentry_language():
+    from galdr.assemble import assemble_prompt
+
+    analysis = {
+        "report": {"duration_seconds": 20.0, "detected_pulse_bpm": 80.0, "pulse_stability": 0.7},
+        "perception": {
+            "summary": {
+                "mean_momentum": 0.6,
+                "mean_pattern_lock": 0.8,
+                "breath_positive_pct": 20.0,
+                "breath_negative_pct": 20.0,
+                "breath_sustain_pct": 60.0,
+                "integrated_lufs": -20.0,
+                "loudness_silence_pct": 5.0,
+                "silence_reentry_count": 1,
+                "silence_reentry_shapes": {
+                    "entry_preparation": 0,
+                    "continuation": 1,
+                    "rupture": 0,
+                    "reset": 0,
+                    "withdrawal": 0,
+                    "terminal_decay": 0,
+                },
+                "silence_boundary_positions": {"opening": 0, "internal": 1, "closing": 0},
+            },
+            "pattern_breaks": [
+                {
+                    "time": 4.0,
+                    "type": "silence",
+                    "duration": 1.25,
+                    "depth_db": -70.0,
+                    "reentry_shape": "continuation",
+                    "boundary_position": "internal",
+                    "reentry_force": 0.12,
+                    "recovery_time_sec": 0.5,
+                }
+            ],
+        },
+    }
+
+    prompt = assemble_prompt(analysis, mode="blind")
+
+    assert "Silence returns" in prompt
+    assert "return: continuation" in prompt
+    assert "re-entry force" in prompt
