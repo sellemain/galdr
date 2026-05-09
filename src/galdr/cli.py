@@ -185,9 +185,9 @@ def cmd_listen(args):
     if "report" in results:
         r = results["report"]
         print(f"  Duration: {r.get('duration_seconds', '?')}s | "
-              f"Pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
+              f"Felt pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
               f"Pulse stability: {r.get('pulse_stability', '?')} | "
-              f"Character: {r.get('character', '?')}")
+              f"Texture balance: {r.get('texture_balance', '?')}")
 
     if "perception" in results:
         s = results["perception"].get("summary", results["perception"])
@@ -201,26 +201,20 @@ def cmd_listen(args):
 
     if "harmony" in results:
         h = results["harmony"]
-        print(f"  Key: {h.get('detected_key', '?')} "
-              f"(confidence: {h.get('key_confidence', '?')}) | "
-              f"Tuning alignment: {h.get('mean_tuning_alignment', '?')} | "
-              f"Harmonic series consonance: {h.get('mean_harmonic_series_consonance', '?')}")
-        print(f"  Harmonic tension: {h.get('mean_harmonic_tension', '?')} | "
-              f"Chroma Flux: {h.get('mean_chroma_flux', '?')} | "
-              f"Major/minor: {h.get('mean_major_minor', '?')}")
+        print(f"  Harmonic pull: {h.get('mean_harmonic_tension', '?')} | "
+              f"Tonal steadiness evidence: {h.get('mean_tonal_stability', '?')} | "
+              f"Harmonic color motion: {h.get('mean_chroma_flux', '?')}")
 
     if "melody" in results:
         m = results["melody"]
-        print(f"  Range: {m.get('overall_range_semitones', '?')}st "
-              f"({m.get('range_low', '?')}-{m.get('range_high', '?')}) | "
-              f"Center: {m.get('overall_center_note', '?')} | "
-              f"Presence: {m.get('mean_vocal_presence', '?')}")
+        print(f"  Foreground pitch evidence: {m.get('mean_vocal_presence', '?')} "
+              "(pitch-tracking support, not a vocal claim)")
 
     if "overtone" in results:
         o = results["overtone"]
-        print(f"  Harmonic series fit: {o.get('mean_harmonic_series_fit', '?')} | "
-              f"Overtone richness: {o.get('mean_overtone_richness', '?')} | "
-              f"Inharmonicity: {o.get('mean_inharmonicity', '?')} cents")
+        print(f"  Resonance evidence: fit {o.get('mean_harmonic_series_fit', '?')} | "
+              f"upper-partial density {o.get('mean_overtone_richness', '?')} | "
+              f"roughness evidence {o.get('mean_inharmonicity', '?')} cents")
 
     if "layers" in results:
         layers = results["layers"]

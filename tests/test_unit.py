@@ -246,6 +246,126 @@ class TestAssemblePrompt:
         assert "ambiguous/suspect" in result
 
 
+# ── SM-308 Perception surface demotion ───────────────────────────────────────
+
+
+def _sm308_analysis():
+    return {
+        "report": {
+            "duration_seconds": 180.0,
+            "detected_pulse_bpm": 92.0,
+            "felt_pulse_bpm": 92.0,
+            "pulse_stability": 0.76,
+            "harmonic_weight": 0.7,
+            "percussive_weight": 0.3,
+            "texture_balance": -0.4,
+            "character": "pure harmonic/vocal",
+        },
+        "perception": {
+            "summary": {
+                "mean_momentum": 0.52,
+                "mean_pattern_lock": 0.81,
+                "breath_positive_pct": 35.0,
+                "breath_negative_pct": 25.0,
+                "breath_sustain_pct": 40.0,
+                "silence_pct": 12.0,
+                "active_duration_sec": 158.0,
+                "pattern_break_count": 3,
+            },
+            "pattern_breaks": [
+                {"time": 42.0, "type": "momentum_drop", "intensity": 0.62},
+                {"time": 80.0, "type": "silence", "duration": 1.2, "depth_db": -72.0},
+            ],
+        },
+        "harmony": {
+            "detected_key": "D",
+            "detected_mode": "minor",
+            "key_confidence": 0.44,
+            "mean_major_minor": -0.7,
+            "top_chords": [{"chord": "Dm"}, {"chord": "A7"}],
+            "mean_harmonic_tension": 0.33,
+            "mean_tonal_stability": 0.58,
+            "mean_chroma_flux": 0.27,
+        },
+        "melody": {
+            "overall_range_semitones": 31.0,
+            "overall_center_note": "A4",
+            "mean_vocal_presence": 0.18,
+            "contour_ascending_pct": 40.0,
+            "contour_descending_pct": 35.0,
+            "contour_holding_pct": 25.0,
+            "mean_direction": 0.12,
+        },
+        "overtone": {
+            "mean_harmonic_series_fit": 0.61,
+            "mean_overtone_richness": 0.48,
+            "mean_inharmonicity": 12.0,
+        },
+    }
+
+
+def test_sm308_assemble_demotes_theory_and_vocal_labels():
+    from galdr.assemble import assemble_prompt
+
+    prompt = assemble_prompt(_sm308_analysis(), mode="blind")
+
+    assert "Momentum:" in prompt
+    assert "Pattern lock:" in prompt
+    assert "Breath:" in prompt
+    assert "Structural events" in prompt
+    assert "Harmonic pull:" in prompt
+    assert "Foreground pitch evidence:" in prompt
+
+    forbidden = [
+        "Character:",
+        "Major/minor balance",
+        "Top chords",
+        "Vocal presence",
+        "Melody contour",
+        "Mean direction",
+        "detected_key",
+        "Key:",
+        "Harmonic series fit",
+        "Overtone richness",
+    ]
+    for text in forbidden:
+        assert text not in prompt
+
+
+def test_sm308_catalog_card_is_perception_first():
+    from galdr.catalog import CatalogState
+
+    cat = CatalogState(analysis_dir="/tmp", catalog_dir="/tmp/cat-sm308")
+    analysis = _sm308_analysis()
+    cat.index_track(
+        "sm308-track",
+        perception=analysis["perception"],
+        harmony=analysis["harmony"],
+        melody=analysis["melody"],
+        overtone=analysis["overtone"],
+        report=analysis["report"],
+    )
+    card = cat.summary_card("sm308-track")
+
+    assert "Pattern Lock" in card
+    assert "Momentum" in card
+    assert "Pressure Building" in card
+    assert "Structural Breaks" in card
+    assert "Harmonic Pull" in card
+
+    forbidden = [
+        "Vocal Presence",
+        "Melodic Range",
+        "Overtone Richness",
+        "Overtone Fit",
+        "Key Confidence",
+        "Detected Pulse",
+        "Major/minor",
+    ]
+    for text in forbidden:
+        assert text not in card
+
+
 # ── Null Signal Guard ─────────────────────────────────────────────────────────
 
 
