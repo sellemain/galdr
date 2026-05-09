@@ -38,8 +38,8 @@ This run gives galdr a useful classical baseline:
 - A fast detected pulse can coexist with a slower felt gait. For orchestral music, tempo candidates matter more than a single winning BPM.
 - Strong structural lock does not mean simplicity. Here it means long-form symphonic drive: recurrence, development, and return under pressure.
 - Low average harmonic tension does not mean low drama. The movement's urgency comes from pulse, orchestration, attack, and tonal compression.
-- Low vocal presence is expected, not a missing feature. The “voice” is distributed across instrumental bodies.
-- Large melodic range is not ornament. It is the measurable trace of orchestral custody moving across bass, strings, winds, and brass.
+- Low foreground pitch evidence is expected, not a missing feature. The “voice” is distributed across instrumental bodies instead of arriving as one clean lead line.
+- Wide foreground pitch span is not ornament. It is the measurable trace of orchestral custody moving across bass, strings, winds, and brass.
 - LUFS-aware pressure language is better than raw loudness language for classical music, where perceived force depends on space, contrast, and accumulated weight.
 - The real break can be the ending. In a work this stable, collapse only becomes meaningful because the structure refused to collapse earlier.
 

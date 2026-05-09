@@ -302,25 +302,20 @@ galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python env
 
 ### Harmony
 
-- **Key Detection** — the most likely tonal center, with confidence for how strongly the music points there.
-- **Tuning Alignment** — how cleanly the harmony sits inside familiar tuned pitch space. High values feel centered and conventionally tuned; low values can feel bent, smeared, folk-natural, or intentionally outside the grid.
-- **Harmonic Series Consonance** — how concentrated the pitch content is around simple, stable harmonic relationships. High values feel settled or fused; low values feel more spread, complex, or harmonically ambiguous.
-- **Harmonic Tension** — how much the harmony is pulling, shifting, or refusing to settle over time.
-- **Chroma Flux** — how quickly the harmonic color changes from one moment to the next.
-- **Tonal Stability** — how strongly the current window stays anchored to its tonal center instead of wandering.
-- **Major/Minor Balance** — whether the harmony leans bright/major, dark/minor, or stays between the two.
+- **Harmonic Pull** — how much the harmony is pulling, shifting, or refusing to settle over time.
+- **Harmonic Color Motion** — how quickly the harmonic color changes from one moment to the next.
+- **Tonal Steadiness Evidence** — how strongly the current window stays anchored instead of wandering. Galdr may compute key and mode internally, but default listener-facing surfaces avoid presenting them as first-class truth.
+- **Tuning / Resonance Evidence** — internal support for whether the sound feels centered, fused, bent, smeared, rough, metallic, or textural. These are evidence fields, not automatic prose labels.
 
-### Melody
+### Melody / Foreground Pitch
 
-- **Pitch Contour** — the shape of the foreground pitched line through time.
-- **Contour Direction** — whether that line is rising, falling, or holding its ground.
-- **Vocal Presence** — how much foreground pitched voice is carrying the track, rather than sitting as texture or disappearing into the mix.
+- **Foreground Pitch Evidence** — how much reliable foreground pitch the analyzer can track. This is not automatically a vocal claim; instrumental lines, dense mixes, and harsh vocals can all complicate the evidence.
+- **Pitch Contour** — the shape and direction of tracked foreground pitch when the evidence is strong enough to support it.
 
-### Overtone
+### Texture
 
-- **Harmonic Series Fit** — how strongly the sound locks onto natural overtone relationships. High values feel pure, fused, bell-like, vocal, or resonant.
-- **Overtone Richness** — how many upper harmonics are present in the sound. High richness feels dense, bright, or saturated; low richness feels simpler or more hollow.
-- **Inharmonicity** — how far the overtones drift from ideal harmonic positions. Higher values feel rougher, noisier, more metallic, or more textural.
+- **Texture Balance** — whether the track's weight is carried more by harmonic/tonal material or percussive/noise material.
+- **Resonance / Grain Evidence** — overtone and inharmonicity measurements used internally to support words like fused, bell-like, rough, noisy, resonant, or metallic. Default surfaces should not expose naked overtone scores as listener truth.
 
 ### Catalog
 
