@@ -278,7 +278,6 @@ pattern_breaks = perception["pattern_breaks"]
 
 The assembled prompt includes: source URL, structural events, harmonic and melodic data, lyrics with timestamps if available, and video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
 
-Perception-first implementation work is tracked in [docs/PERCEPTION-FIRST-ROADMAP.md](docs/PERCEPTION-FIRST-ROADMAP.md), with reusable comparison notes under [docs/listening-tests/](docs/listening-tests/).
 
 → **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
 
