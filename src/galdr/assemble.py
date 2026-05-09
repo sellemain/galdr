@@ -225,7 +225,6 @@ def _build_metrics(analysis: dict) -> str:
     pulse_stability = report.get("pulse_stability", 0)
     har_e = report.get("harmonic_weight", 0)
     perc_e = report.get("percussive_weight", 0)
-    character = report.get("character", "")
 
     lines.append(f"Duration: {_fmt_time(duration)} ({duration:.1f}s)")
     lines.append(_fmt_tempo(report))
@@ -262,35 +261,31 @@ def _build_metrics(analysis: dict) -> str:
             texture = (perc_e - har_e) / total  # negative = harmonic dominant
             texture_label = "harmonic dominant (tonal, warm)" if texture < -0.2 else "percussive dominant" if texture > 0.2 else "balanced"
             lines.append(f"Texture balance: {texture:.3f} ({texture_label})")
-        if character:
-            lines.append(f"Character: {character}")
 
-    # Harmony — field names from harmony.json
+    # Harmony surface: keep listener-state tension foregrounded.  Key/mode,
+    # major/minor balance, and chord names remain internal evidence unless a
+    # later task adds confidence-gated prose.
     if harmony:
-        mm = harmony.get("mean_major_minor", 0)
-        tension = harmony.get("mean_harmonic_tension", 0)
-        mm_label = "minor-leaning" if mm < -0.1 else "major-leaning" if mm > 0.1 else "neutral"
+        tension = harmony.get("mean_harmonic_tension")
+        tonal_stability = harmony.get("mean_tonal_stability")
+        chroma_flux = harmony.get("mean_chroma_flux")
 
-        lines.append(f"\nMajor/minor balance: {mm:.3f} ({mm_label})")
-        lines.append(f"Harmonic tension: {tension:.3f}")
+        if tension is not None:
+            lines.append(f"\nHarmonic pull: {tension:.3f} (tension/motion, 0–1)")
+        if tonal_stability is not None:
+            lines.append(f"Tonal steadiness evidence: {tonal_stability:.3f}")
+        if chroma_flux is not None:
+            lines.append(f"Harmonic color motion: {chroma_flux:.3f}")
 
-        top_chords = harmony.get("top_chords", [])
-        if top_chords:
-            chord_names = [c["chord"] if isinstance(c, dict) else str(c) for c in top_chords[:6]]
-            lines.append(f"Top chords: {', '.join(chord_names)}")
-
-    # Melody — flat field names from melody.json (not nested)
+    # Melody surface: mean_vocal_presence is a pitch-extraction confidence
+    # signal, not proof of voice.  Do not present vocal/contour authority here.
     if melody:
-        vp = melody.get("mean_vocal_presence", 0)
-        asc = melody.get("contour_ascending_pct", 0)
-        desc = melody.get("contour_descending_pct", 0)
-        hold = melody.get("contour_holding_pct", 0)
-        mean_dir = melody.get("mean_direction", 0)
-        dir_label = "predominantly falling" if mean_dir < -0.1 else "predominantly rising" if mean_dir > 0.1 else "flat"
-
-        lines.append(f"\nVocal presence: {vp:.3f} (0=none, 1=dominant)")
-        lines.append(f"Melody contour: {asc:.1f}% ascending / {desc:.1f}% descending / {hold:.1f}% holding")
-        lines.append(f"Mean direction: {mean_dir:.3f} ({dir_label})")
+        foreground_pitch = melody.get("mean_vocal_presence")
+        if foreground_pitch is not None:
+            lines.append(
+                f"\nForeground pitch evidence: {foreground_pitch:.3f} "
+                "(pitch-tracking support; not a vocal claim)"
+            )
 
     # Structural events — handles both schemas:
     # New: pattern_breaks (unified list with type="silence"|"break")
