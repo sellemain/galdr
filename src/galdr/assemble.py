@@ -240,14 +240,16 @@ def _build_metrics(analysis: dict) -> str:
         lines.append(line)
     weight_drag_sway = report.get("weight_drag_sway")
     weight_drag_sway_state = report.get("weight_drag_sway_state")
-    weight_drag_sway_note = report.get("weight_drag_sway_note")
     if weight_drag_sway is not None:
         line = f"Weight/drag/sway: {float(weight_drag_sway):.3f}"
         if weight_drag_sway_state:
             line += f" ({weight_drag_sway_state})"
-        if weight_drag_sway_note:
-            line += f" — {weight_drag_sway_note}"
         lines.append(line)
+        lines.append(
+            "Weight/drag/sway states: light = little physical hold; "
+            "present = some hold; suspended = held, slowed, dragged, or swaying; "
+            "heavy = strong sustained pressure or drag. Suspended is not automatically heavy."
+        )
 
     # Perception summary — handles both new schema (mean_pattern_lock) and
     # old schema (mean_surprise = disruption, pattern_lock = 1 - surprise)

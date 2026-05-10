@@ -707,7 +707,6 @@ def test_assembled_metrics_include_body_entrainment_language():
             "entrainment_note": "strong body-lock with real percussive support",
             "weight_drag_sway": 0.22,
             "weight_drag_sway_state": "light",
-            "weight_drag_sway_note": "little drag or suspended weight detected",
         },
         "perception": {"summary": {"mean_momentum": 0.7, "mean_pattern_lock": 0.9}},
     }

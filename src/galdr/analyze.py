@@ -183,19 +183,9 @@ def compute_weight_drag_sway(
     else:
         state = "light"
 
-    if state == "heavy":
-        note = "strong pressure-hold; movement feels costly rather than simply locked"
-    elif state == "suspended":
-        note = "noticeable drag/sway under the pulse"
-    elif state == "present":
-        note = "some physical weight, but not the main organizing force"
-    else:
-        note = "little drag or suspended weight detected"
-
     return {
         "weight_drag_sway": round(score, 3),
         "weight_drag_sway_state": state,
-        "weight_drag_sway_note": note,
     }
 
 
