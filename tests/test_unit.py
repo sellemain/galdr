@@ -580,6 +580,13 @@ class TestLufsBreath:
         assert "loudness_lufs" in entry
         assert "breath_lufs_delta" in entry
         assert "pressure_state" in entry
+        assert "body_entrainment" in entry
+        assert "body_entrainment_state" in entry
+        assert "weight_drag_sway" in entry
+        assert "weight_drag_sway_state" in entry
+        event_entries = [e for e in report["stream"] if "event" in e]
+        assert event_entries
+        assert "event_note" in event_entries[0]
         assert "integrated_lufs" in summary
         assert summary["integrated_lufs"] is not None
 
