@@ -329,6 +329,36 @@ def test_generate_perception_stream_returns_dict(tmp_path):
     assert isinstance(result["stream"], list), "'stream' should be a list"
 
 
+def test_generate_perception_stream_honors_custom_hop_sec(tmp_path):
+    """Custom hop_sec must flow into stream cadence and report metadata."""
+    import soundfile as sf
+    from galdr.perceive import generate_perception_stream
+
+    y, sr = _make_short_audio(duration_sec=3.0)
+    wav_path = tmp_path / "test.wav"
+    sf.write(str(wav_path), y, sr)
+
+    result = generate_perception_stream(
+        str(wav_path),
+        str(tmp_path),
+        "test-hop",
+        hop_sec=0.25,
+    )
+
+    assert result["stream_hop_sec"] == 0.25
+    assert len(result["stream"]) == 12
+    assert [entry["t"] for entry in result["stream"][:5]] == [0.0, 0.25, 0.5, 0.75, 1.0]
+
+
+def test_compute_perception_rejects_non_positive_hop_sec():
+    """hop_sec must be positive so stream generation cannot silently hang."""
+    from galdr.perceive import compute_perception
+
+    y, sr = _make_short_audio(duration_sec=1.0)
+    with pytest.raises(ValueError, match="hop_sec must be positive"):
+        compute_perception(y, sr, "bad-hop", hop_sec=0)
+
+
 def test_cli_null_audio_skips_remaining_modules(tmp_path):
     """galdr listen should stop after null_signal and not write analysis artifacts."""
     import soundfile as sf

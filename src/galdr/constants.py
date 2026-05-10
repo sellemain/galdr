@@ -103,6 +103,28 @@ EVENT_DISRUPTION_BREAK = 0.5
 EVENT_BREATH_BUILDING = 0.3
 EVENT_BREATH_RELEASING = -0.3
 
+# Weight/drag/sway event gates. State labels remain absolute; these only gate
+# weight_arrives / weight_lifts so boundary chatter does not become prose.
+EVENT_WDS_SLOPE_WINDOW_SEC = 2.0
+EVENT_WDS_MIN_DELTA = 0.04
+EVENT_WDS_SILENCE_LUFS_CEILING = -50.0
+EVENT_WDS_PHRASE_WINDOW_SEC = 12.0
+EVENT_WDS_PHRASE_BODY_DELTA_MAX = 0.08
+EVENT_WDS_PHRASE_TEXTURE_DELTA_MAX = 0.50
+EVENT_WDS_PHRASE_LOUDNESS_DELTA_MAX = 2.5
+
+# Surface-transform events catch timbral/pressure hardening while the body
+# current remains stable.  This is distinct from WDS body-carriage change.
+EVENT_SURFACE_WINDOW_SEC = 14.0
+EVENT_SURFACE_LOUDNESS_RISE_LUFS = 7.0
+EVENT_SURFACE_TEXTURE_RISE = 0.30
+EVENT_SURFACE_CURRENT_TEXTURE_MIN = -0.15
+EVENT_SURFACE_CURRENT_PERCUSSIVE_MIN = 0.06
+EVENT_SURFACE_PERCUSSIVE_RISE_RATIO = 1.8
+EVENT_SURFACE_BODY_HOLD_MIN = 0.65
+EVENT_SURFACE_PATTERN_HOLD_MIN = 0.85
+EVENT_SURFACE_COOLDOWN_SEC = 45.0
+
 # Minimum disruption to include in pattern_breaks list
 PATTERN_BREAK_MIN_DISRUPTION = 0.2
 

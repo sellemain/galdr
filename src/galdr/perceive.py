@@ -34,6 +34,15 @@ from .constants import (
     HP_BALANCE_MIN_ENERGY, HP_SMOOTH_FRAMES,
     EVENT_MOMENTUM_LOCKED, EVENT_MOMENTUM_FLOATING,
     EVENT_DISRUPTION_BREAK, EVENT_BREATH_BUILDING, EVENT_BREATH_RELEASING,
+    EVENT_WDS_SLOPE_WINDOW_SEC, EVENT_WDS_MIN_DELTA, EVENT_WDS_SILENCE_LUFS_CEILING,
+    EVENT_WDS_PHRASE_WINDOW_SEC, EVENT_WDS_PHRASE_BODY_DELTA_MAX,
+    EVENT_WDS_PHRASE_TEXTURE_DELTA_MAX, EVENT_WDS_PHRASE_LOUDNESS_DELTA_MAX,
+    EVENT_SURFACE_WINDOW_SEC, EVENT_SURFACE_LOUDNESS_RISE_LUFS,
+    EVENT_SURFACE_TEXTURE_RISE, EVENT_SURFACE_CURRENT_TEXTURE_MIN,
+    EVENT_SURFACE_CURRENT_PERCUSSIVE_MIN, EVENT_SURFACE_PERCUSSIVE_RISE_RATIO,
+    EVENT_SURFACE_BODY_HOLD_MIN,
+    EVENT_SURFACE_PATTERN_HOLD_MIN,
+    EVENT_SURFACE_COOLDOWN_SEC,
     PATTERN_BREAK_MIN_DISRUPTION, MOMENTUM_SHIFT_THRESHOLD, TOP_DISRUPTION_COUNT,
     ACTIVE_FRAME_SILENCE_PCT_THRESHOLD,
 )
@@ -449,7 +458,7 @@ def compute_harmonic_percussive_momentum(y, sr, duration,
     return times, h_energy, p_energy, balance
 
 
-def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
+def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float = MOMENTUM_HOP_SEC) -> dict:
     """Compute perception stream and report from audio array. No file I/O, no plots.
 
     Calls the existing pure DSP functions (compute_momentum, compute_disruption,
@@ -460,10 +469,14 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         y: audio time series (mono, float32)
         sr: sample rate
         track_name: track identifier used in report fields
+        hop_sec: seconds between listener-state stream samples
 
     Returns:
         report dict with "stream" key embedded
     """
+    if hop_sec <= 0:
+        raise ValueError("hop_sec must be positive")
+
     duration = librosa.get_duration(y=y, sr=sr)
 
     if duration <= 0:
@@ -483,20 +496,20 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
     rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
 
     # Compute perception dimensions
-    m_times, momentum = compute_momentum(beat_times, duration)
+    m_times, momentum = compute_momentum(beat_times, duration, hop_sec=hop_sec)
 
     s_times, disruption, d_beat, d_spectral, d_energy = compute_disruption(
-        y, sr, beat_times, duration
+        y, sr, beat_times, duration, hop_sec=hop_sec
     )
 
-    loudness = compute_loudness(y, sr, duration)
+    loudness = compute_loudness(y, sr, duration, hop_sec=hop_sec)
     b_times = loudness["times"]
     breath = loudness["breath"]
 
     silences = detect_silences(y, sr)
 
     hp_times, h_energy, p_energy, hp_balance = compute_harmonic_percussive_momentum(
-        y, sr, duration
+        y, sr, duration, hop_sec=hop_sec
     )
 
     silence_reentries = compute_silence_reentries(
@@ -512,7 +525,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         half_window = MOMENTUM_WINDOW_SEC / 2.0
         start = max(0.0, t - half_window)
         end = min(duration, t + half_window)
-        window_duration = max(end - start, MOMENTUM_HOP_SEC)
+        window_duration = max(end - start, hop_sec)
 
         local_beats = beat_times[(beat_times >= start) & (beat_times < end)]
         if len(local_beats) > 2:
@@ -568,16 +581,107 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         entry["event"] = event
         entry["event_note"] = note
 
+    def _stable_phrase_motion(entry: dict) -> bool:
+        """Return true when WDS movement is phrase-internal, not a new event."""
+        t = float(entry["t"])
+        phrase = [
+            e for e in stream
+            if t - EVENT_WDS_PHRASE_WINDOW_SEC <= float(e["t"]) < t
+        ]
+        if len(phrase) < 3:
+            return False
+
+        body_vals = [float(e["body_entrainment"]) for e in phrase]
+        texture_vals = [float(e["texture_balance"]) for e in phrase]
+        loudness_vals = [float(e["loudness_lufs"]) for e in phrase if e.get("loudness_lufs") is not None]
+        if not loudness_vals:
+            return False
+
+        body_range = max(body_vals) - min(body_vals)
+        texture_range = max(texture_vals) - min(texture_vals)
+        loudness_range = max(loudness_vals) - min(loudness_vals)
+
+        return (
+            body_range <= EVENT_WDS_PHRASE_BODY_DELTA_MAX
+            and texture_range <= EVENT_WDS_PHRASE_TEXTURE_DELTA_MAX
+            and loudness_range <= EVENT_WDS_PHRASE_LOUDNESS_DELTA_MAX
+        )
+
+    def _wds_slope_event(entry: dict, idx: int, direction: str) -> bool:
+        """Gate WDS prose events by felt movement, not label-boundary chatter."""
+        current = float(entry["weight_drag_sway"])
+        t = float(entry["t"])
+        lookback = np.where(m_times <= t - EVENT_WDS_SLOPE_WINDOW_SEC)[0]
+        if len(lookback) == 0:
+            return False
+
+        prior = stream[int(lookback[-1])]
+        previous = float(prior["weight_drag_sway"])
+        delta = current - previous
+        entry["weight_drag_sway_delta"] = round(delta, 3)
+
+        loudness_lufs = entry.get("loudness_lufs")
+        if entry.get("silence") or (loudness_lufs is not None and loudness_lufs <= EVENT_WDS_SILENCE_LUFS_CEILING):
+            return False
+        if _stable_phrase_motion(entry):
+            entry["weight_drag_sway_motion"] = "phrase_internal"
+            return False
+
+        if direction == "arrives":
+            return delta >= EVENT_WDS_MIN_DELTA
+        if direction == "lifts":
+            return delta <= -EVENT_WDS_MIN_DELTA
+        return False
+
+    def _surface_hardens(entry: dict) -> bool:
+        """Detect a surface-impact switch while the rhythmic body still holds."""
+        t = float(entry["t"])
+        lookback = [
+            e for e in stream
+            if t - EVENT_SURFACE_WINDOW_SEC <= float(e["t"]) < t
+            and e.get("loudness_lufs") is not None
+        ]
+        if len(lookback) < 3 or entry.get("loudness_lufs") is None:
+            return False
+
+        baseline = lookback[: max(3, len(lookback) // 2)]
+        base_loudness = float(np.mean([float(e["loudness_lufs"]) for e in baseline]))
+        base_texture = float(np.mean([float(e["texture_balance"]) for e in baseline]))
+        base_percussive = float(np.mean([float(e["percussive_weight"]) for e in baseline]))
+
+        loudness_rise = float(entry["loudness_lufs"]) - base_loudness
+        texture_rise = float(entry["texture_balance"]) - base_texture
+        percussive_ratio = float(entry["percussive_weight"]) / max(base_percussive, 1e-6)
+
+        body_holds = float(entry["body_entrainment"]) >= EVENT_SURFACE_BODY_HOLD_MIN
+        pattern_holds = float(entry["pattern_lock"]) >= EVENT_SURFACE_PATTERN_HOLD_MIN
+        hardens = (
+            loudness_rise >= EVENT_SURFACE_LOUDNESS_RISE_LUFS
+            and texture_rise >= EVENT_SURFACE_TEXTURE_RISE
+            and float(entry["texture_balance"]) >= EVENT_SURFACE_CURRENT_TEXTURE_MIN
+            and float(entry["percussive_weight"]) >= EVENT_SURFACE_CURRENT_PERCUSSIVE_MIN
+            and percussive_ratio >= EVENT_SURFACE_PERCUSSIVE_RISE_RATIO
+            and body_holds
+            and pattern_holds
+        )
+
+        if hardens:
+            entry["surface_loudness_rise_lufs"] = round(loudness_rise, 2)
+            entry["surface_texture_rise"] = round(texture_rise, 3)
+            entry["surface_percussive_ratio"] = round(percussive_ratio, 2)
+        return hardens
+
     # ===== BUILD PERCEPTION STREAM =====
     stream = []
     previous_body_state = None
     previous_weight_state = None
+    last_surface_event_t = -float("inf")
     for i, t in enumerate(m_times):
         local_body, local_weight = _local_body_and_weight(float(t), i)
         local_body_state = local_body["body_entrainment_state"]
         local_weight_state = local_weight["weight_drag_sway_state"]
         entry = {
-            "t": round(float(t), 1),
+            "t": round(float(t), 3),
             "weight": round(float(energy[i]), 4),
             "momentum": round(float(momentum[i]), 3),
             "pattern_lock": round(1.0 - float(disruption[i]), 3),
@@ -617,10 +721,13 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
                     entry["reentry_force"] = reentry["reentry_force"]
                 break
 
-        # Narrative flags (for experience write-ups).  Local body/WDS changes
-        # get first claim because they describe the felt arc, not just the
-        # underlying momentum/breath mechanics.
-        if local_body_state in {"emerging", "locked"} and previous_body_state in {None, "absent", "weak"}:
+        # Narrative flags (for experience write-ups).  Surface-transform events
+        # get first claim when the whole surface hardens while the body current
+        # remains continuous. Then local body/WDS changes describe felt carriage.
+        if _surface_hardens(entry) and float(t) - last_surface_event_t >= EVENT_SURFACE_COOLDOWN_SEC:
+            _mark_event(entry, "surface_hardens", "surface hardens while the body current holds")
+            last_surface_event_t = float(t)
+        elif local_body_state in {"emerging", "locked"} and previous_body_state in {None, "absent", "weak"}:
             note = (
                 "body finds the pulse under weight"
                 if local_weight_state in {"suspended", "heavy"}
@@ -629,14 +736,22 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
             _mark_event(entry, "body_lock_arrives", note)
         elif local_body_state in {"absent", "weak"} and previous_body_state in {"emerging", "locked"}:
             _mark_event(entry, "body_lock_recedes", "body lock loosens")
-        elif local_weight_state in {"present", "suspended", "heavy"} and previous_weight_state in {None, "light"}:
+        elif (
+            local_weight_state in {"present", "suspended", "heavy"}
+            and previous_weight_state in {None, "light"}
+            and _wds_slope_event(entry, i, "arrives")
+        ):
             note = (
                 "weight gathers under the moving pulse"
                 if local_body_state in {"emerging", "locked"}
                 else "weight gathers"
             )
             _mark_event(entry, "weight_arrives", note)
-        elif local_weight_state == "light" and previous_weight_state in {"present", "suspended", "heavy"}:
+        elif (
+            local_weight_state == "light"
+            and previous_weight_state in {"present", "suspended", "heavy"}
+            and _wds_slope_event(entry, i, "lifts")
+        ):
             _mark_event(entry, "weight_lifts", "weight lifts")
         elif momentum[i] > EVENT_MOMENTUM_LOCKED and (i == 0 or momentum[i-1] <= EVENT_MOMENTUM_LOCKED):
             _mark_event(entry, "momentum_locks", "motion settles into a reliable pattern")
@@ -786,7 +901,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
         "silence_reentries": silence_reentries,
         "pattern_breaks": pattern_breaks,
         "summary": summary,
-        "stream_hop_sec": 0.5,
+        "stream_hop_sec": round(float(hop_sec), 3),
         "stream_length": len(stream),
     }
 
@@ -794,7 +909,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
     return report
 
 
-def generate_perception_stream(audio_path, output_dir, track_name):
+def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: float = MOMENTUM_HOP_SEC):
     """Generate a second-by-second perception stream.
 
     This is the core output: a temporal narrative of what the music
@@ -816,7 +931,7 @@ def generate_perception_stream(audio_path, output_dir, track_name):
     print("  Detecting silences...")
     print("  Computing harmonic/percussive balance...")
 
-    report = compute_perception(y, sr, track_name)
+    report = compute_perception(y, sr, track_name, hop_sec=hop_sec)
     stream = report.get("stream", [])
     silences = report.get("silences", [])
     duration = report.get("duration", librosa.get_duration(y=y, sr=sr))
@@ -825,13 +940,13 @@ def generate_perception_stream(audio_path, output_dir, track_name):
     tempo_val = report.get("tempo", 0)
     _, beats = librosa.beat.beat_track(y=y, sr=sr)
     beat_times_viz = librosa.frames_to_time(beats, sr=sr)
-    m_times, momentum = compute_momentum(beat_times_viz, duration)
+    m_times, momentum = compute_momentum(beat_times_viz, duration, hop_sec=hop_sec)
     s_times, disruption, d_beat, d_spectral, d_energy = compute_disruption(
-        y, sr, beat_times_viz, duration
+        y, sr, beat_times_viz, duration, hop_sec=hop_sec
     )
-    b_times, breath = compute_breath(y, sr, duration)
+    b_times, breath = compute_breath(y, sr, duration, hop_sec=hop_sec)
     hp_times, h_energy_viz, p_energy_viz, hp_balance = compute_harmonic_percussive_momentum(
-        y, sr, duration
+        y, sr, duration, hop_sec=hop_sec
     )
 
     # Save stream (separate file — it's large)

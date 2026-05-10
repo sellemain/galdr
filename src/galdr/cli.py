@@ -134,7 +134,7 @@ def cmd_listen(args):
                 return
 
     if "perceive" in modules:
-        result = run_module("Perception", generate_perception_stream, audio_path, output_dir, track_name)
+        result = run_module("Perception", generate_perception_stream, audio_path, output_dir, track_name, args.hop_sec)
         if result:
             results["perception"] = result
 
@@ -600,6 +600,12 @@ def main():
     listen_parser.add_argument("--only", help="Comma-separated modules to run (overrides skip)")
     listen_parser.add_argument("--no-catalog", action="store_true", help="Skip catalog indexing")
     listen_parser.add_argument("--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)")
+    listen_parser.add_argument(
+        "--hop-sec",
+        type=float,
+        default=0.5,
+        help="Perception stream sample interval in seconds (default: 0.5)",
+    )
 
     # fetch
     fetch_parser = subparsers.add_parser("fetch", help="Download audio + context for a track")
