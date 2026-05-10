@@ -27,11 +27,11 @@ from .constants import (
     MOMENTUM_WINDOW_SEC, MOMENTUM_HOP_SEC, MOMENTUM_MIN_BEATS,
     DISRUPTION_WEIGHT_BEAT, DISRUPTION_WEIGHT_SPECTRAL, DISRUPTION_WEIGHT_ENERGY,
     DISRUPTION_BEAT_LOOKBACK_SEC, DISRUPTION_BEAT_ABSENCE_THRESHOLD_SEC,
-    DISRUPTION_BEAT_ABSENCE_MAX_SEC, DISRUPTION_SPECTRAL_SMOOTH_FRAMES,
-    DISRUPTION_ENERGY_SMOOTH_FRAMES,
-    BREATH_SMOOTH_FRAMES,
+    DISRUPTION_BEAT_ABSENCE_MAX_SEC, DISRUPTION_SPECTRAL_SMOOTH_SEC,
+    DISRUPTION_ENERGY_SMOOTH_SEC,
+    BREATH_SMOOTH_SEC,
     SILENCE_THRESHOLD_DB, SILENCE_MIN_DURATION_SEC,
-    HP_BALANCE_MIN_ENERGY, HP_SMOOTH_FRAMES,
+    HP_BALANCE_MIN_ENERGY, HP_SMOOTH_SEC,
     EVENT_MOMENTUM_LOCKED, EVENT_MOMENTUM_FLOATING,
     EVENT_DISRUPTION_BREAK, EVENT_BREATH_BUILDING, EVENT_BREATH_RELEASING,
     EVENT_WDS_SLOPE_WINDOW_SEC, EVENT_WDS_MIN_DELTA, EVENT_WDS_SILENCE_LUFS_CEILING,
@@ -49,6 +49,16 @@ from .constants import (
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
+
+
+def _duration_to_frames(duration_sec: float, frame_step_sec: float, max_len: int = None) -> int:
+    """Convert a real-time duration to a positive filter width in frames."""
+    if frame_step_sec <= 0:
+        raise ValueError("frame_step_sec must be positive")
+    frames = max(1, int(round(duration_sec / frame_step_sec)))
+    if max_len is not None:
+        frames = min(frames, max(1, int(max_len)))
+    return frames
 
 
 def compute_momentum(beat_times, duration,
@@ -133,24 +143,36 @@ def compute_disruption(y, sr, beat_times, duration, hop_sec=MOMENTUM_HOP_SEC):
     S = np.abs(librosa.stft(y))
     spectral_flux = np.sqrt(np.mean(np.diff(S, axis=1) ** 2, axis=0))
     flux_times = librosa.frames_to_time(np.arange(len(spectral_flux)), sr=sr)
+    flux_step_sec = 512 / sr
 
     if spectral_flux.max() > 0:
         spectral_flux_norm = spectral_flux / spectral_flux.max()
     else:
         spectral_flux_norm = spectral_flux
 
-    local_avg = uniform_filter1d(spectral_flux_norm, size=DISRUPTION_SPECTRAL_SMOOTH_FRAMES)
+    spectral_smooth_frames = _duration_to_frames(
+        DISRUPTION_SPECTRAL_SMOOTH_SEC,
+        flux_step_sec,
+        max_len=len(spectral_flux_norm),
+    )
+    local_avg = uniform_filter1d(spectral_flux_norm, size=spectral_smooth_frames)
     spectral_disruption_raw = np.maximum(0, spectral_flux_norm - local_avg)
     disruption_spectral = np.interp(times, flux_times, spectral_disruption_raw)
 
     # --- Energy disruption ---
     rms = librosa.feature.rms(y=y)[0]
     rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
+    rms_step_sec = 512 / sr
 
     if len(rms) > 1:
         energy_diff = np.abs(np.diff(rms))
         energy_diff = np.append(energy_diff, 0)
-        local_trend = uniform_filter1d(energy_diff, size=DISRUPTION_ENERGY_SMOOTH_FRAMES)
+        energy_smooth_frames = _duration_to_frames(
+            DISRUPTION_ENERGY_SMOOTH_SEC,
+            rms_step_sec,
+            max_len=len(energy_diff),
+        )
+        local_trend = uniform_filter1d(energy_diff, size=energy_smooth_frames)
         energy_disruption_raw = np.maximum(0, energy_diff - local_trend)
         if energy_disruption_raw.max() > 0:
             energy_disruption_raw = energy_disruption_raw / energy_disruption_raw.max()
@@ -217,7 +239,8 @@ def compute_loudness(y, sr, duration, hop_sec=MOMENTUM_HOP_SEC):
             np.flatnonzero(~np.isfinite(filled)), valid_idx, filled[valid_idx]
         )
 
-    smoothed = uniform_filter1d(filled, size=min(BREATH_SMOOTH_FRAMES, max(1, len(filled))))
+    breath_smooth_frames = _duration_to_frames(BREATH_SMOOTH_SEC, hop_sec, max_len=len(filled))
+    smoothed = uniform_filter1d(filled, size=breath_smooth_frames)
     if len(smoothed) > 1:
         delta = np.gradient(smoothed)
         delta[silence_mask] = 0.0
@@ -438,9 +461,11 @@ def compute_harmonic_percussive_momentum(y, sr, duration,
     rms_h = librosa.feature.rms(y=y_h)[0]
     rms_p = librosa.feature.rms(y=y_p)[0]
     rms_times = librosa.frames_to_time(np.arange(len(rms_h)), sr=sr)
+    hp_step_sec = 512 / sr
 
-    rms_h_smooth = uniform_filter1d(rms_h, size=HP_SMOOTH_FRAMES)
-    rms_p_smooth = uniform_filter1d(rms_p, size=HP_SMOOTH_FRAMES)
+    hp_smooth_frames = _duration_to_frames(HP_SMOOTH_SEC, hp_step_sec, max_len=len(rms_h))
+    rms_h_smooth = uniform_filter1d(rms_h, size=hp_smooth_frames)
+    rms_p_smooth = uniform_filter1d(rms_p, size=hp_smooth_frames)
 
     total = rms_h_smooth + rms_p_smooth
     with np.errstate(divide='ignore', invalid='ignore'):
