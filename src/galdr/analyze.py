@@ -132,6 +132,73 @@ def compute_body_entrainment(
     }
 
 
+def compute_weight_drag_sway(
+    *,
+    pulse_stability: float,
+    pulse_confidence: float | None,
+    body_entrainment: float,
+    texture_balance: float,
+    onsets_per_second: float,
+    harmonic_weight: float,
+    percussive_weight: float,
+    dynamic_range_ratio: float,
+) -> dict:
+    """Estimate physical hold that comes from weight, drag, or sway.
+
+    This is intentionally separate from body entrainment.  Entrainment asks
+    whether the body locks to a forward motor; this asks whether the track
+    makes the body feel held, slowed, or pulled by sustained pressure.
+    """
+    pulse_conf = 0.5 if pulse_confidence is None else float(np.clip(pulse_confidence, 0.0, 1.0))
+    harmonic_mass = harmonic_weight / (harmonic_weight + percussive_weight) if (harmonic_weight + percussive_weight) > 0 else 0.0
+    harmonic_component = float(np.clip((harmonic_mass - 0.45) / 0.45, 0.0, 1.0))
+
+    slow_density = float(np.clip(1.0 - (onsets_per_second / 4.0), 0.0, 1.0))
+    very_sparse = float(np.clip(1.0 - (onsets_per_second / 2.2), 0.0, 1.0))
+    pulse_component = float(np.clip(pulse_stability, 0.0, 1.0)) * pulse_conf
+    drag_gap = float(np.clip((pulse_component - body_entrainment) / 0.35, 0.0, 1.0))
+    texture_component = float(np.clip((0.55 - texture_balance) / 0.55, 0.0, 1.0))
+    dynamics_component = float(np.clip(np.log10(max(dynamic_range_ratio, 1.0)) / 4.0, 0.0, 1.0))
+    pressure_component = harmonic_component * texture_component
+    suspended_pull = drag_gap * slow_density
+
+    score = float(np.clip(
+        0.24 * pressure_component
+        + 0.24 * suspended_pull
+        + 0.18 * harmonic_component
+        + 0.14 * slow_density
+        + 0.10 * texture_component
+        + 0.06 * dynamics_component
+        + 0.04 * very_sparse,
+        0.0,
+        1.0,
+    ))
+
+    if score >= 0.70:
+        state = "heavy"
+    elif score >= 0.34:
+        state = "suspended"
+    elif score >= 0.22:
+        state = "present"
+    else:
+        state = "light"
+
+    if state == "heavy":
+        note = "strong pressure-hold; movement feels costly rather than simply locked"
+    elif state == "suspended":
+        note = "noticeable drag/sway under the pulse"
+    elif state == "present":
+        note = "some physical weight, but not the main organizing force"
+    else:
+        note = "little drag or suspended weight detected"
+
+    return {
+        "weight_drag_sway": round(score, 3),
+        "weight_drag_sway_state": state,
+        "weight_drag_sway_note": note,
+    }
+
+
 def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     """Compute all track features from audio array. No file I/O, no plots.
 
@@ -235,6 +302,16 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         texture_balance=perc_ratio,
         onsets_per_second=onsets_per_second,
     )
+    weight_drag_sway = compute_weight_drag_sway(
+        pulse_stability=pulse_stability,
+        pulse_confidence=tempo_profile.get("pulse_confidence"),
+        body_entrainment=body_entrainment["body_entrainment"],
+        texture_balance=perc_ratio,
+        onsets_per_second=onsets_per_second,
+        harmonic_weight=harm_energy,
+        percussive_weight=perc_energy,
+        dynamic_range_ratio=dynamic_range,
+    )
 
     # --- Novelty-based segmentation ---
     try:
@@ -279,6 +356,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         "beat_count": len(beat_times),
         "pulse_stability": round(pulse_stability, 3),  # 1.0 = perfectly regular
         **body_entrainment,
+        **weight_drag_sway,
         "rhythm_description": (
             "very regular/metronomic" if pulse_stability > 0.9
             else "steady" if pulse_stability > 0.7

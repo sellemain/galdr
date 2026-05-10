@@ -189,6 +189,8 @@ def cmd_listen(args):
               f"Pulse stability: {r.get('pulse_stability', '?')} | "
               f"Body entrainment: {r.get('body_entrainment', '?')} "
               f"({r.get('body_entrainment_state', '?')}) | "
+              f"Weight/drag/sway: {r.get('weight_drag_sway', '?')} "
+              f"({r.get('weight_drag_sway_state', '?')}) | "
               f"Texture balance: {r.get('texture_balance', '?')}")
 
     if "perception" in results:

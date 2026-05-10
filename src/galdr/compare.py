@@ -39,7 +39,7 @@ def flatten_metrics(data):
     if "report" in data:
         r = data["report"]
         for k in ["duration_seconds", "detected_pulse_bpm", "felt_pulse_bpm",
-                   "beat_count", "pulse_stability", "body_entrainment", "texture_balance",
+                   "beat_count", "pulse_stability", "body_entrainment", "weight_drag_sway", "texture_balance",
                    "harmonic_weight", "percussive_weight", "spectral_centroid_mean_hz",
                    "onset_count", "onsets_per_second", "mean_zcr", "dynamic_range_ratio"]:
             if k in r and isinstance(r[k], (int, float)):
