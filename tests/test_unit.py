@@ -664,6 +664,35 @@ def test_compute_body_entrainment_damps_ambiguous_pulse():
     assert "ambiguous/alternate-pulse" in ambiguous["entrainment_note"]
 
 
+def test_compute_weight_drag_sway_separates_drag_from_motor_lock():
+    from galdr.analyze import compute_weight_drag_sway
+
+    drag = compute_weight_drag_sway(
+        pulse_stability=0.95,
+        pulse_confidence=0.60,
+        body_entrainment=0.52,
+        texture_balance=0.31,
+        onsets_per_second=1.7,
+        harmonic_weight=0.21,
+        percussive_weight=0.095,
+        dynamic_range_ratio=1000.0,
+    )
+    motor = compute_weight_drag_sway(
+        pulse_stability=0.97,
+        pulse_confidence=0.90,
+        body_entrainment=0.78,
+        texture_balance=0.35,
+        onsets_per_second=4.2,
+        harmonic_weight=0.12,
+        percussive_weight=0.065,
+        dynamic_range_ratio=1000.0,
+    )
+
+    assert drag["weight_drag_sway"] > motor["weight_drag_sway"]
+    assert drag["weight_drag_sway_state"] in {"suspended", "heavy"}
+    assert motor["weight_drag_sway_state"] == "light"
+
+
 def test_assembled_metrics_include_body_entrainment_language():
     from galdr.assemble import assemble_prompt
 
@@ -676,6 +705,8 @@ def test_assembled_metrics_include_body_entrainment_language():
             "body_entrainment": 0.81,
             "body_entrainment_state": "locked",
             "entrainment_note": "strong body-lock with real percussive support",
+            "weight_drag_sway": 0.22,
+            "weight_drag_sway_state": "light",
         },
         "perception": {"summary": {"mean_momentum": 0.7, "mean_pattern_lock": 0.9}},
     }
@@ -684,6 +715,7 @@ def test_assembled_metrics_include_body_entrainment_language():
 
     assert "Body entrainment: 0.810 (locked)" in prompt
     assert "strong body-lock" in prompt
+    assert "Weight/drag/sway: 0.220 (light)" in prompt
 
 
 # ── Silence Re-entry / Recovery ───────────────────────────────────────────────

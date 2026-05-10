@@ -404,6 +404,8 @@ The assembled prompt includes the source URL (so a reader can listen along), all
 
 There is one canonical `SKILL.md` in this repo: `galdr-skill/galdr/SKILL.md`. That directory is the distributable agent skill for OpenClaw and AgentSkill-compatible runtimes, including Hermes-style consumers. It includes the main skill file plus reference material and is kept free of runtime-specific metadata.
 
+The skill teaches an agent how to use galdr; it does not install the `galdr` command itself. Install the CLI separately with `pip install galdr` (or from source), then confirm the runtime can see it with `galdr --version`.
+
 For agents that do not consume `SKILL.md` directly, [`docs/AGENT-CLI-REFERENCE.md`](https://github.com/sellemain/galdr/blob/main/docs/AGENT-CLI-REFERENCE.md) provides a lean command reference without skill frontmatter.
 
 Hermes-compatible runtimes can use the directory from a clone:
@@ -416,7 +418,7 @@ cp -R galdr-skill/galdr ~/.hermes/skills/media/galdr
 
 Some Hermes builds may also support direct single-file URL installs or external skill directories. If yours does, point it at `galdr-skill/galdr/SKILL.md` or the checked-out `galdr-skill/` parent directory. Use the clone/copy path when you want bundled references such as `references/metrics.md`.
 
-For [OpenClaw](https://openclaw.ai) users, `galdr-skill/` also contains a pre-built OpenClaw skill package (`.skill` file) for local install or later ClawHub publication, with an experience-generation workflow optimized for OpenClaw's agent context.
+For [OpenClaw](https://openclaw.ai) users, galdr is published on ClawHub at <https://clawhub.ai/sellemain/galdr>. The repo also keeps the source skill directory at `galdr-skill/galdr/` and a pre-built OpenClaw `.skill` package at `galdr-skill/galdr.skill` for local installs or release assets.
 
 ### What agents can do with this data
 
