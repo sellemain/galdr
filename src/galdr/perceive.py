@@ -34,6 +34,7 @@ from .constants import (
     HP_BALANCE_MIN_ENERGY, HP_SMOOTH_SEC,
     EVENT_MOMENTUM_LOCKED, EVENT_MOMENTUM_FLOATING,
     EVENT_DISRUPTION_BREAK, EVENT_BREATH_BUILDING, EVENT_BREATH_RELEASING,
+    EVENT_PRESSURE_BUILD_RESET, EVENT_PRESSURE_RELEASE_RESET, EVENT_PRESSURE_MIN_GAP_SEC,
     EVENT_WDS_SLOPE_WINDOW_SEC, EVENT_WDS_MIN_DELTA, EVENT_WDS_SILENCE_LUFS_CEILING,
     EVENT_WDS_PHRASE_WINDOW_SEC, EVENT_WDS_PHRASE_BODY_DELTA_MAX,
     EVENT_WDS_PHRASE_TEXTURE_DELTA_MAX, EVENT_WDS_PHRASE_LOUDNESS_DELTA_MAX,
@@ -701,6 +702,9 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     previous_body_state = None
     previous_weight_state = None
     last_surface_event_t = -float("inf")
+    pressure_ready_to_build = True
+    pressure_ready_to_release = True
+    last_pressure_event_t = -float("inf")
     for i, t in enumerate(m_times):
         local_body, local_weight = _local_body_and_weight(float(t), i)
         local_body_state = local_body["body_entrainment_state"]
@@ -784,10 +788,29 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             _mark_event(entry, "momentum_unmoors", "motion loses its hold")
         elif disruption[i] > EVENT_DISRUPTION_BREAK:
             _mark_event(entry, "pattern_breaks", "pattern breaks")
-        elif breath[i] > EVENT_BREATH_BUILDING and (i == 0 or breath[i-1] <= EVENT_BREATH_BUILDING):
+        elif (
+            breath[i] > EVENT_BREATH_BUILDING
+            and pressure_ready_to_build
+            and float(t) - last_pressure_event_t >= EVENT_PRESSURE_MIN_GAP_SEC
+        ):
             _mark_event(entry, "pressure_builds", "pressure builds")
-        elif breath[i] < EVENT_BREATH_RELEASING and (i == 0 or breath[i-1] >= EVENT_BREATH_RELEASING):
+            pressure_ready_to_build = False
+            pressure_ready_to_release = True
+            last_pressure_event_t = float(t)
+        elif (
+            breath[i] < EVENT_BREATH_RELEASING
+            and pressure_ready_to_release
+            and float(t) - last_pressure_event_t >= EVENT_PRESSURE_MIN_GAP_SEC
+        ):
             _mark_event(entry, "pressure_releases", "pressure releases")
+            pressure_ready_to_release = False
+            pressure_ready_to_build = True
+            last_pressure_event_t = float(t)
+
+        if breath[i] <= EVENT_PRESSURE_BUILD_RESET:
+            pressure_ready_to_build = True
+        if breath[i] >= EVENT_PRESSURE_RELEASE_RESET:
+            pressure_ready_to_release = True
 
         previous_body_state = local_body_state
         previous_weight_state = local_weight_state

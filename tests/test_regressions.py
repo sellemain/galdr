@@ -378,6 +378,25 @@ def test_duration_to_frames_rejects_non_positive_frame_step(bad_step):
         _duration_to_frames(1.0, bad_step)
 
 
+def test_pressure_events_use_hysteresis_not_threshold_chatter():
+    """One pressure swell should produce one prose event, not local threshold chatter."""
+    from galdr.perceive import compute_perception
+
+    sr = 22050
+    duration = 14.0
+    t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+    # Multi-step swell with tiny dips: all part of one felt pressure build.
+    control_t = np.array([0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 14.0])
+    control_amp = np.array([0.03, 0.05, 0.10, 0.32, 0.26, 0.38, 0.30, 0.50, 0.50])
+    amp = np.interp(t, control_t, control_amp)
+    y = (np.sin(2 * np.pi * 440.0 * t) * amp).astype(np.float32)
+
+    result = compute_perception(y, sr, "single-pressure-swell", hop_sec=0.25)
+    events = [entry["event"] for entry in result["stream"] if entry.get("event")]
+
+    assert events.count("pressure_builds") == 1
+
+
 def test_cli_null_audio_skips_remaining_modules(tmp_path):
     """galdr listen should stop after null_signal and not write analysis artifacts."""
     import soundfile as sf
