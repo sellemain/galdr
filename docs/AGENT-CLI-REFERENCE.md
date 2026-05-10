@@ -17,7 +17,7 @@ cd galdr
 pip install -e .
 ```
 
-If provenance matters, verify the PyPI metadata or install from the source repository above before running it.
+Agent skills and prompt references teach an agent how to use galdr; they do not install the `galdr` command itself. Check that the CLI is available with `galdr --version`. If provenance matters, verify the PyPI metadata or install from the source repository above before running it.
 
 ## Commands
 

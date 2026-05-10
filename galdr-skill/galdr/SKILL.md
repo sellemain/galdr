@@ -25,7 +25,7 @@ cd galdr
 pip install -e .
 ```
 
-Check: `galdr --version`. If missing: install before proceeding. If provenance matters, verify the PyPI metadata or install from the source repository above before running it.
+This skill teaches an agent how to use galdr; it does not install the `galdr` command itself. Check: `galdr --version`. If missing, install the CLI before proceeding. If provenance matters, verify the PyPI metadata or install from the source repository above before running it.
 
 ## Core Workflows
 
