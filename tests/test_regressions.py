@@ -397,6 +397,84 @@ def test_pressure_events_use_hysteresis_not_threshold_chatter():
     assert events.count("pressure_builds") == 1
 
 
+def test_momentum_events_use_hysteresis_not_threshold_chatter(monkeypatch):
+    """Momentum event labels should not chatter around lock/unmoor thresholds."""
+    import galdr.perceive as perceive
+    from galdr.perceive import compute_perception
+
+    sr = 22050
+    duration = 18.0
+    y = np.zeros(int(sr * duration), dtype=np.float32)
+    momentum_values = np.array([
+        0.70, 0.81, 0.79, 0.82, 0.78, 0.83, 0.74, 0.66, 0.64,
+        0.69, 0.62, 0.36, 0.19, 0.22, 0.18, 0.24, 0.40, 0.18,
+    ])
+    times = np.arange(len(momentum_values), dtype=float)
+
+    def fake_momentum(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
+        return times, momentum_values
+
+    monkeypatch.setattr(perceive, "compute_momentum", fake_momentum)
+
+    result = compute_perception(y, sr, "momentum-threshold-chatter", hop_sec=1.0)
+    events = [entry["event"] for entry in result["stream"] if entry.get("event")]
+
+    assert events.count("momentum_locks") == 1
+    assert events.count("momentum_unmoors") == 1
+
+
+def test_body_lock_events_require_sustained_dwell(monkeypatch):
+    """Body-lock prose events should wait for sustained state, not one-frame crossings."""
+    import galdr.perceive as perceive
+    from galdr.perceive import compute_perception
+
+    sr = 22050
+    duration = 16.0
+    y = np.zeros(int(sr * duration), dtype=np.float32)
+    times = np.arange(int(duration), dtype=float)
+    body_scores = np.array([
+        0.30, 0.55, 0.30, 0.55, 0.55, 0.55, 0.80, 0.30,
+        0.80, 0.30, 0.30, 0.30, 0.10, 0.55, 0.30, 0.30,
+    ])
+
+    def fake_momentum(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
+        return times, np.full(len(times), 0.5)
+
+    def fake_body(
+        *,
+        duration,
+        beat_count,
+        pulse_stability,
+        pulse_confidence,
+        pulse_ambiguous,
+        texture_balance,
+        onsets_per_second,
+    ):
+        idx = fake_body.idx
+        fake_body.idx += 1
+        score = float(body_scores[idx])
+        if score >= 0.75:
+            state = "locked"
+        elif score >= 0.50:
+            state = "emerging"
+        elif score >= 0.25:
+            state = "weak"
+        else:
+            state = "absent"
+        return {"body_entrainment": score, "body_entrainment_state": state, "entrainment_note": state}
+
+    fake_body.idx = 0
+
+    monkeypatch.setattr(perceive, "compute_momentum", fake_momentum)
+    monkeypatch.setattr(perceive, "compute_body_entrainment", fake_body)
+
+    result = compute_perception(y, sr, "body-lock-dwell", hop_sec=1.0)
+    events = [entry["event"] for entry in result["stream"] if entry.get("event")]
+
+    assert events.count("body_lock_arrives") == 1
+    assert events.count("body_lock_recedes") == 1
+
+
 def test_cli_null_audio_skips_remaining_modules(tmp_path):
     """galdr listen should stop after null_signal and not write analysis artifacts."""
     import soundfile as sf

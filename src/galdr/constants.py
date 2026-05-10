@@ -92,9 +92,18 @@ HP_SMOOTH_SEC = 0.5
 # Perception — Stream Event Thresholds
 # ============================================================
 
-# Momentum thresholds for listener_locked / listener_floating events
+# Momentum thresholds for listener_locked / listener_floating events.
+# Event hysteresis keeps threshold chatter from becoming prose.
 EVENT_MOMENTUM_LOCKED = 0.8
+EVENT_MOMENTUM_LOCK_RESET = 0.65
 EVENT_MOMENTUM_FLOATING = 0.2
+EVENT_MOMENTUM_FLOAT_RESET = 0.35
+EVENT_MOMENTUM_MIN_GAP_SEC = 6.0
+
+# Body-lock events should describe sustained arrival/recession, not one-frame
+# label crossings around the weak/emerging boundary.
+EVENT_BODY_LOCK_DWELL_SEC = 2.0
+EVENT_BODY_UNLOCK_DWELL_SEC = 2.0
 
 # Disruption threshold for pattern_break event
 EVENT_DISRUPTION_BREAK = 0.5
