@@ -140,6 +140,19 @@ EVENT_SURFACE_BODY_HOLD_MIN = 0.65
 EVENT_SURFACE_PATTERN_HOLD_MIN = 0.85
 EVENT_SURFACE_COOLDOWN_SEC = 45.0
 
+# Phrase dynamics are a local gesture layer. They should catch short musical
+# movements inside an otherwise stable macro state: lift, drop, flash, turn.
+# Macro body/pressure/momentum events still get first narrative claim.
+EVENT_PHRASE_WINDOW_SEC = 6.0
+EVENT_PHRASE_MIN_GAP_SEC = 3.0
+EVENT_PHRASE_MACRO_SUPPRESS_SEC = 1.0
+EVENT_PHRASE_LIFT_LUFS = 3.0
+EVENT_PHRASE_DROP_LUFS = -3.5
+EVENT_PHRASE_ENERGY_SURGE = 0.12
+EVENT_PHRASE_SPECTRAL_FLASH = 0.28
+EVENT_PHRASE_TURN_DISRUPTION = 0.34
+EVENT_PHRASE_RETURN_LOCK = 0.88
+
 # Minimum disruption to include in pattern_breaks list
 PATTERN_BREAK_MIN_DISRUPTION = 0.2
 

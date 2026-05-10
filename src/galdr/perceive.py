@@ -46,6 +46,9 @@ from .constants import (
     EVENT_SURFACE_BODY_HOLD_MIN,
     EVENT_SURFACE_PATTERN_HOLD_MIN,
     EVENT_SURFACE_COOLDOWN_SEC,
+    EVENT_PHRASE_WINDOW_SEC, EVENT_PHRASE_MIN_GAP_SEC, EVENT_PHRASE_MACRO_SUPPRESS_SEC,
+    EVENT_PHRASE_LIFT_LUFS, EVENT_PHRASE_DROP_LUFS, EVENT_PHRASE_ENERGY_SURGE,
+    EVENT_PHRASE_SPECTRAL_FLASH, EVENT_PHRASE_TURN_DISRUPTION, EVENT_PHRASE_RETURN_LOCK,
     PATTERN_BREAK_MIN_DISRUPTION, MOMENTUM_SHIFT_THRESHOLD, TOP_DISRUPTION_COUNT,
     ACTIVE_FRAME_SILENCE_PCT_THRESHOLD,
 )
@@ -699,6 +702,58 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             entry["surface_percussive_ratio"] = round(percussive_ratio, 2)
         return hardens
 
+    def _phrase_dynamic_event(entry: dict, last_macro_event_t: float) -> tuple[str | None, str | None]:
+        """Detect local phrase gestures that macro body/pressure gates intentionally miss."""
+        t = float(entry["t"])
+        if t - last_macro_event_t <= EVENT_PHRASE_MACRO_SUPPRESS_SEC:
+            return None, None
+        if entry.get("silence") or entry.get("loudness_lufs") is None:
+            return None, None
+
+        phrase = [
+            e for e in stream
+            if t - EVENT_PHRASE_WINDOW_SEC <= float(e["t"]) < t
+            and e.get("loudness_lufs") is not None
+            and not e.get("silence")
+        ]
+        if len(phrase) < 3:
+            return None, None
+
+        half = max(1, len(phrase) // 2)
+        baseline = phrase[:half]
+        recent = phrase[half:]
+        base_loudness = float(np.mean([float(e["loudness_lufs"]) for e in baseline]))
+        recent_loudness = float(np.mean([float(e["loudness_lufs"]) for e in recent]))
+        base_weight = float(np.mean([float(e["weight"]) for e in baseline]))
+        recent_weight = float(np.mean([float(e["weight"]) for e in recent]))
+        base_texture = float(np.mean([float(e["texture_balance"]) for e in baseline]))
+        recent_texture = float(np.mean([float(e["texture_balance"]) for e in recent]))
+        recent_pattern = float(np.mean([float(e["pattern_lock"]) for e in recent]))
+
+        loudness_delta = float(entry["loudness_lufs"]) - base_loudness
+        recent_loudness_delta = recent_loudness - base_loudness
+        weight_delta = float(entry["weight"]) - base_weight
+        texture_delta = float(entry["texture_balance"]) - base_texture
+        disruption_now = 1.0 - float(entry["pattern_lock"])
+
+        entry["phrase_loudness_delta_lufs"] = round(loudness_delta, 2)
+        entry["phrase_weight_delta"] = round(weight_delta, 4)
+        entry["phrase_texture_delta"] = round(texture_delta, 3)
+
+        if (
+            loudness_delta >= EVENT_PHRASE_LIFT_LUFS
+            and weight_delta >= EVENT_PHRASE_ENERGY_SURGE
+            and texture_delta >= EVENT_PHRASE_SPECTRAL_FLASH
+        ):
+            return "ornamental_flash", "bright local flash inside the phrase"
+        if loudness_delta >= EVENT_PHRASE_LIFT_LUFS and weight_delta >= EVENT_PHRASE_ENERGY_SURGE:
+            return "phrase_lifts", "phrase lifts"
+        if recent_loudness_delta <= EVENT_PHRASE_DROP_LUFS and float(entry["pattern_lock"]) >= EVENT_PHRASE_RETURN_LOCK:
+            return "phrase_drops", "phrase drops back"
+        if disruption_now >= EVENT_PHRASE_TURN_DISRUPTION and recent_pattern >= EVENT_PHRASE_RETURN_LOCK:
+            return "section_turns", "phrase turns while the larger pattern holds"
+        return None, None
+
     # ===== BUILD PERCEPTION STREAM =====
     stream = []
     previous_weight_state = None
@@ -712,6 +767,8 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     body_lock_active = False
     body_lock_since = None
     body_unlock_since = None
+    last_macro_event_t = -float("inf")
+    last_phrase_event_t = -float("inf")
     for i, t in enumerate(m_times):
         local_body, local_weight = _local_body_and_weight(float(t), i)
         local_body_state = local_body["body_entrainment_state"]
@@ -785,6 +842,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         if _surface_hardens(entry) and float(t) - last_surface_event_t >= EVENT_SURFACE_COOLDOWN_SEC:
             _mark_event(entry, "surface_hardens", "surface hardens while the body current holds")
             last_surface_event_t = float(t)
+            last_macro_event_t = float(t)
         elif body_lock_arrives:
             note = (
                 "body finds the pulse under weight"
@@ -793,9 +851,11 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             )
             _mark_event(entry, "body_lock_arrives", note)
             body_lock_active = True
+            last_macro_event_t = float(t)
         elif body_lock_recedes:
             _mark_event(entry, "body_lock_recedes", "body lock loosens")
             body_lock_active = False
+            last_macro_event_t = float(t)
         elif (
             local_weight_state in {"present", "suspended", "heavy"}
             and previous_weight_state in {None, "light"}
@@ -807,12 +867,14 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
                 else "weight gathers"
             )
             _mark_event(entry, "weight_arrives", note)
+            last_macro_event_t = float(t)
         elif (
             local_weight_state == "light"
             and previous_weight_state in {"present", "suspended", "heavy"}
             and _wds_slope_event(entry, i, "lifts")
         ):
             _mark_event(entry, "weight_lifts", "weight lifts")
+            last_macro_event_t = float(t)
         elif (
             momentum[i] > EVENT_MOMENTUM_LOCKED
             and momentum_ready_to_lock
@@ -822,6 +884,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             momentum_ready_to_lock = False
             momentum_ready_to_unmoor = True
             last_momentum_event_t = float(t)
+            last_macro_event_t = float(t)
         elif (
             momentum[i] < EVENT_MOMENTUM_FLOATING
             and momentum_ready_to_unmoor
@@ -831,8 +894,10 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             momentum_ready_to_unmoor = False
             momentum_ready_to_lock = True
             last_momentum_event_t = float(t)
+            last_macro_event_t = float(t)
         elif disruption[i] > EVENT_DISRUPTION_BREAK:
             _mark_event(entry, "pattern_breaks", "pattern breaks")
+            last_macro_event_t = float(t)
         elif (
             breath[i] > EVENT_BREATH_BUILDING
             and pressure_ready_to_build
@@ -842,6 +907,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             pressure_ready_to_build = False
             pressure_ready_to_release = True
             last_pressure_event_t = float(t)
+            last_macro_event_t = float(t)
         elif (
             breath[i] < EVENT_BREATH_RELEASING
             and pressure_ready_to_release
@@ -851,6 +917,12 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             pressure_ready_to_release = False
             pressure_ready_to_build = True
             last_pressure_event_t = float(t)
+            last_macro_event_t = float(t)
+        elif float(t) - last_phrase_event_t >= EVENT_PHRASE_MIN_GAP_SEC:
+            phrase_event, phrase_note = _phrase_dynamic_event(entry, last_macro_event_t)
+            if phrase_event and phrase_note:
+                _mark_event(entry, phrase_event, phrase_note)
+                last_phrase_event_t = float(t)
 
         if breath[i] <= EVENT_PRESSURE_BUILD_RESET:
             pressure_ready_to_build = True
