@@ -51,19 +51,19 @@ DISRUPTION_BEAT_ABSENCE_THRESHOLD_SEC = 1.5
 # Maximum time since last beat that maps to disruption=1.0
 DISRUPTION_BEAT_ABSENCE_MAX_SEC = 5.0
 
-# Spectral flux smoothing window (frames)
-DISRUPTION_SPECTRAL_SMOOTH_FRAMES = 20
+# Spectral flux smoothing window (seconds)
+DISRUPTION_SPECTRAL_SMOOTH_SEC = 0.5
 
-# Energy disruption smoothing window (frames)
-DISRUPTION_ENERGY_SMOOTH_FRAMES = 20
+# Energy disruption smoothing window (seconds)
+DISRUPTION_ENERGY_SMOOTH_SEC = 0.5
 
 
 # ============================================================
 # Perception — Breath
 # ============================================================
 
-# LUFS-pressure smoothing window for breath calculation (frames)
-BREATH_SMOOTH_FRAMES = 40
+# LUFS-pressure smoothing window for breath calculation (seconds)
+BREATH_SMOOTH_SEC = 20.0
 
 
 # ============================================================
@@ -84,8 +84,8 @@ SILENCE_MIN_DURATION_SEC = 0.5
 # Minimum total weight to compute texture balance (below this = 0.0)
 HP_BALANCE_MIN_ENERGY = 0.005
 
-# Smoothing window for HP energy curves (frames)
-HP_SMOOTH_FRAMES = 20
+# Smoothing window for HP energy curves (seconds)
+HP_SMOOTH_SEC = 0.5
 
 
 # ============================================================

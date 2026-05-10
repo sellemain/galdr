@@ -359,6 +359,25 @@ def test_compute_perception_rejects_non_positive_hop_sec():
         compute_perception(y, sr, "bad-hop", hop_sec=0)
 
 
+def test_duration_to_frames_preserves_real_time_window_across_hops():
+    """Duration-based smoothing should expand frame count as hop gets finer."""
+    from galdr.perceive import _duration_to_frames
+
+    assert _duration_to_frames(20.0, 0.5) == 40
+    assert _duration_to_frames(20.0, 0.25) == 80
+    assert _duration_to_frames(20.0, 0.2) == 100
+    assert _duration_to_frames(20.0, 0.2, max_len=12) == 12
+
+
+@pytest.mark.parametrize("bad_step", [0, -0.1])
+def test_duration_to_frames_rejects_non_positive_frame_step(bad_step):
+    """Invalid frame steps should fail loudly instead of hiding bad smoothing math."""
+    from galdr.perceive import _duration_to_frames
+
+    with pytest.raises(ValueError, match="frame_step_sec must be positive"):
+        _duration_to_frames(1.0, bad_step)
+
+
 def test_cli_null_audio_skips_remaining_modules(tmp_path):
     """galdr listen should stop after null_signal and not write analysis artifacts."""
     import soundfile as sf
