@@ -378,6 +378,25 @@ def test_duration_to_frames_rejects_non_positive_frame_step(bad_step):
         _duration_to_frames(1.0, bad_step)
 
 
+def test_pressure_events_use_hysteresis_not_threshold_chatter():
+    """One pressure swell should produce one prose event, not local threshold chatter."""
+    from galdr.perceive import compute_perception
+
+    sr = 22050
+    duration = 14.0
+    t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+    # Multi-step swell with tiny dips: all part of one felt pressure build.
+    control_t = np.array([0.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 10.0, 14.0])
+    control_amp = np.array([0.03, 0.05, 0.10, 0.32, 0.26, 0.38, 0.30, 0.50, 0.50])
+    amp = np.interp(t, control_t, control_amp)
+    y = (np.sin(2 * np.pi * 440.0 * t) * amp).astype(np.float32)
+
+    result = compute_perception(y, sr, "single-pressure-swell", hop_sec=0.25)
+    events = [entry["event"] for entry in result["stream"] if entry.get("event")]
+
+    assert events.count("pressure_builds") == 1
+
+
 def test_cli_null_audio_skips_remaining_modules(tmp_path):
     """galdr listen should stop after null_signal and not write analysis artifacts."""
     import soundfile as sf
@@ -433,6 +452,58 @@ def test_cli_null_audio_only_perceive_skips_outputs(tmp_path):
     assert "remaining modules skipped" in result.stdout
     out_dir = analysis_dir / "null-only-perceive"
     assert not out_dir.exists() or not any(out_dir.iterdir())
+
+
+def test_fetch_analyze_passes_hop_sec_to_listen(monkeypatch, tmp_path):
+    """fetch --analyze should build complete listen args, including hop_sec."""
+    from argparse import Namespace
+    from galdr import cli
+
+    audio_dir = tmp_path / "audio"
+    analysis_dir = tmp_path / "analysis"
+
+    def fake_fetch_track(**kwargs):
+        audio_dir.mkdir()
+        (audio_dir / f"{kwargs['slug']}.mp3").write_bytes(b"fake mp3")
+
+    captured = {}
+
+    def fake_cmd_listen(listen_args):
+        captured["audio"] = listen_args.audio
+        captured["name"] = listen_args.name
+        captured["analysis_dir"] = listen_args.analysis_dir
+        captured["hop_sec"] = listen_args.hop_sec
+        captured["no_catalog"] = listen_args.no_catalog
+
+    monkeypatch.setattr(cli, "cmd_listen", fake_cmd_listen)
+
+    args = Namespace(
+        url="https://www.youtube.com/watch?v=X7drilHsM6c",
+        name="fetch-hop",
+        artist="Example Artist",
+        title="Example Track",
+        audio_dir=str(audio_dir),
+        analysis_dir=str(analysis_dir),
+        analyze=True,
+        no_download=False,
+        no_wikipedia=True,
+        no_lyrics=True,
+        wiki_artist=None,
+        wiki_song=None,
+        censor=False,
+        hop_sec=0.25,
+    )
+
+    monkeypatch.setattr("galdr.fetch.fetch_track", fake_fetch_track)
+    cli.cmd_fetch(args)
+
+    assert captured == {
+        "audio": str(audio_dir / "fetch-hop.mp3"),
+        "name": "fetch-hop",
+        "analysis_dir": str(analysis_dir),
+        "hop_sec": 0.25,
+        "no_catalog": False,
+    }
 
 
 def test_assemble_unknown_slug_raises(tmp_path):

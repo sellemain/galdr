@@ -99,9 +99,15 @@ EVENT_MOMENTUM_FLOATING = 0.2
 # Disruption threshold for pattern_break event
 EVENT_DISRUPTION_BREAK = 0.5
 
-# Breath thresholds for building/releasing events
+# Breath thresholds for building/releasing pressure state.
 EVENT_BREATH_BUILDING = 0.3
 EVENT_BREATH_RELEASING = -0.3
+
+# Pressure prose events need hysteresis. State labels remain absolute; these
+# only gate pressure_builds / pressure_releases so one swell does not chatter.
+EVENT_PRESSURE_BUILD_RESET = 0.12
+EVENT_PRESSURE_RELEASE_RESET = -0.12
+EVENT_PRESSURE_MIN_GAP_SEC = 6.0
 
 # Weight/drag/sway event gates. State labels remain absolute; these only gate
 # weight_arrives / weight_lifts so boundary chatter does not become prose.
