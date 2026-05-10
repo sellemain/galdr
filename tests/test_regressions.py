@@ -454,6 +454,58 @@ def test_cli_null_audio_only_perceive_skips_outputs(tmp_path):
     assert not out_dir.exists() or not any(out_dir.iterdir())
 
 
+def test_fetch_analyze_passes_hop_sec_to_listen(monkeypatch, tmp_path):
+    """fetch --analyze should build complete listen args, including hop_sec."""
+    from argparse import Namespace
+    from galdr import cli
+
+    audio_dir = tmp_path / "audio"
+    analysis_dir = tmp_path / "analysis"
+
+    def fake_fetch_track(**kwargs):
+        audio_dir.mkdir()
+        (audio_dir / f"{kwargs['slug']}.mp3").write_bytes(b"fake mp3")
+
+    captured = {}
+
+    def fake_cmd_listen(listen_args):
+        captured["audio"] = listen_args.audio
+        captured["name"] = listen_args.name
+        captured["analysis_dir"] = listen_args.analysis_dir
+        captured["hop_sec"] = listen_args.hop_sec
+        captured["no_catalog"] = listen_args.no_catalog
+
+    monkeypatch.setattr(cli, "cmd_listen", fake_cmd_listen)
+
+    args = Namespace(
+        url="https://www.youtube.com/watch?v=X7drilHsM6c",
+        name="fetch-hop",
+        artist="Example Artist",
+        title="Example Track",
+        audio_dir=str(audio_dir),
+        analysis_dir=str(analysis_dir),
+        analyze=True,
+        no_download=False,
+        no_wikipedia=True,
+        no_lyrics=True,
+        wiki_artist=None,
+        wiki_song=None,
+        censor=False,
+        hop_sec=0.25,
+    )
+
+    monkeypatch.setattr("galdr.fetch.fetch_track", fake_fetch_track)
+    cli.cmd_fetch(args)
+
+    assert captured == {
+        "audio": str(audio_dir / "fetch-hop.mp3"),
+        "name": "fetch-hop",
+        "analysis_dir": str(analysis_dir),
+        "hop_sec": 0.25,
+        "no_catalog": False,
+    }
+
+
 def test_assemble_unknown_slug_raises(tmp_path):
     """assemble_prompt_from_disk should not fabricate zero metrics for missing slugs."""
     from galdr.assemble import assemble_prompt_from_disk

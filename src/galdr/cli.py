@@ -308,6 +308,7 @@ def cmd_fetch(args):
                 "only": None,
                 "no_catalog": False,
                 "catalog_dir": None,
+                "hop_sec": args.hop_sec,
             })()
             cmd_listen(listen_args)
         else:
@@ -616,6 +617,12 @@ def main():
     fetch_parser.add_argument("--audio-dir", default="audio", help="Directory for audio files (default: audio)")
     fetch_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory root (default: analysis)")
     fetch_parser.add_argument("--analyze", action="store_true", help="Run galdr listen after download")
+    fetch_parser.add_argument(
+        "--hop-sec",
+        type=float,
+        default=0.5,
+        help="Perception stream sample interval when using --analyze (default: 0.5)",
+    )
     fetch_parser.add_argument("--no-download", action="store_true", help="Skip audio download (context only)")
     fetch_parser.add_argument("--no-wikipedia", action="store_true", help="Skip Wikipedia fetch")
     fetch_parser.add_argument("--no-lyrics", action="store_true", help="Skip lyrics/captions")
