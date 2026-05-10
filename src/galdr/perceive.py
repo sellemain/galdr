@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import uniform_filter1d
 
+from .analyze import compute_body_entrainment, compute_weight_drag_sway
 from .constants import (
     MOMENTUM_WINDOW_SEC, MOMENTUM_HOP_SEC, MOMENTUM_MIN_BEATS,
     DISRUPTION_WEIGHT_BEAT, DISRUPTION_WEIGHT_SPECTRAL, DISRUPTION_WEIGHT_ENERGY,
@@ -474,6 +475,9 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
     if hasattr(tempo, '__len__'):
         tempo = float(tempo[0]) if len(tempo) > 0 else 0.0
 
+    onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
+    onset_times = librosa.frames_to_time(onset_frames, sr=sr)
+
     # RMS energy (for context)
     rms = librosa.feature.rms(y=y)[0]
     rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
@@ -503,15 +507,85 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
     # Energy interpolated to our time grid
     energy = np.interp(m_times, rms_times, rms)
 
+    def _local_body_and_weight(t: float, idx: int) -> tuple[dict, dict]:
+        """Compute local body-lock and weight/drag/sway for the current listening window."""
+        half_window = MOMENTUM_WINDOW_SEC / 2.0
+        start = max(0.0, t - half_window)
+        end = min(duration, t + half_window)
+        window_duration = max(end - start, MOMENTUM_HOP_SEC)
+
+        local_beats = beat_times[(beat_times >= start) & (beat_times < end)]
+        if len(local_beats) > 2:
+            intervals = np.diff(local_beats)
+            mean_interval = float(np.mean(intervals))
+            pulse_stability = max(0.0, 1.0 - (float(np.std(intervals)) / mean_interval)) if mean_interval > 0 else 0.0
+            expected_beats = window_duration / mean_interval if mean_interval > 0 else 0.0
+            pulse_confidence = float(np.clip(len(local_beats) / max(expected_beats, 1.0), 0.0, 1.0))
+        else:
+            pulse_stability = 0.0
+            pulse_confidence = 0.0
+
+        local_onsets = onset_times[(onset_times >= start) & (onset_times < end)]
+        onsets_per_second = len(local_onsets) / window_duration
+
+        frame_mask = (m_times >= start) & (m_times < end)
+        if not frame_mask.any():
+            frame_mask[idx] = True
+
+        local_harmonic = float(np.mean(h_energy[frame_mask]))
+        local_percussive = float(np.mean(p_energy[frame_mask]))
+        total_texture = local_harmonic + local_percussive
+        texture_balance = local_percussive / total_texture if total_texture > HP_BALANCE_MIN_ENERGY else 0.0
+
+        rms_mask = (rms_times >= start) & (rms_times < end)
+        local_rms = rms[rms_mask]
+        positive_rms = local_rms[local_rms > 0]
+        dynamic_range_ratio = float(np.max(positive_rms) / np.min(positive_rms)) if len(positive_rms) > 1 else 1.0
+
+        body = compute_body_entrainment(
+            duration=window_duration,
+            beat_count=len(local_beats),
+            pulse_stability=pulse_stability,
+            pulse_confidence=pulse_confidence,
+            pulse_ambiguous=False,
+            texture_balance=texture_balance,
+            onsets_per_second=onsets_per_second,
+        )
+        weight = compute_weight_drag_sway(
+            pulse_stability=pulse_stability,
+            pulse_confidence=pulse_confidence,
+            body_entrainment=body["body_entrainment"],
+            texture_balance=texture_balance,
+            onsets_per_second=onsets_per_second,
+            harmonic_weight=local_harmonic,
+            percussive_weight=local_percussive,
+            dynamic_range_ratio=dynamic_range_ratio,
+        )
+        return body, weight
+
+    def _mark_event(entry: dict, event: str, note: str) -> None:
+        """Attach a controlled listening-event label plus a short readable gloss."""
+        entry["event"] = event
+        entry["event_note"] = note
+
     # ===== BUILD PERCEPTION STREAM =====
     stream = []
+    previous_body_state = None
+    previous_weight_state = None
     for i, t in enumerate(m_times):
+        local_body, local_weight = _local_body_and_weight(float(t), i)
+        local_body_state = local_body["body_entrainment_state"]
+        local_weight_state = local_weight["weight_drag_sway_state"]
         entry = {
             "t": round(float(t), 1),
             "weight": round(float(energy[i]), 4),
             "momentum": round(float(momentum[i]), 3),
             "pattern_lock": round(1.0 - float(disruption[i]), 3),
             "breath": round(float(breath[i]), 3),
+            "body_entrainment": local_body["body_entrainment"],
+            "body_entrainment_state": local_body_state,
+            "weight_drag_sway": local_weight["weight_drag_sway"],
+            "weight_drag_sway_state": local_weight_state,
             "loudness_lufs": (
                 None if not np.isfinite(loudness["short_term_lufs"][i])
                 else round(float(loudness["short_term_lufs"][i]), 2)
@@ -543,18 +617,40 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str) -> dict:
                     entry["reentry_force"] = reentry["reentry_force"]
                 break
 
-        # Narrative flags (for experience write-ups)
-        if momentum[i] > EVENT_MOMENTUM_LOCKED and (i == 0 or momentum[i-1] <= EVENT_MOMENTUM_LOCKED):
-            entry["event"] = "listener_locked"
+        # Narrative flags (for experience write-ups).  Local body/WDS changes
+        # get first claim because they describe the felt arc, not just the
+        # underlying momentum/breath mechanics.
+        if local_body_state in {"emerging", "locked"} and previous_body_state in {None, "absent", "weak"}:
+            note = (
+                "body finds the pulse under weight"
+                if local_weight_state in {"suspended", "heavy"}
+                else "body finds the pulse"
+            )
+            _mark_event(entry, "body_lock_arrives", note)
+        elif local_body_state in {"absent", "weak"} and previous_body_state in {"emerging", "locked"}:
+            _mark_event(entry, "body_lock_recedes", "body lock loosens")
+        elif local_weight_state in {"present", "suspended", "heavy"} and previous_weight_state in {None, "light"}:
+            note = (
+                "weight gathers under the moving pulse"
+                if local_body_state in {"emerging", "locked"}
+                else "weight gathers"
+            )
+            _mark_event(entry, "weight_arrives", note)
+        elif local_weight_state == "light" and previous_weight_state in {"present", "suspended", "heavy"}:
+            _mark_event(entry, "weight_lifts", "weight lifts")
+        elif momentum[i] > EVENT_MOMENTUM_LOCKED and (i == 0 or momentum[i-1] <= EVENT_MOMENTUM_LOCKED):
+            _mark_event(entry, "momentum_locks", "motion settles into a reliable pattern")
         elif momentum[i] < EVENT_MOMENTUM_FLOATING and i > 0 and momentum[i-1] >= EVENT_MOMENTUM_FLOATING:
-            entry["event"] = "listener_floating"
+            _mark_event(entry, "momentum_unmoors", "motion loses its hold")
         elif disruption[i] > EVENT_DISRUPTION_BREAK:
-            entry["event"] = "pattern_break"
+            _mark_event(entry, "pattern_breaks", "pattern breaks")
         elif breath[i] > EVENT_BREATH_BUILDING and (i == 0 or breath[i-1] <= EVENT_BREATH_BUILDING):
-            entry["event"] = "building"
+            _mark_event(entry, "pressure_builds", "pressure builds")
         elif breath[i] < EVENT_BREATH_RELEASING and (i == 0 or breath[i-1] >= EVENT_BREATH_RELEASING):
-            entry["event"] = "releasing"
+            _mark_event(entry, "pressure_releases", "pressure releases")
 
+        previous_body_state = local_body_state
+        previous_weight_state = local_weight_state
         stream.append(entry)
 
     # ===== FIND KEY MOMENTS (pattern breaks) =====
