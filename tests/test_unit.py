@@ -313,7 +313,8 @@ def test_sm308_assemble_demotes_theory_and_vocal_labels():
     assert "Momentum:" in prompt
     assert "Pattern lock:" in prompt
     assert "Breath:" in prompt
-    assert "Structural events" in prompt
+    assert "How to read galdr" in prompt
+    assert "Event timeline" in prompt
     assert "Harmonic pull:" in prompt
     assert "Foreground pitch evidence:" in prompt
 

@@ -516,7 +516,7 @@ def test_phrase_dynamic_events_capture_local_lift_when_macro_state_holds(monkeyp
 
 
 def test_assemble_includes_stream_listening_events():
-    """Assemble prompt should expose stream-local listening events, not only pattern breaks."""
+    """Assemble prompt should expose stream-local listening events in one timeline."""
     from galdr.assemble import assemble_prompt
 
     prompt = assemble_prompt({
@@ -526,11 +526,16 @@ def test_assemble_includes_stream_listening_events():
             "stream": [
                 {"t": 6.0, "event": "phrase_lifts", "event_note": "phrase lifts"},
             ],
+            "pattern_breaks": [
+                {"time": 4.0, "type": "break", "intensity": 0.7},
+            ],
         },
     })
 
-    assert "### Listening events" in prompt
-    assert "0:06 — phrase_lifts — phrase lifts" in prompt
+    assert "### Event timeline" in prompt
+    assert "### Listening events" not in prompt
+    assert "### Structural events" not in prompt
+    assert prompt.index("0:04 — pattern break") < prompt.index("0:06 — phrase_lifts — phrase lifts")
 
 
 def test_cli_null_audio_skips_remaining_modules(tmp_path):
