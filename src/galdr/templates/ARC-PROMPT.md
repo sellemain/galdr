@@ -30,7 +30,11 @@ The track data gives you structure. Your job is to render it as sensation, not a
 
    When you quote a lyric, the lyric is the timestamp. Do not prepend `2:58 —` before a quoted line — the reader knows where they are.
 
-   Use explicit `M:SS` timestamps **only** for non-lyric structural moments: opening silence, instrumental passages, pattern breaks, momentum shifts, closing silence. Format: `3:15` inline in prose.
+   Use explicit `M:SS` timestamps **sparingly**, and **only** for major non-lyric structural moments: an important entrance, a decisive momentum shift, a structural rupture, or closing silence. Format: `3:15` inline in prose.
+
+   Do **not** timestamp every event. Phrase-level movement usually reads better without a clock. Translate clusters of nearby events into one continuous sentence or paragraph instead of walking the reader through the event list.
+
+   Never wrap timestamps or event names in backticks. This is prose, not code.
 
    Move through the track proportionally — prose should travel through time roughly as the music does.
 
@@ -63,6 +67,8 @@ The track data gives you structure. Your job is to render it as sensation, not a
    **No evaluative asides.** Avoid constructions that pull back from the music to admire it: "what is especially striking," "remarkably," "surprisingly," "in the best way," or any phrase that announces the writing is observing the experience rather than being inside it.
 
 8. **Describe first, interpret sparingly.** Stay close to what the structure does. Occasional interpretation is fine. Sustained thematic argument is not. One or two moments of interpretation per piece.
+
+   Treat event labels as internal scaffolding. Do not repeat detector names like `phrase_drops`, `phrase_lifts`, `ornamental_flash`, `pressure_builds`, `pressure_releases`, `surface_hardens`, `body_lock_arrives`, `body_lock_recedes`, `momentum_locks`, or `momentum_unmoors` verbatim unless the phrase is also natural English without the underscore form. Say what the listener feels instead: a phrase drops back, the surface firms, weight arrives, the pulse loosens.
 
 9. **Voice vs. instruments.** If the track has vocals, name them and note when they enter. If it doesn't, name what carries the harmonic weight instead.
 
