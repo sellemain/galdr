@@ -9,6 +9,8 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 **Range:** 0.0–1.0
 **What it is:** How reliably the music keeps its pattern intact. High pattern_lock means the listener can trust the structure: the pulse, texture, and energy are not suddenly breaking away.
 
+**How it is calculated:** `pattern_lock = 1.0 - disruption`. Disruption is a weighted blend of beat disruption (`40%`), spectral disruption (`35%`), and energy disruption (`25%`). Beat disruption catches missing or off-time expected beats; spectral disruption catches sudden timbral change above local context; energy disruption catches loudness jumps/drops above local trend.
+
 | Value | Meaning |
 |-------|---------|
 | 0.96–1.0 | Exceptional hold. Listener rarely disrupted. Ritual, minimalist, or tightly composed. |
@@ -16,7 +18,7 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 | 0.80–0.90 | Moderate disruption. Energy varies meaningfully. |
 | <0.80 | Frequent disruption. Chaotic, experimental, or fragmentary. |
 
-**Pattern breaks** are the moments where pattern_lock drops suddenly. Check `pattern_breaks` in report.json for timestamps, intensity, and component breakdown (beat/spectral/energy).
+**Pattern breaks** are the moments where pattern_lock drops suddenly. Check `pattern_breaks` in report.json for timestamps, intensity, and component breakdown (`beat`, `spectral`, `energy`). Those components tell you whether the break is rhythmic, textural, dynamic, or compound.
 
 ---
 
@@ -24,6 +26,8 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 
 **Range:** 0.0–1.0
 **What it is:** How strongly attention is being carried forward by the track. Not speed, loudness, or quality — grip. High momentum means the music keeps the listener coupled even through quiet or sparse passages.
+
+**How it is calculated:** rolling beat regularity multiplied by beat density over an 8-second window. Regular intervals with enough beat evidence produce high momentum; sparse or irregular beat evidence lowers it.
 
 | Value | Meaning |
 |-------|---------|
@@ -57,6 +61,8 @@ High pulse_stability + complex time signature (5/8, 7/8) = metric complexity is 
 **Range:** -1.0 to 1.0
 **What it is:** Where the track's weight sits between sustained harmonic sound and percussive impact. Negative values feel more tonal, vocal, droning, or atmospheric; positive values feel more struck, rhythmic, attack-heavy, or drum-forward.
 
+**How it is calculated:** harmonic/percussive source separation energy, smoothed into the perception stream. Very low total energy is treated as neutral so silence does not pretend to have texture.
+
 | Value | Meaning |
 |-------|---------|
 | < -0.5 | Strongly harmonic. Warm, tonal, sustained. Choirs, strings, pads. |
@@ -72,7 +78,9 @@ Deepening negative texture_balance across a track = harmonic weight increasing (
 ## Breath / Heard Pressure (`breath`, `pressure_state`, `breath_balance`)
 
 **Shape:** Stream fields plus three summary percentages — building / releasing / sustaining — summing to 100%.
-**What it is:** The heard-pressure shape of the track. As of v0.2.1, breath is derived from short-term LUFS rather than raw RMS energy so it tracks whether pressure comes forward, holds, or withdraws.
+**What it is:** The heard-pressure shape of the track. Breath is derived from short-term EBU R128/LUFS loudness rather than raw RMS energy so it tracks whether pressure comes forward, holds, or withdraws.
+
+**How it is calculated:** short-term LUFS is smoothed over 20 seconds, differenced, and normalized into a pressure-motion curve. Positive values build, negative values release, near-zero values sustain.
 
 Stream fields:
 - `breath` — normalized pressure movement; positive builds, negative releases, near-zero sustains
@@ -100,6 +108,8 @@ Near-symmetry between building and releasing indicates the track takes exactly a
 **Range:** 0.0–1.0
 **What it is:** How cleanly the harmony sits inside familiar equal-tempered pitch space. Higher values feel centered, resolved, and conventionally tuned; lower values can feel bent, smeared, folk-natural, microtonal, or intentionally outside the grid.
 
+**How it is calculated:** concentration of chroma energy across equal-tempered pitch classes.
+
 Do not read low tuning_alignment as a defect by itself. Some traditions deliberately live between the standard pitch bins. Treat it as evidence about tuning world, not as a quality score.
 
 ---
@@ -109,7 +119,7 @@ Do not read low tuning_alignment as a defect by itself. Some traditions delibera
 **Range:** 0.0–1.0
 **What it is:** How concentrated the pitch content is around simple, stable harmonic relationships. Higher values feel fused, settled, and easy for the ear to organize; lower values feel more spread, complex, or harmonically ambiguous.
 
-This is harmony-side evidence. It describes pitch-class organization, not the raw overtone spectrum.
+**How it is calculated:** active chroma pitch-class pairs are scored against simple just-intonation interval relationships, weighted by chroma energy. This is harmony-side evidence. It describes pitch-class organization, not the raw overtone spectrum.
 
 ---
 
@@ -117,6 +127,8 @@ This is harmony-side evidence. It describes pitch-class organization, not the ra
 
 **Range:** 0.0–1.0
 **What it is:** How much the harmony is pulling, shifting, or refusing to settle over time. High values feel like motion, pressure, searching, or harmonic unease; low values feel anchored, suspended, static, or resolved.
+
+**How it is calculated:** velocity through smoothed tonnetz space, normalized across the track.
 
 | Value | Meaning |
 |-------|---------|
@@ -134,12 +146,16 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 **Range:** 0.0–1.0
 **What it is:** How quickly the harmonic color changes from one moment to the next. High values mean the harmonic surface is restless or actively turning; low values mean the color is steady, droning, or slowly evolving.
 
+**How it is calculated:** cosine distance between adjacent smoothed chroma frames, averaged in a local window and normalized.
+
 ---
 
 ## Tonal Stability (`mean_tonal_stability`)
 
 **Range:** 0.0–1.0
 **What it is:** How strongly the current window stays anchored to its tonal center. High values feel grounded or centered; low values feel wandering, suspended, or harmonically diffuse.
+
+**How it is calculated:** Krumhansl-Kessler key profile correlation identifies a local key/root, then tonal stability measures how dominant that tonic pitch class is in the local chroma profile.
 
 ---
 
@@ -148,6 +164,8 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 **Range:** -1.0 to 1.0
 **What it is:** Whether the harmony leans dark/minor, bright/major, or stays between them. Negative values lean minor; positive values lean major; near-zero can mean modal ambiguity, mixture, or neither color dominating.
 
+**How it is calculated:** after local key/root detection, compares chroma energy at the major-third and minor-third pitch classes.
+
 ---
 
 ## Harmonic Series Fit (`mean_harmonic_series_fit`)
@@ -155,7 +173,7 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 **Range:** 0.0–1.0
 **What it is:** How strongly the sound itself locks onto natural overtone relationships. High values feel pure, fused, bell-like, vocal, or resonant; low values feel noisier, rougher, more inharmonic, or more textural.
 
-This is overtone-side evidence. It describes spectral structure around the detected fundamental, not the chord progression.
+**How it is calculated:** detected overtone partials are compared with ideal harmonic-series positions around the detected fundamental. This is overtone-side evidence. It describes spectral structure around the detected fundamental, not the chord progression.
 
 ---
 
@@ -164,6 +182,8 @@ This is overtone-side evidence. It describes spectral structure around the detec
 **Range:** 0.0–1.0
 **What it is:** How many upper harmonics are present in the sound. High richness feels dense, bright, saturated, or full of upper partials; low richness feels simpler, darker, hollower, or more sine-like.
 
+**How it is calculated:** relative energy across detected upper partials.
+
 ---
 
 ## Inharmonicity (`mean_inharmonicity`)
@@ -171,12 +191,16 @@ This is overtone-side evidence. It describes spectral structure around the detec
 **Unit:** cents
 **What it is:** How far the overtones drift from ideal harmonic positions. Higher values feel rougher, noisier, more metallic, more bell-like in the unstable sense, or more textural. Lower values feel cleaner and more tonally fused.
 
+**How it is calculated:** average cent deviation between detected partials and ideal harmonic-series positions.
+
 ---
 
-## Vocal Presence (`mean_vocal_presence`)
+## Foreground Pitch Evidence (`mean_vocal_presence`)
 
 **Range:** 0.0–1.0
-**What it is:** How much foreground pitched voice is carrying the track. High values mean voice or lead pitch is structurally present; low values mean the voice is absent, textural, buried, or not the main carrier.
+**What it is:** How much foreground pitched material is carrying the track. The field is still named `mean_vocal_presence` for compatibility, but read it as pitch-extraction confidence, not proof of a literal singer. High values mean a voice or lead pitch is structurally present; low values mean the voice/lead is absent, textural, buried, unpitched, or not the main carrier.
+
+**How it is calculated:** pYIN voiced probability over time, smoothed into the melody stream.
 
 | Value | Meaning |
 |-------|---------|
@@ -185,7 +209,7 @@ This is overtone-side evidence. It describes spectral structure around the detec
 | 0.15–0.30 | Clear vocal lead. |
 | >0.30 | Voice dominates the mix. |
 
-Low vocal presence + high texture_balance negative = pure harmonic texture. High presence + descending melody = voice-forward with falling contour (often resignation/descent arc).
+Low foreground pitch evidence + high texture_balance negative = pure harmonic texture. High foreground pitch evidence + descending melody = voice/lead-forward with falling contour (often resignation/descent arc).
 
 ---
 
@@ -211,9 +235,31 @@ Multiple silences with deepening depth and consistent re-lock = structured withd
 **Shape:** Percentage ascending / holding / descending.
 **What it is:** The average shape of the foreground pitched line: whether it rises, falls, or holds its ground over time.
 
-Heavily holding (>60%) with high vocal presence = melody uses repetition or narrow range as expressive strategy — not a limitation.
+Heavily holding (>60%) with high foreground pitch evidence = melody uses repetition or narrow range as expressive strategy — not a limitation.
 Heavily descending + resigned lyrics = structural confirmation of emotional content.
 Ascending contour during climax = conventional arc. Descending during what sounds like climax = tension through contradiction.
+
+---
+
+## Metric Evidence Cheat Sheet
+
+| Metric | Primary evidence |
+|---|---|
+| `momentum` | Beat regularity × beat density in rolling windows |
+| `breath` / `pressure_state` | Short-term LUFS movement |
+| `pattern_lock` | `1.0 - disruption`; disruption = beat + spectral + energy expectation failures |
+| `texture_balance` | Harmonic/percussive separated energy |
+| `tuning_alignment` | Chroma concentration in equal-tempered pitch classes |
+| `harmonic_series_consonance` | Chroma interval relationships weighted by energy |
+| `harmonic_tension` | Tonnetz velocity |
+| `chroma_flux` | Cosine distance between adjacent chroma frames |
+| `tonal_stability` | Dominance of detected tonic pitch class |
+| `major_minor` | Major-third vs minor-third chroma energy around detected root |
+| `harmonic_series_fit` | Overtone partial alignment around detected fundamentals |
+| `overtone_richness` | Upper-partial energy |
+| `inharmonicity` | Cent deviation from ideal harmonic partials |
+| `mean_vocal_presence` | pYIN voiced probability; foreground pitch evidence |
+| `silences` | dB-floor intervals plus recovery momentum |
 
 ---
 

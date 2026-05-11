@@ -2,6 +2,8 @@
 
 Galdr models a listener's perceptual state as music plays — not the audio file as a static object, but how attention moves through time. How engagement builds, holds, breaks, and dissolves.
 
+Galdr does not run an LLM during analysis. It is the deterministic listening front-end: it turns audio into listener-state traces that downstream AI agents, scripts, or humans can interpret.
+
 ---
 
 ## The Listener
@@ -17,6 +19,8 @@ Every metric galdr emits describes some aspect of this resonance.
 ### `momentum`
 Current resonance depth. `0.0` = not yet resonating. `1.0` = fully locked.
 
+Implementation evidence: rolling beat regularity and beat density over an 8-second window. Regular intervals with enough beat evidence produce high momentum; missing, sparse, or irregular beat evidence lowers it.
+
 Not a quality judgment. High momentum measures the grip, not the value of what's gripping. Holds through short silences (<~2s); falls and requires re-entry after sustained silence or structural breakdown.
 
 ---
@@ -24,7 +28,7 @@ Not a quality judgment. High momentum measures the grip, not the value of what's
 ### `breath`
 Direction of heard pressure change. Positive = building. Negative = releasing. Near zero = sustaining.
 
-As of v0.2.1, breath is derived from short-term LUFS rather than raw RMS energy. That makes it closer to perceived pressure: whether the music comes forward, withdraws, or holds its place in the listener's attention.
+Implementation evidence: short-term EBU R128/LUFS loudness, smoothed over 20 seconds, then differenced into a normalized pressure-motion curve. That makes it closer to perceived pressure than raw RMS energy: whether the music comes forward, withdraws, or holds its place in the listener's attention.
 
 LUFS is implementation evidence, not listening language. In prose, translate it:
 
@@ -40,12 +44,22 @@ Do not write "LUFS rises from -27 to -20" in experience prose. That belongs in d
 ### `texture_balance`
 Where the track's weight sits between sustained harmonic sound and percussive impact. Negative = harmonic/vocal dominant. Positive = percussive dominant.
 
+Implementation evidence: harmonic/percussive source separation energy, smoothed at the perception-stream hop. Very low total energy is treated as neutral rather than forcing a false texture claim.
+
 Deep negative values often feel like voice, drone, strings, choir, or tonal atmosphere taking over the room. Strong positive values feel like strike, groove, attack, or drum-forward physicality. The deepest negative values typically occur when only a single voice remains.
 
 ---
 
 ### `pattern_lock`
 How reliably the music keeps its pattern intact. `pattern_lock = 1.0 - disruption`. High = steady pulse, stable texture, and few structural surprises. Low = irregular pulse, sudden break, or sharp textural reorientation.
+
+`disruption` is a weighted blend of three expectation failures:
+
+- **Beat disruption** (`40%`) — recent beat timing predicts the next beat, but the beat arrives late/early or does not arrive.
+- **Spectral disruption** (`35%`) — spectral flux rises above its local average; the timbral surface changes faster than the surrounding context.
+- **Energy disruption** (`25%`) — RMS energy jumps or drops faster than its local trend.
+
+The component scores are exposed on pattern-break events as `beat`, `spectral`, and `energy`, so a break can be read as rhythmic, textural, dynamic, or compound.
 
 High pattern_lock is not rigidity. In ritual and ceremonial music, extreme regularity is intentional — it allows the listener to stop tracking the beat and go somewhere else. High mean_pattern_lock across a track doesn't mean boring; it may mean the music is consistent enough to allow depth.
 
@@ -54,6 +68,8 @@ High pattern_lock is not rigidity. In ritual and ceremonial music, extreme regul
 ### `tuning_alignment`
 How cleanly the harmony sits inside familiar equal-tempered pitch space. High values feel centered, resolved, and conventionally tuned. Low values can feel smeared, bent, folk-natural, microtonal, or intentionally outside the grid.
 
+Implementation evidence: concentration of chroma energy across pitch classes. This is an equal-tempered chroma measure, so use care with modal, folk-natural, microtonal, or noisy material.
+
 Low tuning_alignment is not out-of-tune. Folk traditions, overtone singing, and ritual music frequently sit here by design. Often co-occurs with deeply negative texture_balance.
 
 ---
@@ -61,12 +77,14 @@ Low tuning_alignment is not out-of-tune. Folk traditions, overtone singing, and 
 ### `harmonic_series_consonance`
 How concentrated the pitch content is around simple, stable harmonic relationships. High values feel fused, settled, and easy for the ear to organize. Low values feel more spread, harmonically complex, or ambiguous.
 
-This is harmony-side evidence: it looks at pitch-class organization, not the raw overtone spectrum.
+Implementation evidence: active chroma pitch-class pairs are scored against simple just-intonation interval relationships, weighted by chroma energy. This is harmony-side evidence: it looks at pitch-class organization, not the raw overtone spectrum.
 
 ---
 
 ### `harmonic_tension`
 How much the harmony is pulling, shifting, or refusing to settle over time. High values mean the tonal field is moving quickly or uneasily; low values mean it is anchored, suspended, or staying in one harmonic place.
+
+Implementation evidence: velocity through smoothed tonnetz space, normalized across the track. It measures harmonic motion/pull, not emotional distress.
 
 Tension is not automatically negative. A track can use harmonic tension as propulsion, unease, color, or release preparation.
 
@@ -75,7 +93,7 @@ Tension is not automatically negative. A track can use harmonic tension as propu
 ### `harmonic_series_fit`
 How strongly the sound itself locks onto natural overtone relationships. High values feel pure, fused, bell-like, vocal, or resonant. Low values feel noisier, rougher, more inharmonic, or more textural.
 
-This is overtone-side evidence: it looks at the spectrum around the detected fundamental, not the chord progression.
+Implementation evidence: overtone analysis around detected fundamentals, comparing observed partials to ideal harmonic positions and energy. This is overtone-side evidence: it looks at the spectrum around the detected fundamental, not the chord progression.
 
 ---
 
@@ -88,6 +106,65 @@ Multiple silences clustering at a track's end, getting progressively longer and 
 
 ### `weight_arc`
 The track divided into segments with mean and peak energy per segment — the macro shape of where the music puts its weight. Independent from momentum: low-energy sections can maintain full resonance.
+
+---
+
+## Metric Evidence Summary
+
+| Metric | Primary evidence | Listener-state reading |
+|---|---|---|
+| `momentum` | Beat regularity × beat density in rolling windows | How strongly attention is carried forward |
+| `breath` / `pressure_state` | Short-term LUFS movement | Whether pressure builds, releases, sustains, or empties |
+| `pattern_lock` | `1.0 - disruption`; disruption = beat + spectral + energy expectation failures | How intact the musical pattern feels |
+| `texture_balance` | Harmonic/percussive separated energy | Whether weight sits in sustained tone or attack |
+| `tuning_alignment` | Chroma concentration in equal-tempered pitch classes | How centered or outside-the-grid the pitch world feels |
+| `harmonic_series_consonance` | Chroma interval relationships weighted by energy | How easily pitch classes organize into stable relations |
+| `harmonic_tension` | Tonnetz velocity | How much the harmonic field pulls or turns |
+| `chroma_flux` | Cosine distance between adjacent chroma frames | How quickly harmonic color changes |
+| `tonal_stability` | Dominance of detected tonic pitch class | How anchored the local key center feels |
+| `harmonic_series_fit` | Overtone partial alignment around detected fundamentals | How fused or inharmonic the sound itself feels |
+| `overtone_richness` | Upper-partial energy | How dense or bright the overtone surface is |
+| `foreground pitch evidence` | pYIN voiced probability over time | How strongly a foreground pitched line is present |
+| `silences` | dB-floor intervals plus recovery momentum | Where the structure truly empties and whether it re-locks |
+
+---
+
+## How to Read the Data
+
+Galdr writes two kinds of evidence: **summary values** and **stream values**.
+
+Summary values (`mean_momentum`, `mean_pattern_lock`, `mean_harmonic_tension`, and similar `mean_*` fields) describe the track's overall tendency. They are useful for comparison, cataloging, and first-pass orientation. They are not the listening experience by themselves. A track can have a high mean value because it stays there for six minutes, or because it repeatedly surges and collapses. The mean tells you where to look; the stream tells you what happened.
+
+Stream values are time-indexed listener-state samples. Read them as motion:
+
+- **rising `momentum`** → the listener is being pulled into the structure
+- **stable high `momentum`** → attention is locked and being carried
+- **falling `momentum`** → the structure is losing its grip or entering a real gap
+- **high `pattern_lock`** → expectation is being honored; the pattern is intact
+- **low `pattern_lock`** → rhythm, texture, or energy has violated expectation
+- **positive `breath`** → pressure is coming forward
+- **negative `breath`** → pressure is releasing
+- **negative `texture_balance`** → sustained tone, voice, drone, or harmony dominates
+- **positive `texture_balance`** → strike, groove, attack, or percussion dominates
+
+Events are narrative anchors derived from the stream. Macro events (`momentum_locks`, `body_lock_arrives`, `surface_hardens`, `weight_arrives`) describe major state changes. Phrase events (`phrase_lift`, `phrase_drop`, `ornamental_flash`) describe smaller local gestures inside a stable state. Events are not a checklist to recite. They are signposts for where prose should slow down and listen more closely.
+
+The right reading order is:
+
+1. **Start with the summary** — what kind of track is this overall?
+2. **Read the stream around changes** — when does the listener lock, release, harden, or re-enter?
+3. **Use events as anchors** — which moments deserve language?
+4. **Translate relationships, not fields** — meaning comes from combinations.
+
+Examples:
+
+- High `momentum` + high `pattern_lock` + steady `breath` = the track has the listener and is holding them without strain.
+- High `momentum` + low `pattern_lock` = the listener is still gripped, but the surface is unstable or disruptive.
+- Negative `texture_balance` + high `harmonic_series_fit` = sustained pitched material is carrying the experience through resonance rather than impact.
+- Falling `breath` + high `momentum` = the pressure is releasing, but attention has not let go.
+- Silence + fast momentum recovery = the music empties briefly, then reclaims the listener.
+
+Treat field names as implementation labels. In public prose, do not write that a track has “high `mean_vocal_presence`” or “a `phrase_drop` event.” Write what those fields are evidence for: a foreground line appears; the phrase falls away; the body of the sound arrives; the pattern breaks.
 
 ---
 

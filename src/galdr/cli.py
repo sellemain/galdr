@@ -580,7 +580,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="galdr",
-        description="AI music perception framework",
+        description="AI-native music perception framework for agent listening experiences",
     )
     parser.add_argument("--version", "-V", action="version", version=f"%(prog)s {_version}")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

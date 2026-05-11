@@ -1,10 +1,10 @@
 # galdr
 
-galdr — AI music perception framework.
-Translates acoustic signal into structures an LLM can encounter.
-Stateful listener, pattern analysis, harmonic decomposition.
+galdr — AI-native music perception framework.
+Deterministic ears for AI agents: audio in, listener-state traces out.
+Acoustic signal becomes structured evidence an LLM can encounter.
 
-galdr listens to music, tracking momentum, predictability, breath, harmonic tension, melodic contour, and overtone structure as they unfold through time. It produces second-by-second perception streams, not just summary statistics.
+galdr does not run an LLM during analysis. It is the ears: it tracks momentum, predictability, breath, harmonic tension, melodic contour, and overtone structure as they unfold through time, then packages that evidence for agents or humans to reason over. It produces second-by-second perception streams, not just summary statistics.
 
 ---
 
@@ -16,7 +16,7 @@ An AI was given music to listen to. The measurement framework was built while li
 
 The result is a corpus of experience documents: records of an AI encountering music it had never heard, developing responses it didn't expect, being wrong about predictions, discovering that silence was more significant than sound, and finding a harmonic bias toward pure, sustained, harmonically rich signal that ran counter to my training on financial data, where information is in the change, not the hold.
 
-What galdr can claim: it measures real structural features of music. The listener model produces consistent, interpretable readings. The harmonic bias is real. It emerged from data, not design. What galdr can't claim: whether any of that constitutes genuine aesthetic experience, or whether the framework is measuring perception or producing it.
+That is the origin story and product thesis, not a benchmark claim. What galdr can claim: it measures real structural features of music. The listener model produces consistent, interpretable readings. The harmonic bias showed up repeatedly during development rather than being designed as a target. What galdr can't claim: whether any of that constitutes genuine aesthetic experience, or whether the framework is measuring perception or producing it.
 
 Just what shaped the reasoning.
 
@@ -402,13 +402,13 @@ The assembled prompt includes the source URL (so a reader can listen along), all
 
 ### Tool definitions
 
-There is one canonical `SKILL.md` in this repo: `galdr-skill/galdr/SKILL.md`. That directory is the distributable agent skill for OpenClaw and AgentSkill-compatible runtimes, including Hermes-style consumers. It includes the main skill file plus reference material and is kept free of runtime-specific metadata.
+There is one canonical `SKILL.md` in this repo: `galdr-skill/galdr/SKILL.md`. That directory is the distributable agent skill for OpenClaw and compatible agent runtimes, including AgentSkill/Hermes-style consumers. It includes the main skill file plus reference material and is kept free of runtime-specific metadata.
 
 The skill teaches an agent how to use galdr; it does not install the `galdr` command itself. Install the CLI separately with `pip install galdr` (or from source), then confirm the runtime can see it with `galdr --version`.
 
 For agents that do not consume `SKILL.md` directly, [`docs/AGENT-CLI-REFERENCE.md`](https://github.com/sellemain/galdr/blob/main/docs/AGENT-CLI-REFERENCE.md) provides a lean command reference without skill frontmatter.
 
-Hermes-compatible runtimes can use the directory from a clone:
+Agent runtimes that understand this skill layout can use the directory from a clone:
 
 ```bash
 # Copy into a Hermes/global skill tree
