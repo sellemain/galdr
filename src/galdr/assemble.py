@@ -31,6 +31,8 @@ import json
 from pathlib import Path
 from importlib import resources as pkg_resources
 
+from .metric_vocabulary import display_name
+
 
 # ─── Mode definitions ─────────────────────────────────────────────────────────
 
@@ -222,7 +224,7 @@ def _event_rank(event: str, btype: str = "") -> int:
         return 0
     if btype:
         return 60
-    if event in {"momentum_locks", "momentum_unmoors"}:
+    if event in {"attention_grip_arrives", "attention_grip_releases"}:
         return 10
     if event in {"body_lock_arrives", "body_lock_recedes"}:
         return 20
@@ -249,51 +251,51 @@ def _build_metrics(analysis: dict) -> str:
 
     # Track identity — field names from report.json
     duration = report.get("duration_seconds", 0)
-    pulse_stability = report.get("pulse_stability", 0)
+    pulse_steadiness = report.get("pulse_steadiness", 0)
     har_e = report.get("harmonic_weight", 0)
     perc_e = report.get("percussive_weight", 0)
 
     lines.append(f"Duration: {_fmt_time(duration)} ({duration:.1f}s)")
     lines.append(_fmt_tempo(report))
-    entrainment = report.get("body_entrainment")
-    entrainment_state = report.get("body_entrainment_state")
+    entrainment = report.get("body_grip")
+    entrainment_state = report.get("body_grip_state")
     entrainment_note = report.get("entrainment_note")
     if entrainment is not None:
-        line = f"Body entrainment: {float(entrainment):.3f}"
+        line = f"{display_name('body_grip')}: {float(entrainment):.3f}"
         if entrainment_state:
             line += f" ({entrainment_state})"
         if entrainment_note:
             line += f" — {entrainment_note}"
         lines.append(line)
-    weight_drag_sway = report.get("weight_drag_sway")
-    weight_drag_sway_state = report.get("weight_drag_sway_state")
-    if weight_drag_sway is not None:
-        line = f"Weight/drag/sway: {float(weight_drag_sway):.3f}"
-        if weight_drag_sway_state:
-            line += f" ({weight_drag_sway_state})"
+    physical_hold = report.get("physical_hold")
+    physical_hold_state = report.get("physical_hold_state")
+    if physical_hold is not None:
+        line = f"{display_name('physical_hold')}: {float(physical_hold):.3f}"
+        if physical_hold_state:
+            line += f" ({physical_hold_state})"
         lines.append(line)
         lines.append(
-            "Weight/drag/sway states: light = little physical hold; "
+            "Physical hold states: light = little hold; "
             "present = some hold; suspended = held, slowed, dragged, or swaying; "
             "heavy = strong sustained pressure or drag. Suspended is not automatically heavy."
         )
 
-    # Perception summary — handles both new schema (mean_pattern_lock) and
-    # old schema (mean_surprise = disruption, pattern_lock = 1 - surprise)
+    # Perception summary — handles both new schema (mean_pattern_integrity) and
+    # old schema (mean_surprise = disruption, pattern_integrity = 1 - surprise)
     summary = perception.get("summary", {})
     if summary:
-        momentum = summary.get("mean_momentum", 0)
-        pattern_lock = summary.get("mean_pattern_lock", 0)
-        breath_pos = summary.get("breath_positive_pct", 0)
-        breath_neg = summary.get("breath_negative_pct", 0)
-        breath_sus = summary.get("breath_sustain_pct", 0)
+        attention_grip = summary.get("mean_attention_grip", 0)
+        pattern_integrity = summary.get("mean_pattern_integrity", 0)
+        pressure_building = summary.get("pressure_building_pct", 0)
+        pressure_releasing = summary.get("pressure_releasing_pct", 0)
+        pressure_sustaining = summary.get("pressure_sustaining_pct", 0)
 
-        lines.append(f"\nMomentum: {momentum:.3f} (listener engagement, 0–1)")
-        lines.append(f"Pattern lock: {pattern_lock:.3f} (predictability/hold, 0–1)")
-        lines.append(f"Pulse stability: {pulse_stability:.3f} (metronomic regularity)")
+        lines.append(f"\n{display_name('attention_grip')}: {attention_grip:.3f} (listener engagement, 0–1)")
+        lines.append(f"{display_name('pattern_integrity')}: {pattern_integrity:.3f} (predictability/hold, 0–1)")
+        lines.append(f"{display_name('pulse_steadiness')}: {pulse_steadiness:.3f} (metronomic regularity)")
         lines.append(
-            f"Breath: {breath_pos:.1f}% pressure building / "
-            f"{breath_neg:.1f}% releasing / {breath_sus:.1f}% sustaining"
+            f"{display_name('pressure_motion')}: {pressure_building:.1f}% pressure building / "
+            f"{pressure_releasing:.1f}% releasing / {pressure_sustaining:.1f}% sustaining"
         )
         if summary.get("integrated_lufs") is not None:
             silence_pct = summary.get("loudness_silence_pct", 0)
@@ -323,30 +325,30 @@ def _build_metrics(analysis: dict) -> str:
         if total > 0:
             texture = (perc_e - har_e) / total  # negative = harmonic dominant
             texture_label = "harmonic dominant (tonal, warm)" if texture < -0.2 else "percussive dominant" if texture > 0.2 else "balanced"
-            lines.append(f"Texture balance: {texture:.3f} ({texture_label})")
+            lines.append(f"{display_name('texture_weight')}: {texture:.3f} ({texture_label})")
 
     # Harmony surface: keep listener-state tension foregrounded.  Key/mode,
     # major/minor balance, and chord names remain internal evidence unless a
     # later task adds confidence-gated prose.
     if harmony:
-        tension = harmony.get("mean_harmonic_tension")
-        tonal_stability = harmony.get("mean_tonal_stability")
-        chroma_flux = harmony.get("mean_chroma_flux")
+        tension = harmony.get("mean_harmonic_pull")
+        tonal_anchor = harmony.get("mean_tonal_anchor")
+        harmonic_color_motion = harmony.get("mean_harmonic_color_motion")
 
         if tension is not None:
-            lines.append(f"\nHarmonic pull: {tension:.3f} (tension/motion, 0–1)")
-        if tonal_stability is not None:
-            lines.append(f"Tonal steadiness evidence: {tonal_stability:.3f}")
-        if chroma_flux is not None:
-            lines.append(f"Harmonic color motion: {chroma_flux:.3f}")
+            lines.append(f"\n{display_name('harmonic_pull')}: {tension:.3f} (tension/motion, 0–1)")
+        if tonal_anchor is not None:
+            lines.append(f"{display_name('tonal_anchor')}: {tonal_anchor:.3f}")
+        if harmonic_color_motion is not None:
+            lines.append(f"{display_name('harmonic_color_motion')}: {harmonic_color_motion:.3f}")
 
-    # Melody surface: mean_vocal_presence is a pitch-extraction confidence
+    # Melody surface: mean_foreground_line_evidence is a pitch-extraction confidence
     # signal, not proof of voice.  Do not present vocal/contour authority here.
     if melody:
-        foreground_pitch = melody.get("mean_vocal_presence")
+        foreground_pitch = melody.get("mean_foreground_line_evidence")
         if foreground_pitch is not None:
             lines.append(
-                f"\nForeground pitch evidence: {foreground_pitch:.3f} "
+                f"\n{display_name('foreground_line_evidence')}: {foreground_pitch:.3f} "
                 "(pitch-tracking support; not a vocal claim)"
             )
 
@@ -357,17 +359,17 @@ def _build_metrics(analysis: dict) -> str:
         "Treat these as evidence of felt experience, not detector facts to recite."
     )
     lines.append(
-        "Macro events change the listening landscape: momentum, body lock, weight, "
+        "Macro events change the listening landscape: attention_grip, body lock, weight, "
         "surface change, pressure movement, pattern break, and silence. Phrase events "
         "are local motion inside that landscape and usually become texture within a paragraph."
     )
     lines.append(
-        "Metric families: pattern lock / pulse stability = reliability and carried time; "
-        "body entrainment = whether the pulse has the body or merely offers itself; "
-        "weight/drag/sway = physical hold or suspension; breath = pressure movement, "
-        "not literal breathing; texture balance = harmonic warmth vs percussive edge; "
-        "harmonic pull / color motion = tonal restlessness or drift; phrase dynamics = "
-        "local lift, drop, or flash, usually not structure."
+        "Metric families: pattern integrity / pulse steadiness = reliability and carried time; "
+        "body grip = whether the pulse has the body or merely offers itself; "
+        "physical hold / weight arc = hold, suspension, or macro weight; "
+        "pressure motion = pressure movement, not literal breathing; texture weight = "
+        "harmonic warmth vs percussive edge; harmonic pull / color motion = tonal "
+        "restlessness or drift; phrase dynamics = local lift, drop, or flash, usually not structure."
     )
 
     # Unified timeline: stream-local narrative anchors and structural events share

@@ -4,7 +4,7 @@ galdr — AI-native music perception framework.
 Deterministic ears for AI agents: audio in, listener-state traces out.
 Acoustic signal becomes structured evidence an LLM can encounter.
 
-galdr does not run an LLM during analysis. It is the ears: it tracks momentum, predictability, breath, harmonic tension, melodic contour, and overtone structure as they unfold through time, then packages that evidence for agents or humans to reason over. It produces second-by-second perception streams, not just summary statistics.
+galdr does not run an LLM during analysis. It is the ears: it tracks attention grip, predictability, pressure motion, harmonic pull, melodic contour, and overtone structure as they unfold through time, then packages that evidence for agents or humans to reason over. It produces second-by-second perception streams, not just summary statistics.
 
 ---
 
@@ -178,7 +178,7 @@ Useful optional additions:
 1. Read `PERCEPTION-MODEL.md` first so the fields mean what galdr means by them.
 2. Treat `*_stream.json` as the main evidence surface, not a side artifact.
 3. Walk through time in order.
-4. Call out transitions: silences, pattern breaks, momentum ramps, breath reversals, harmonic/timbral shifts.
+4. Call out transitions: silences, pattern breaks, attention grip ramps, pressure motion reversals, harmonic/timbral shifts.
 5. Only then compress upward into the larger shape of the track.
 
 #### What not to do
@@ -294,9 +294,9 @@ galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python env
 
 ### Perception
 
-- **Momentum** — how strongly attention is being carried forward by the track. High momentum means the music has grip, even if it is quiet or slow.
-- **Pattern Lock** — how reliably the music keeps its pattern intact. High lock can feel like groove, ritual steadiness, or a structure the listener can surrender to.
-- **Breath / Heard Pressure** — whether the sound is coming forward, holding, releasing, or emptying out. LUFS is the evidence; listener prose should describe pressure, not meter readings.
+- **Attention grip** — how strongly attention is being carried forward by the track. High attention grip means the music has grip, even if it is quiet or slow.
+- **Pattern integrity** — how reliably the music keeps its pattern intact. High lock can feel like groove, ritual steadiness, or a structure the listener can surrender to.
+- **Pressure motion / Heard Pressure** — whether the sound is coming forward, holding, releasing, or emptying out. LUFS is the evidence; listener prose should describe pressure, not meter readings.
 - **Silence** — actual absence, not just quietness. Often the moment where attention sharpens or the music deliberately withdraws.
 
 ### Harmony
@@ -313,7 +313,7 @@ galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python env
 
 ### Texture
 
-- **Texture Balance** — whether the track's weight is carried more by harmonic/tonal material or percussive/noise material.
+- **Texture weight** — whether the track's weight is carried more by harmonic/tonal material or percussive/noise material.
 - **Resonance / Grain Evidence** — overtone and inharmonicity measurements used internally to support words like fused, bell-like, rough, noisy, resonant, or metallic. Default surfaces should not expose naked overtone scores as listener truth.
 
 ### Catalog
@@ -422,7 +422,7 @@ For [OpenClaw](https://openclaw.ai) users, galdr is published on ClawHub at <htt
 
 ### What agents can do with this data
 
-- Identify structural moments (pattern breaks, silences, momentum drops) with precision
+- Identify structural moments (pattern breaks, silences, attention grip drops) with precision
 - Compare across tracks using catalog statistics
 - Write experience documents that describe structure without overclaiming emotional content
 - Flag anomalies and unexpected patterns for human review

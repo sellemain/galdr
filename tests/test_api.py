@@ -34,12 +34,12 @@ def test_load_stream_df_supports_dict_stream(tmp_path):
     from galdr import load_stream_df
 
     path = tmp_path / "demo_stream.json"
-    path.write_text(json.dumps({"stream": [{"t": 0, "momentum": 0.1}, {"t": 1, "momentum": 0.2}]}))
+    path.write_text(json.dumps({"stream": [{"t": 0, "attention_grip": 0.1}, {"t": 1, "attention_grip": 0.2}]}))
 
     df = load_stream_df(path)
 
-    assert list(df.columns) == ["t", "momentum"]
-    assert df["momentum"].tolist() == [0.1, 0.2]
+    assert list(df.columns) == ["t", "attention_grip"]
+    assert df["attention_grip"].tolist() == [0.1, 0.2]
 
 
 def test_load_streams_df_loads_available_modules(tmp_path):
@@ -49,13 +49,13 @@ def test_load_streams_df_loads_available_modules(tmp_path):
     track_dir = tmp_path / "analysis" / "demo"
     track_dir.mkdir(parents=True)
     (track_dir / "demo_stream.json").write_text(json.dumps([{"t": 0, "weight": 0.3}]))
-    (track_dir / "demo_harmony_stream.json").write_text(json.dumps({"stream": [{"t": 0, "harmonic_tension": 0.4}]}))
+    (track_dir / "demo_harmony_stream.json").write_text(json.dumps({"stream": [{"t": 0, "harmonic_pull": 0.4}]}))
 
     frames = load_streams_df("demo", tmp_path / "analysis")
 
     assert set(frames) == {"perception", "harmony"}
     assert frames["perception"].iloc[0]["weight"] == 0.3
-    assert frames["harmony"].iloc[0]["harmonic_tension"] == 0.4
+    assert frames["harmony"].iloc[0]["harmonic_pull"] == 0.4
 
 
 def test_assemble_accepts_raw_analysis_dict():

@@ -186,38 +186,38 @@ def cmd_listen(args):
         r = results["report"]
         print(f"  Duration: {r.get('duration_seconds', '?')}s | "
               f"Felt pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
-              f"Pulse stability: {r.get('pulse_stability', '?')} | "
-              f"Body entrainment: {r.get('body_entrainment', '?')} "
-              f"({r.get('body_entrainment_state', '?')}) | "
-              f"Weight/drag/sway: {r.get('weight_drag_sway', '?')} "
-              f"({r.get('weight_drag_sway_state', '?')}) | "
-              f"Texture balance: {r.get('texture_balance', '?')}")
+              f"Pulse steadiness: {r.get('pulse_steadiness', '?')} | "
+              f"Body grip: {r.get('body_grip', '?')} "
+              f"({r.get('body_grip_state', '?')}) | "
+              f"Physical hold: {r.get('physical_hold', '?')} "
+              f"({r.get('physical_hold_state', '?')}) | "
+              f"Texture weight: {r.get('texture_weight', '?')}")
 
     if "perception" in results:
         s = results["perception"].get("summary", results["perception"])
-        print(f"  Momentum: {s.get('mean_momentum', '?')} | "
-              f"Pattern Lock: {s.get('mean_pattern_lock', '?')} | "
+        print(f"  Attention grip: {s.get('mean_attention_grip', '?')} | "
+              f"Pattern integrity: {s.get('mean_pattern_integrity', '?')} | "
               f"Silence: {s.get('total_silence_sec', '?')}s | "
               f"Pattern Breaks: {s.get('pattern_break_count', '?')}")
-        print(f"  Breath: +{s.get('breath_positive_pct', '?')}% / "
-              f"-{s.get('breath_negative_pct', '?')}% / "
-              f"={s.get('breath_sustain_pct', '?')}%")
+        print(f"  Pressure motion: +{s.get('pressure_building_pct', '?')}% / "
+              f"-{s.get('pressure_releasing_pct', '?')}% / "
+              f"={s.get('pressure_sustaining_pct', '?')}%")
 
     if "harmony" in results:
         h = results["harmony"]
-        print(f"  Harmonic pull: {h.get('mean_harmonic_tension', '?')} | "
-              f"Tonal steadiness evidence: {h.get('mean_tonal_stability', '?')} | "
-              f"Harmonic color motion: {h.get('mean_chroma_flux', '?')}")
+        print(f"  Harmonic pull: {h.get('mean_harmonic_pull', '?')} | "
+              f"Tonal anchor: {h.get('mean_tonal_anchor', '?')} | "
+              f"Harmonic color motion: {h.get('mean_harmonic_color_motion', '?')}")
 
     if "melody" in results:
         m = results["melody"]
-        print(f"  Foreground pitch evidence: {m.get('mean_vocal_presence', '?')} "
+        print(f"  Foreground line evidence: {m.get('mean_foreground_line_evidence', '?')} "
               "(pitch-tracking support, not a vocal claim)")
 
     if "overtone" in results:
         o = results["overtone"]
-        print(f"  Resonance evidence: fit {o.get('mean_harmonic_series_fit', '?')} | "
-              f"upper-partial density {o.get('mean_overtone_richness', '?')} | "
+        print(f"  Resonance evidence: fit {o.get('mean_overtone_fit', '?')} | "
+              f"upper-partial density {o.get('mean_overtone_density', '?')} | "
               f"roughness evidence {o.get('mean_inharmonicity', '?')} cents")
 
     if "layers" in results:

@@ -6,15 +6,15 @@ The opening is disarming because nothing in the metrics behaves like a threat. T
 
 The voice sits inside that space with a strange calm. It is not fragile in the sense of weak. It is controlled, almost glassy. The lyric context points toward divided identity, self-command, aquatic imagery, and the trouble of being both soft and armored, but the first sensation is simpler than theme: there is a person standing very still in a room that is already moving.
 
-That is why the early lock matters. Momentum climbs quickly from the opening and stays there. The song is not drifting. It is already swimming in a fixed current. Pattern lock remains high while the surface feels gentle, so the softness does not read as looseness. It reads as restraint.
+That is why the early lock matters. Attention grip climbs quickly from the opening and stays there. The song is not drifting. It is already swimming in a fixed current. Pattern integrity remains high while the surface feels gentle, so the softness does not read as looseness. It reads as restraint.
 
-Around the first minute, the track starts to reveal the trap in that restraint. Energy rises, breath marks a strong build near `1:00`, and the harmonic surface begins to harden. The voice is still a point of attention, but the band has become a body around it. The listener is not thrown into chaos. The listener is pulled into a heavier version of the same grid.
+Around the first minute, the track starts to reveal the trap in that restraint. Energy rises, pressure motion marks a strong build near `1:00`, and the harmonic surface begins to harden. The voice is still a point of attention, but the band has become a body around it. The listener is not thrown into chaos. The listener is pulled into a heavier version of the same grid.
 
-When the harsh voice arrives, the surprise is timbral rather than structural. This is the central trick of the song. The voice seems to transform into another being, but galdr does not see the listener-state model breaking. Momentum remains high. Pattern lock remains high. The music has prepared the body so completely that the transformation lands less like an interruption than like a second form emerging from underneath the first.
+When the harsh voice arrives, the surprise is timbral rather than structural. This is the central trick of the song. The voice seems to transform into another being, but galdr does not see the listener-state model breaking. Attention grip remains high. Pattern integrity remains high. The music has prepared the body so completely that the transformation lands less like an interruption than like a second form emerging from underneath the first.
 
 That makes the clean-to-harsh contrast feel less theatrical than biological. The clean voice is not replaced by the harsh one. It is revealed as incomplete without it. The song's Pisces imagery, with its doubled nature and water-borne vulnerability, fits the measured behavior here: two surfaces, one current.
 
-The middle third keeps tightening the current. From `1:30` to `2:00`, energy stays high and the pulse remains firm. There are releases, but they are releases inside containment, not escapes from it. Around `1:37`, galdr marks one of the strongest breath builds, followed by the track's highest energy window near `1:43`. The effect is physical: the song does not merely become louder; it compresses the available air.
+The middle third keeps tightening the current. From `1:30` to `2:00`, energy stays high and the pulse remains firm. There are releases, but they are releases inside containment, not escapes from it. Around `1:37`, galdr marks one of the strongest pressure motion builds, followed by the track's highest energy window near `1:43`. The effect is physical: the song does not merely become louder; it compresses the available air.
 
 This is where the lyric context starts to matter without needing quotation. The words move through fish, hooks, nets, innocence, danger, and selfhood. The music makes that imagery bodily. The listener feels a creature adapted to water being forced into a mechanical grid. The groove is the river, but also the hook. It carries and catches at the same time.
 
@@ -30,7 +30,7 @@ After that, the final minute becomes less polished and more terminal. The averag
 
 The strongest release in the stream appears around `4:09`, and after that the music drives toward the ending without a real formal rupture. This is important: the decisive break is delayed until the last possible moment. The song does not scatter itself during the heavy sections. It saves the failure of prediction for the ending.
 
-At `5:01.5`, pattern lock finally drops hard. Momentum falls with it. At `5:02.29`, silence begins, almost three seconds deep enough for galdr to mark as true silence. After five minutes of almost continuous hold, that ending feels abrupt in the body. Not because it is long, but because it is the first time the current really stops.
+At `5:01.5`, pattern integrity finally drops hard. Attention grip falls with it. At `5:02.29`, silence begins, almost three seconds deep enough for galdr to mark as true silence. After five minutes of almost continuous hold, that ending feels abrupt in the body. Not because it is long, but because it is the first time the current really stops.
 
 The experience is therefore not simply "soft part, heavy part." That would miss the engineering of the track. _Pisces_ is a study in identity changing without time changing. The voice splits. The guitars thicken. The harmonic field churns. The lyric imagery moves through vulnerability, water, capture, and endurance. But the listener is held by a pulse that barely lets go until the final seconds.
 

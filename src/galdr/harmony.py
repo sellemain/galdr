@@ -3,7 +3,7 @@
 
 Tracks:
 - Consonance/dissonance: how settled or tense the harmony is (dual measure)
-- Chroma flux: rate of harmonic change (replaces chord-based harmonic rhythm)
+- Harmonic color motion: rate of harmonic change (replaces chord-based harmonic rhythm)
 - Tonal center stability: does the key drift or hold (Krumhansl-Kessler profiles)
 - Tension arc: distance from perceived tonic over time
 - Major/minor balance: is the current passage in a major or minor context
@@ -169,10 +169,10 @@ def compute_consonance(chroma, sr, hop_length=512, smooth_frames=CHROMA_SMOOTH_F
 
 
 # ============================================================
-# Chroma Flux — rate of harmonic change
+# Harmonic color motion — rate of harmonic change
 # ============================================================
 
-def compute_chroma_flux(chroma, sr, hop_length=512,
+def compute_harmonic_color_motion(chroma, sr, hop_length=512,
                         smooth_frames=CHROMA_SMOOTH_FRAMES,
                         window_sec=CHROMA_FLUX_WINDOW_SEC,
                         hop_sec=CHROMA_FLUX_HOP_SEC):
@@ -182,7 +182,7 @@ def compute_chroma_flux(chroma, sr, hop_length=512,
     this measures how quickly the pitch-class distribution is changing. High
     values = rapid harmonic movement. Low values = harmonic stasis.
 
-    Returns (times, chroma_flux) where chroma_flux is 0-1 normalized.
+    Returns (times, harmonic_color_motion) where harmonic_color_motion is 0-1 normalized.
     """
     chroma_smooth = uniform_filter1d(chroma, size=smooth_frames, axis=1)
     n_frames = chroma_smooth.shape[1]
@@ -338,7 +338,7 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
     )
 
     print("  Computing chroma flux (harmonic change rate)...")
-    cf_times, chroma_flux = compute_chroma_flux(
+    cf_times, harmonic_color_motion = compute_harmonic_color_motion(
         chroma, sr, hop_length=hop_length
     )
 
@@ -359,7 +359,7 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
     consonance_interp = np.interp(stream_times, cons_times, consonance_temp)
     consonance_series_interp = np.interp(stream_times, cons_times, consonance_series)
     tension_interp = np.interp(stream_times, tens_times, tension)
-    chroma_flux_interp = np.interp(stream_times, cf_times, chroma_flux)
+    harmonic_color_motion_interp = np.interp(stream_times, cf_times, harmonic_color_motion)
     tc_stability_interp = np.interp(stream_times, tc_times, tc_stability)
     tc_mm_interp = np.interp(stream_times, tc_times, tc_major_minor)
     tc_confidence_interp = np.interp(stream_times, tc_times, tc_confidence)
@@ -370,17 +370,17 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
         tc_idx = max(0, min(tc_idx, len(tc_key_names) - 1))
         tonal_center = tc_key_names[tc_idx] if tc_idx < len(tc_key_names) else "?"
 
-        tuning_alignment = round(float(consonance_interp[i]), 3)
-        harmonic_series_consonance = round(float(consonance_series_interp[i]), 3)
-        harmonic_tension = round(float(tension_interp[i]), 3)
+        pitch_grid_alignment = round(float(consonance_interp[i]), 3)
+        interval_coherence = round(float(consonance_series_interp[i]), 3)
+        harmonic_pull = round(float(tension_interp[i]), 3)
         entry = {
             "t": round(float(t), 1),
-            "tuning_alignment": tuning_alignment,
-            "harmonic_series_consonance": harmonic_series_consonance,
-            "harmonic_tension": harmonic_tension,
-            "chroma_flux": round(float(chroma_flux_interp[i]), 3),
+            "pitch_grid_alignment": pitch_grid_alignment,
+            "interval_coherence": interval_coherence,
+            "harmonic_pull": harmonic_pull,
+            "harmonic_color_motion": round(float(harmonic_color_motion_interp[i]), 3),
             "tonal_center": tonal_center,
-            "tonal_stability": round(float(tc_stability_interp[i]), 3),
+            "tonal_anchor": round(float(tc_stability_interp[i]), 3),
             "key_confidence": round(float(tc_confidence_interp[i]), 3),
             "major_minor": round(float(tc_mm_interp[i]), 3),
         }
@@ -398,27 +398,27 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
         "detected_key": global_key,
         "detected_mode": global_mode,
         "key_confidence": global_confidence,
-        "mean_tuning_alignment": round(float(np.mean(consonance_temp)), 3),
-        "mean_harmonic_series_consonance": round(float(np.mean(consonance_series)), 3),
-        "mean_harmonic_tension": round(float(np.mean(tension)), 3),
-        "mean_chroma_flux": round(float(np.mean(chroma_flux)), 3),
-        "mean_tonal_stability": round(float(np.mean(tc_stability)), 3),
+        "mean_pitch_grid_alignment": round(float(np.mean(consonance_temp)), 3),
+        "mean_interval_coherence": round(float(np.mean(consonance_series)), 3),
+        "mean_harmonic_pull": round(float(np.mean(tension)), 3),
+        "mean_harmonic_color_motion": round(float(np.mean(harmonic_color_motion)), 3),
+        "mean_tonal_anchor": round(float(np.mean(tc_stability)), 3),
         "mean_major_minor": round(float(np.mean(tc_major_minor)), 3),
-        "tuning_alignment_range": [
+        "pitch_grid_alignment_range": [
             round(float(np.min(consonance_temp)), 3),
             round(float(np.max(consonance_temp)), 3),
         ],
-        "harmonic_series_consonance_range": [
+        "interval_coherence_range": [
             round(float(np.min(consonance_series)), 3),
             round(float(np.max(consonance_series)), 3),
         ],
-        "harmonic_tension_range": [
+        "harmonic_pull_range": [
             round(float(np.min(tension)), 3),
             round(float(np.max(tension)), 3),
         ],
-        "chroma_flux_range": [
-            round(float(np.min(chroma_flux)), 3),
-            round(float(np.max(chroma_flux)), 3),
+        "harmonic_color_motion_range": [
+            round(float(np.min(harmonic_color_motion)), 3),
+            round(float(np.max(harmonic_color_motion)), 3),
         ],
         "stream_length": len(stream),
     }
@@ -460,10 +460,10 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
     axes[1].set_ylabel("Tension")
     axes[1].set_ylim(0, 1)
 
-    # Chroma flux
-    axes[2].plot(cf_times, chroma_flux, color="#e67e22", linewidth=1)
-    axes[2].fill_between(cf_times, chroma_flux, alpha=0.3, color="#e67e22")
-    axes[2].set_ylabel("Chroma Flux")
+    # Harmonic color motion
+    axes[2].plot(cf_times, harmonic_color_motion, color="#e67e22", linewidth=1)
+    axes[2].fill_between(cf_times, harmonic_color_motion, alpha=0.3, color="#e67e22")
+    axes[2].set_ylabel("Harmonic color motion")
     axes[2].set_ylim(0, 1)
     axes[2].set_title("Harmonic Change Rate (chroma cosine distance)", fontsize=11)
 
@@ -479,7 +479,7 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
     axes[3].set_ylim(-0.3, 0.3)
     axes[3].legend(loc="upper right", fontsize=9)
 
-    # Tonal stability + key confidence
+    # Tonal anchor + key confidence
     axes[4].plot(tc_times, tc_stability, color="#3498db", linewidth=1,
                  label="tonal stability")
     axes[4].fill_between(tc_times, tc_stability, alpha=0.2, color="#3498db")

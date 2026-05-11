@@ -18,25 +18,25 @@ KK_MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 
 
 
 # ============================================================
-# Perception — Momentum
+# Perception — Attention grip
 # ============================================================
 
-# Rolling window for rhythmic momentum calculation (seconds)
-MOMENTUM_WINDOW_SEC = 8.0
+# Rolling window for rhythmic attention grip calculation (seconds)
+ATTENTION_GRIP_WINDOW_SEC = 8.0
 
-# Time step between momentum samples (seconds)
-MOMENTUM_HOP_SEC = 0.5
+# Time step between attention_grip samples (seconds)
+ATTENTION_GRIP_HOP_SEC = 0.5
 
-# Minimum beats required in a window to compute momentum
-MOMENTUM_MIN_BEATS = 3
+# Minimum beats required in a window to compute attention_grip
+ATTENTION_GRIP_MIN_BEATS = 3
 
 
 # ============================================================
-# Perception — Disruption / Pattern Lock
+# Perception — Disruption / Pattern integrity
 # ============================================================
 
 # Weights for combining disruption sources into total disruption.
-# Inverted (1.0 - disruption) to get pattern_lock.
+# Inverted (1.0 - disruption) to get pattern_integrity.
 DISRUPTION_WEIGHT_BEAT = 0.4
 DISRUPTION_WEIGHT_SPECTRAL = 0.35
 DISRUPTION_WEIGHT_ENERGY = 0.25
@@ -59,13 +59,13 @@ DISRUPTION_ENERGY_SMOOTH_SEC = 0.5
 
 
 # ============================================================
-# Perception — Breath
+# Perception — Pressure motion
 # ============================================================
 
-# LUFS-pressure smoothing window for breath calculation (seconds).
+# LUFS-pressure smoothing window for pressure motion calculation (seconds).
 # Chosen from fixture-matrix tests as the smoothest value in the 10-12s
 # stable band without suppressing meaningful events.
-BREATH_SMOOTH_SEC = 12.0
+PRESSURE_MOTION_SMOOTH_SEC = 12.0
 
 
 # ============================================================
@@ -94,13 +94,13 @@ HP_SMOOTH_SEC = 0.5
 # Perception — Stream Event Thresholds
 # ============================================================
 
-# Momentum thresholds for listener_locked / listener_floating events.
+# Attention grip thresholds for listener_locked / listener_floating events.
 # Event hysteresis keeps threshold chatter from becoming prose.
-EVENT_MOMENTUM_LOCKED = 0.8
-EVENT_MOMENTUM_LOCK_RESET = 0.65
-EVENT_MOMENTUM_FLOATING = 0.2
-EVENT_MOMENTUM_FLOAT_RESET = 0.35
-EVENT_MOMENTUM_MIN_GAP_SEC = 6.0
+EVENT_ATTENTION_GRIP_LOCKED = 0.8
+EVENT_ATTENTION_GRIP_LOCK_RESET = 0.65
+EVENT_ATTENTION_GRIP_FLOATING = 0.2
+EVENT_ATTENTION_GRIP_FLOAT_RESET = 0.35
+EVENT_ATTENTION_GRIP_MIN_GAP_SEC = 6.0
 
 # Body-lock events should describe sustained arrival/recession, not one-frame
 # label crossings around the weak/emerging boundary.
@@ -110,9 +110,9 @@ EVENT_BODY_UNLOCK_DWELL_SEC = 2.0
 # Disruption threshold for pattern_break event
 EVENT_DISRUPTION_BREAK = 0.5
 
-# Breath thresholds for building/releasing pressure state.
-EVENT_BREATH_BUILDING = 0.3
-EVENT_BREATH_RELEASING = -0.3
+# Pressure motion thresholds for building/releasing pressure state.
+EVENT_PRESSURE_BUILDING = 0.3
+EVENT_PRESSURE_RELEASING = -0.3
 
 # Pressure prose events need hysteresis. State labels remain absolute; these
 # only gate pressure_builds / pressure_releases so one swell does not chatter.
@@ -120,7 +120,7 @@ EVENT_PRESSURE_BUILD_RESET = 0.12
 EVENT_PRESSURE_RELEASE_RESET = -0.12
 EVENT_PRESSURE_MIN_GAP_SEC = 6.0
 
-# Weight/drag/sway event gates. State labels remain absolute; these only gate
+# Physical hold event gates. State labels remain absolute; these only gate
 # weight_arrives / weight_lifts so boundary chatter does not become prose.
 EVENT_WDS_SLOPE_WINDOW_SEC = 2.0
 EVENT_WDS_MIN_DELTA = 0.04
@@ -144,7 +144,7 @@ EVENT_SURFACE_COOLDOWN_SEC = 45.0
 
 # Phrase dynamics are a local gesture layer. They should catch short musical
 # movements inside an otherwise stable macro state: lift, drop, flash, turn.
-# Macro body/pressure/momentum events still get first narrative claim.
+# Macro body/pressure/attention_grip events still get first narrative claim.
 # A 5s lookback keeps Brahms gestures dense while reducing repeated phrase
 # triggers in high-energy tracks compared with the original 6s window.
 EVENT_PHRASE_WINDOW_SEC = 5.0
@@ -160,8 +160,8 @@ EVENT_PHRASE_RETURN_LOCK = 0.88
 # Minimum disruption to include in pattern_breaks list
 PATTERN_BREAK_MIN_DISRUPTION = 0.2
 
-# Momentum delta threshold for shift detection
-MOMENTUM_SHIFT_THRESHOLD = 0.3
+# Attention grip delta threshold for shift detection
+ATTENTION_GRIP_SHIFT_THRESHOLD = 0.3
 
 # Number of top disruption moments to report
 TOP_DISRUPTION_COUNT = 5
@@ -221,7 +221,7 @@ TENSION_VELOCITY_SMOOTH = 10
 
 
 # ============================================================
-# Harmony — Chroma Flux (replaces chord-based harmonic rhythm)
+# Harmony — harmonic color motion (replaces chord-based harmonic rhythm)
 # ============================================================
 
 # Window for computing rate of harmonic change (seconds)
