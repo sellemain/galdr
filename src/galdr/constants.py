@@ -145,7 +145,9 @@ EVENT_SURFACE_COOLDOWN_SEC = 45.0
 # Phrase dynamics are a local gesture layer. They should catch short musical
 # movements inside an otherwise stable macro state: lift, drop, flash, turn.
 # Macro body/pressure/momentum events still get first narrative claim.
-EVENT_PHRASE_WINDOW_SEC = 6.0
+# A 5s lookback keeps Brahms gestures dense while reducing repeated phrase
+# triggers in high-energy tracks compared with the original 6s window.
+EVENT_PHRASE_WINDOW_SEC = 5.0
 EVENT_PHRASE_MIN_GAP_SEC = 3.0
 EVENT_PHRASE_MACRO_SUPPRESS_SEC = 1.0
 EVENT_PHRASE_LIFT_LUFS = 3.0
