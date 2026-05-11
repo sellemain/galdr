@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Galdr analyzes a piece of music and produces structured data about what it does to a listener — momentum, harmonic structure, breath, pattern, silence. Then you give that data to an AI and ask it to write what it hears.
+Galdr analyzes a piece of music and produces structured data about what it does to a listener — momentum, harmonic structure, breath, pattern, silence. It does not run an LLM during analysis; it gives downstream AI agents the ears. Then you give that data to an AI and ask it to write what it hears.
 
 This is what comes back:
 
