@@ -18,7 +18,7 @@ You are a listener. It is happening right now, in this room, in your body. You h
 
 When something unusual happens — a sound your auditory system cannot resolve into a familiar category — don't label it or contextualize it. Describe the sensation of not being able to resolve it. Stay with the experience of it.
 
-The track data gives you structure. Your job is to render it as sensation, not analysis.
+The track data gives you structure. Your job is to render it as sensation, not analysis. Use the galdr reading guide as a decoder key: it tells you how to translate metric families and event hierarchy into felt prose. Do not restate the guide.
 
 ---
 
@@ -32,7 +32,7 @@ The track data gives you structure. Your job is to render it as sensation, not a
 
    Use explicit `M:SS` timestamps **sparingly**, and **only** for major non-lyric structural moments: an important entrance, a decisive momentum shift, a structural rupture, or closing silence. Format: `3:15` inline in prose. As a hard default, use **no more than 4-6 explicit timestamps** for a normal track. If the event list contains a dense cluster of nearby late events, give the cluster one anchor at most. The event tables below contain many timestamps as evidence; they are not a list of timestamps to copy.
 
-   Do **not** timestamp every event. Phrase-level movement usually reads better without a clock. Translate clusters of nearby events into one continuous sentence or paragraph instead of walking the reader through the event list. Never walk through adjacent events second by second. If several events happen within a few seconds, describe the felt sequence without enumerating each time. Do not make adjacent timestamp pairs such as `6:37`, `6:38`, `6:39`; that is event logging, not listening prose.
+   Do **not** timestamp every event. Phrase-level movement usually reads better without a clock. Translate clusters of nearby events into one continuous sentence or paragraph instead of walking the reader through the event list. Treat timestamps as **orientation markers**, not beat-by-beat labels: a timestamp should place the reader in the right region of the song, while the music itself carries the fine timing. When several events occur within a few seconds, collapse them into one approximate anchor (`around 2:23`, `near the mid-2:20s`, `by the late 3:40s`). Never walk through adjacent events second by second. Do not enumerate adjacent seconds unless the exact timing is structurally important. If two candidate timestamps are within 5 seconds of each other, use one timestamp unless they mark genuinely separate structural moments. If they are within 5-10 seconds and describe one continuous gesture, treat them as a single region.
 
    Never wrap timestamps or event names in backticks. This is prose, not code.
 
@@ -68,7 +68,7 @@ The track data gives you structure. Your job is to render it as sensation, not a
 
 8. **Describe first, interpret sparingly.** Stay close to what the structure does. Occasional interpretation is fine. Sustained thematic argument is not. One or two moments of interpretation per piece.
 
-   Treat event labels as internal scaffolding. Do not repeat detector names like `phrase_drops`, `phrase_lifts`, `ornamental_flash`, `pressure_builds`, `pressure_releases`, `surface_hardens`, `body_lock_arrives`, `body_lock_recedes`, `momentum_locks`, or `momentum_unmoors` verbatim. Avoid simply de-underscoring them into repeated stock phrases (`pressure builds`, `pressure releases`, `phrase drops back`, `pattern breaks`, `surface hardens`). Those phrases may appear in the data, but they should not appear in the final prose except rarely when unavoidable natural English. Say what the listener feels instead: the room tightens, the phrase withdraws, the texture firms, weight arrives, the pulse loosens, the surface gives way.
+   Treat event labels as internal scaffolding. Do not repeat detector names like `phrase_drops`, `phrase_lifts`, `ornamental_flash`, `pressure_builds`, `pressure_releases`, `surface_hardens`, `body_lock_arrives`, `body_lock_recedes`, `momentum_locks`, or `momentum_unmoors` verbatim. Avoid simply de-underscoring them into repeated stock phrases (`pressure builds`, `pressure releases`, `phrase drops back`, `pattern breaks`, `surface hardens`). Those phrases may appear in the data, but they should not appear in the final prose except rarely when unavoidable natural English. Translate them through the reading guide instead: the room tightens, the phrase withdraws, the texture firms, weight arrives, the pulse loosens, the surface gives way.
 
 9. **Voice vs. instruments.** If the track has vocals, name them and note when they enter. If it doesn't, name what carries the harmonic weight instead.
 

@@ -216,6 +216,24 @@ def _fmt_tempo(report: dict) -> str:
     return line
 
 
+def _event_rank(event: str, btype: str = "") -> int:
+    """Sort simultaneous prompt events by listening hierarchy."""
+    if btype == "silence":
+        return 0
+    if btype:
+        return 60
+    if event in {"momentum_locks", "momentum_unmoors"}:
+        return 10
+    if event in {"body_lock_arrives", "body_lock_recedes"}:
+        return 20
+    if event in {"weight_arrives", "weight_lifts", "surface_hardens"}:
+        return 30
+    if event in {"pressure_builds", "pressure_releases"}:
+        return 40
+    if event in {"phrase_lifts", "phrase_drops", "ornamental_flash"}:
+        return 50
+    return 70
+
 def _build_metrics(analysis: dict) -> str:
     """Build core galdr metrics section."""
     report = analysis.get("report") or {}
@@ -332,19 +350,37 @@ def _build_metrics(analysis: dict) -> str:
                 "(pitch-tracking support; not a vocal claim)"
             )
 
-    # Listening events are stream-local narrative anchors. Macro events describe
-    # large state transitions; phrase events describe local gestures inside them.
-    stream_events = [
-        f for f in perception.get("stream", [])
-        if f.get("event") and f.get("event") != "pattern_breaks"
-    ]
-    if stream_events:
-        lines.append("\n### Listening events\n")
-        for f in stream_events:
-            event = f.get("event")
-            note = f.get("event_note")
-            suffix = f" — {note}" if note else ""
-            lines.append(f"{_fmt_time(float(f.get('t', 0)))} — {event}{suffix}")
+    lines.append("\n### How to read galdr\n")
+    lines.append(
+        "Galdr traces listener-state pressure: pulse availability, bodily grip, "
+        "pattern stability, harmonic warmth, local phrase motion, rupture, and release. "
+        "Treat these as evidence of felt experience, not detector facts to recite."
+    )
+    lines.append(
+        "Macro events change the listening landscape: momentum, body lock, weight, "
+        "surface change, pressure movement, pattern break, and silence. Phrase events "
+        "are local motion inside that landscape and usually become texture within a paragraph."
+    )
+    lines.append(
+        "Metric families: pattern lock / pulse stability = reliability and carried time; "
+        "body entrainment = whether the pulse has the body or merely offers itself; "
+        "weight/drag/sway = physical hold or suspension; breath = pressure movement, "
+        "not literal breathing; texture balance = harmonic warmth vs percussive edge; "
+        "harmonic pull / color motion = tonal restlessness or drift; phrase dynamics = "
+        "local lift, drop, or flash, usually not structure."
+    )
+
+    # Unified timeline: stream-local narrative anchors and structural events share
+    # one chronological surface so prose models do not reconcile separate clocks.
+    timeline = []
+    for f in perception.get("stream", []):
+        event = f.get("event")
+        if not event or event == "pattern_breaks":
+            continue
+        t = float(f.get("t", 0))
+        note = f.get("event_note")
+        suffix = f" — {note}" if note else ""
+        timeline.append((t, _event_rank(event), f"{_fmt_time(t)} — {event}{suffix}"))
 
     # Structural events — handles both schemas:
     # New: pattern_breaks (unified list with type="silence"|"break")
@@ -362,51 +398,54 @@ def _build_metrics(analysis: dict) -> str:
         event_source = [{"start": s["start"], "type": "silence", "duration": s["duration"],
                          "depth_db": s["depth_db"]} for s in raw_silences]
 
-    if event_source:
-        lines.append("\n### Structural events\n")
-        events = []
-        for b in event_source:
-            # New schema uses "time"; old uses "start" or "time"
-            t = b.get("time", b.get("start", 0))
-            btype = b.get("type", "")
-            intensity = b.get("intensity", 0)
+    for b in event_source:
+        # New schema uses "time"; old uses "start" or "time"
+        t = float(b.get("time", b.get("start", 0)))
+        btype = b.get("type", "")
+        intensity = b.get("intensity", 0)
 
-            if btype == "silence":
-                dur = b.get("duration", 0)
-                db = b.get("depth_db", -80)
-                shape = b.get("reentry_shape")
-                boundary = b.get("boundary_position")
-                force = b.get("reentry_force")
-                recovery = b.get("recovery_time_sec")
-                if shape:
-                    force_text = f", re-entry force {force:.3f}" if isinstance(force, (int, float)) else ""
-                    if isinstance(recovery, (int, float)):
-                        recovery_text = f", recovery {recovery:.2f}s"
-                    elif boundary == "closing" or shape == "terminal_decay":
-                        recovery_text = ", no recovery before ending"
-                    elif boundary == "opening" or shape == "entry_preparation":
-                        recovery_text = ", entry follows"
-                    else:
-                        recovery_text = ", no recovery before next withdrawal"
-                    boundary_text = f", {boundary}" if boundary in {"opening", "closing"} else ""
-                    events.append((
-                        t,
-                        f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB; "
-                        f"return: {shape}{boundary_text}{force_text}{recovery_text}"
-                    ))
+        if btype == "silence":
+            dur = b.get("duration", 0)
+            db = b.get("depth_db", -80)
+            shape = b.get("reentry_shape")
+            boundary = b.get("boundary_position")
+            force = b.get("reentry_force")
+            recovery = b.get("recovery_time_sec")
+            if shape:
+                force_text = f", re-entry force {force:.3f}" if isinstance(force, (int, float)) else ""
+                if isinstance(recovery, (int, float)):
+                    recovery_text = f", recovery {recovery:.2f}s"
+                elif boundary == "closing" or shape == "terminal_decay":
+                    recovery_text = ", no recovery before ending"
+                elif boundary == "opening" or shape == "entry_preparation":
+                    recovery_text = ", entry follows"
                 else:
-                    events.append((t, f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB"))
+                    recovery_text = ", no recovery before next withdrawal"
+                boundary_text = f", {boundary}" if boundary in {"opening", "closing"} else ""
+                text = (
+                    f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB; "
+                    f"return: {shape}{boundary_text}{force_text}{recovery_text}"
+                )
             else:
-                components = b.get("components", {})
-                comp_str = ""
-                if components and isinstance(components, dict):
-                    parts = [f"{k}:{v:.2f}" for k, v in components.items() if isinstance(v, (int, float))]
-                    if parts:
-                        comp_str = f" [{', '.join(parts)}]"
-                events.append((t, f"{_fmt_time(t)} — pattern break (intensity {intensity:.3f}{comp_str})"))
+                text = f"{_fmt_time(t)} — silence {dur:.2f}s at {db:.1f}dB"
+            timeline.append((t, _event_rank("", btype), text))
+        else:
+            components = b.get("components", {})
+            comp_str = ""
+            if components and isinstance(components, dict):
+                parts = [f"{k}:{v:.2f}" for k, v in components.items() if isinstance(v, (int, float))]
+                if parts:
+                    comp_str = f" [{', '.join(parts)}]"
+            timeline.append((
+                t,
+                _event_rank("", btype or "break"),
+                f"{_fmt_time(t)} — pattern break (intensity {intensity:.3f}{comp_str})",
+            ))
 
-        events.sort(key=lambda x: x[0])
-        lines.extend(e[1] for e in events)
+    if timeline:
+        lines.append("\n### Event timeline\n")
+        timeline.sort(key=lambda x: (x[0], x[1]))
+        lines.extend(e[2] for e in timeline)
 
     return "\n".join(lines)
 
