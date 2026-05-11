@@ -4,12 +4,12 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 
 ---
 
-## Pattern integrity (`pattern_integrity`)
+## Pattern (`pattern`)
 
 **Range:** 0.0–1.0
-**What it is:** How reliably the music keeps its pattern intact. High pattern_integrity means the listener can trust the structure: the pulse, texture, and energy are not suddenly breaking away.
+**What it is:** How reliably the music keeps its pattern intact. High pattern means the listener can trust the structure: the pulse, texture, and energy are not suddenly breaking away.
 
-**How it is calculated:** `pattern_integrity = 1.0 - disruption`. Disruption is a weighted blend of beat disruption (`40%`), spectral disruption (`35%`), and energy disruption (`25%`). Beat disruption catches missing or off-time expected beats; spectral disruption catches sudden timbral change above local context; energy disruption catches loudness jumps/drops above local trend.
+**How it is calculated:** `pattern = 1.0 - disruption`. Disruption is a weighted blend of beat disruption (`40%`), spectral disruption (`35%`), and energy disruption (`25%`). Beat disruption catches missing or off-time expected beats; spectral disruption catches sudden timbral change above local context; energy disruption catches loudness jumps/drops above local trend.
 
 | Value | Meaning |
 |-------|---------|
@@ -18,16 +18,16 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 | 0.80–0.90 | Moderate disruption. Energy varies meaningfully. |
 | <0.80 | Frequent disruption. Chaotic, experimental, or fragmentary. |
 
-**Pattern breaks** are the moments where pattern_integrity drops suddenly. Check `pattern_breaks` in report.json for timestamps, intensity, and component breakdown (`beat`, `spectral`, `energy`). Those components tell you whether the break is rhythmic, textural, dynamic, or compound.
+**Pattern breaks** are the moments where pattern drops suddenly. Check `pattern_breaks` in report.json for timestamps, intensity, and component breakdown (`beat`, `spectral`, `energy`). Those components tell you whether the break is rhythmic, textural, dynamic, or compound.
 
 ---
 
-## Attention grip (`attention_grip`, `mean_attention_grip`)
+## Attention (`attention`, `mean_attention`)
 
 **Range:** 0.0–1.0
-**What it is:** How strongly attention is being carried forward by the track. Not speed, loudness, or quality — grip. High attention grip means the music keeps the listener coupled even through quiet or sparse passages.
+**What it is:** How strongly attention is being carried forward by the track. Not speed, loudness, or quality — grip. High attention means the music keeps the listener coupled even through quiet or sparse passages.
 
-**How it is calculated:** rolling beat regularity multiplied by beat density over an 8-second window. Regular intervals with enough beat evidence produce high attention grip; sparse or irregular beat evidence lowers it.
+**How it is calculated:** rolling beat regularity multiplied by beat density over an 8-second window. Regular intervals with enough beat evidence produce high attention; sparse or irregular beat evidence lowers it.
 
 | Value | Meaning |
 |-------|---------|
@@ -36,11 +36,11 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 | 0.60–0.80 | Fluctuating. Energy ebbs and flows. |
 | <0.60 | Low continuity. Listener may disengage. |
 
-After a silence, attention grip re-locking above 0.93 signals the listener has been re-engaged. Multiple re-lock events with deepening silences = structured withdrawal (Helvegen pattern).
+After a silence, attention re-locking above 0.93 signals the listener has been re-engaged. Multiple re-lock events with deepening silences = structured withdrawal (Helvegen pattern).
 
 ---
 
-## Pulse steadiness (`pulse_steadiness`)
+## Pulse (`pulse`)
 
 **Range:** 0.0–1.0
 **What it is:** How steady the underlying pulse feels. Orthogonal to metric complexity — a 7/8 piece can have perfect pulse stability if the body can still trust where the beat lives.
@@ -52,11 +52,11 @@ After a silence, attention grip re-locking above 0.93 signals the listener has b
 | 0.80–0.90 | Loose. Jazz feel, rubato, or intentional groove. |
 | <0.80 | Irregular. Experimental or very free. |
 
-High pulse_steadiness + complex time signature (5/8, 7/8) = metric complexity is orthogonal to pulse stability.
+High pulse + complex time signature (5/8, 7/8) = metric complexity is orthogonal to pulse stability.
 
 ---
 
-## Texture weight (`texture_weight`, `mean_texture_weight`)
+## Texture (`texture`, `mean_texture`)
 
 **Range:** -1.0 to 1.0
 **What it is:** Where the track's weight sits between sustained harmonic sound and percussive impact. Negative values feel more tonal, vocal, droning, or atmospheric; positive values feel more struck, rhythmic, attack-heavy, or drum-forward.
@@ -71,19 +71,19 @@ High pulse_steadiness + complex time signature (5/8, 7/8) = metric complexity is
 | 0.2 to 0.5 | Percussive with harmonic content. |
 | > 0.5 | Strongly percussive. Drum-forward, rhythmic emphasis. |
 
-Deepening negative texture_weight across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
+Deepening negative texture across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
 
 ---
 
-## Pressure motion / Heard Pressure (`pressure_motion`, `pressure_state`, `pressure_motion_balance`)
+## Pressure / Heard Pressure (`pressure`, `pressure_state`, `pressure_balance`)
 
 **Shape:** Stream fields plus three summary percentages — building / releasing / sustaining — summing to 100%.
-**What it is:** The heard-pressure shape of the track. Pressure motion is derived from short-term EBU R128/LUFS loudness rather than raw RMS energy so it tracks whether pressure comes forward, holds, or withdraws.
+**What it is:** The heard-pressure shape of the track. Pressure is derived from short-term EBU R128/LUFS loudness rather than raw RMS energy so it tracks whether pressure comes forward, holds, or withdraws.
 
 **How it is calculated:** short-term LUFS is smoothed over 20 seconds, differenced, and normalized into a pressure-motion curve. Positive values build, negative values release, near-zero values sustain.
 
 Stream fields:
-- `pressure_motion` — normalized pressure movement; positive builds, negative releases, near-zero sustains
+- `pressure` — normalized pressure movement; positive builds, negative releases, near-zero sustains
 - `pressure_state` — `building`, `releasing`, `sustaining`, or `silence`
 - `loudness_lufs` — short-term loudness evidence; use for debugging/comparison, not prose
 - `pressure_lufs_delta` — short-term pressure delta evidence
@@ -103,14 +103,14 @@ Near-symmetry between building and releasing indicates the track takes exactly a
 
 ---
 
-## Pitch-grid alignment (`mean_pitch_grid_alignment`)
+## Pitch grid (`mean_pitch_grid`)
 
 **Range:** 0.0–1.0
 **What it is:** How cleanly the harmony sits inside familiar equal-tempered pitch space. Higher values feel centered, resolved, and conventionally tuned; lower values can feel bent, smeared, folk-natural, microtonal, or intentionally outside the grid.
 
 **How it is calculated:** concentration of chroma energy across equal-tempered pitch classes.
 
-Do not read low pitch_grid_alignment as a defect by itself. Some traditions deliberately live between the standard pitch bins. Treat it as evidence about tuning world, not as a quality score.
+Do not read low pitch_grid as a defect by itself. Some traditions deliberately live between the standard pitch bins. Treat it as evidence about tuning world, not as a quality score.
 
 ---
 
@@ -141,7 +141,7 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 
 ---
 
-## Harmonic color motion (`mean_harmonic_color_motion`)
+## Chroma motion (`mean_chroma_motion`)
 
 **Range:** 0.0–1.0
 **What it is:** How quickly the harmonic color changes from one moment to the next. High values mean the harmonic surface is restless or actively turning; low values mean the color is steady, droning, or slowly evolving.
@@ -195,10 +195,10 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 
 ---
 
-## Foreground line evidence (`mean_foreground_line_evidence`)
+## Foreground line (`mean_foreground_line`)
 
 **Range:** 0.0–1.0
-**What it is:** How much foreground pitched material is carrying the track. The field is still named `mean_foreground_line_evidence` for compatibility, but read it as pitch-extraction confidence, not proof of a literal singer. High values mean a voice or lead pitch is structurally present; low values mean the voice/lead is absent, textural, buried, unpitched, or not the main carrier.
+**What it is:** How much foreground pitched material is carrying the track. The field is still named `mean_foreground_line` for compatibility, but read it as pitch-extraction confidence, not proof of a literal singer. High values mean a voice or lead pitch is structurally present; low values mean the voice/lead is absent, textural, buried, unpitched, or not the main carrier.
 
 **How it is calculated:** pYIN voiced probability over time, smoothed into the melody stream.
 
@@ -209,13 +209,13 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 | 0.15–0.30 | Clear vocal lead. |
 | >0.30 | Voice dominates the mix. |
 
-Low foreground pitch evidence + high texture_weight negative = pure harmonic texture. High foreground pitch evidence + descending melody = voice/lead-forward with falling contour (often resignation/descent arc).
+Low foreground pitch evidence + high texture negative = pure harmonic texture. High foreground pitch evidence + descending melody = voice/lead-forward with falling contour (often resignation/descent arc).
 
 ---
 
 ## Silences
 
-**Structure:** Each silence has `start`, `end`, `duration`, `depth_db`, `recovery_attention_grip`.
+**Structure:** Each silence has `start`, `end`, `duration`, `depth_db`, `recovery_attention`.
 
 | Depth | Meaning |
 |-------|---------|
@@ -224,7 +224,7 @@ Low foreground pitch evidence + high texture_weight negative = pure harmonic tex
 | -60 to -75 dB | Deep silence. Structural weight. |
 | < -75 dB | Near-absolute. Very deliberate. |
 
-`recovery_attention_grip` after silence: if >0.93, listener re-locked. If <0.80, attention grip didn't recover — track may not re-engage.
+`recovery_attention` after silence: if >0.93, listener re-locked. If <0.80, attention didn't recover — track may not re-engage.
 
 Multiple silences with deepening depth and consistent re-lock = structured withdrawal (dissolution pattern). Compressing silence intervals toward end = listener being walked to the edge.
 
@@ -245,21 +245,21 @@ Ascending contour during climax = conventional arc. Descending during what sound
 
 | Metric | Primary evidence |
 |---|---|
-| `attention_grip` | Beat regularity × beat density in rolling windows |
-| `pressure_motion` / `pressure_state` | Short-term LUFS movement |
-| `pattern_integrity` | `1.0 - disruption`; disruption = beat + spectral + energy expectation failures |
-| `texture_weight` | Harmonic/percussive separated energy |
-| `pitch_grid_alignment` | Chroma concentration in equal-tempered pitch classes |
+| `attention` | Beat regularity × beat density in rolling windows |
+| `pressure` / `pressure_state` | Short-term LUFS movement |
+| `pattern` | `1.0 - disruption`; disruption = beat + spectral + energy expectation failures |
+| `texture` | Harmonic/percussive separated energy |
+| `pitch_grid` | Chroma concentration in equal-tempered pitch classes |
 | `interval_coherence` | Chroma interval relationships weighted by energy |
 | `harmonic_pull` | Tonnetz velocity |
-| `harmonic_color_motion` | Cosine distance between adjacent chroma frames |
+| `chroma_motion` | Cosine distance between adjacent chroma frames |
 | `tonal_anchor` | Dominance of detected tonic pitch class |
 | `major_minor` | Major-third vs minor-third chroma energy around detected root |
 | `overtone_fit` | Overtone partial alignment around detected fundamentals |
 | `overtone_density` | Upper-partial energy |
 | `inharmonicity` | Cent deviation from ideal harmonic partials |
-| `mean_foreground_line_evidence` | pYIN voiced probability; foreground pitch evidence |
-| `silences` | dB-floor intervals plus recovery attention grip |
+| `mean_foreground_line` | pYIN voiced probability; foreground pitch evidence |
+| `silences` | dB-floor intervals plus recovery attention |
 
 ---
 

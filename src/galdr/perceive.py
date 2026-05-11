@@ -2,10 +2,10 @@
 """Perception layer — what the music DOES to the listener.
 
 Concepts:
-- Attention grip: a rolling measure of rhythmic consistency. High = the listener
+- Attention: a rolling measure of rhythmic consistency. High = the listener
   is locked in, tracking confidently.
 - Surprise: where expectations break. A beat that should land and doesn't.
-- Pressure motion: heard-pressure change. Building, sustaining, releasing, or silence.
+- Pressure: heard-pressure change. Building, sustaining, releasing, or silence.
 - Silence: not just low energy. Actual nothing.
 """
 
@@ -22,18 +22,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import uniform_filter1d
 
-from .analyze import compute_body_grip, compute_physical_hold
+from .analyze import compute_body, compute_weight
 from .constants import (
-    ATTENTION_GRIP_WINDOW_SEC, ATTENTION_GRIP_HOP_SEC, ATTENTION_GRIP_MIN_BEATS,
+    ATTENTION_WINDOW_SEC, ATTENTION_HOP_SEC, ATTENTION_MIN_BEATS,
     DISRUPTION_WEIGHT_BEAT, DISRUPTION_WEIGHT_SPECTRAL, DISRUPTION_WEIGHT_ENERGY,
     DISRUPTION_BEAT_LOOKBACK_SEC, DISRUPTION_BEAT_ABSENCE_THRESHOLD_SEC,
     DISRUPTION_BEAT_ABSENCE_MAX_SEC, DISRUPTION_SPECTRAL_SMOOTH_SEC,
     DISRUPTION_ENERGY_SMOOTH_SEC,
-    PRESSURE_MOTION_SMOOTH_SEC,
+    PRESSURE_SMOOTH_SEC,
     SILENCE_THRESHOLD_DB, SILENCE_MIN_DURATION_SEC,
     HP_BALANCE_MIN_ENERGY, HP_SMOOTH_SEC,
-    EVENT_ATTENTION_GRIP_LOCKED, EVENT_ATTENTION_GRIP_LOCK_RESET,
-    EVENT_ATTENTION_GRIP_FLOATING, EVENT_ATTENTION_GRIP_FLOAT_RESET, EVENT_ATTENTION_GRIP_MIN_GAP_SEC,
+    EVENT_ATTENTION_LOCKED, EVENT_ATTENTION_LOCK_RESET,
+    EVENT_ATTENTION_FLOATING, EVENT_ATTENTION_FLOAT_RESET, EVENT_ATTENTION_MIN_GAP_SEC,
     EVENT_BODY_LOCK_DWELL_SEC, EVENT_BODY_UNLOCK_DWELL_SEC,
     EVENT_DISRUPTION_BREAK, EVENT_PRESSURE_BUILDING, EVENT_PRESSURE_RELEASING,
     EVENT_PRESSURE_BUILD_RESET, EVENT_PRESSURE_RELEASE_RESET, EVENT_PRESSURE_MIN_GAP_SEC,
@@ -49,7 +49,7 @@ from .constants import (
     EVENT_PHRASE_WINDOW_SEC, EVENT_PHRASE_MIN_GAP_SEC, EVENT_PHRASE_MACRO_SUPPRESS_SEC,
     EVENT_PHRASE_LIFT_LUFS, EVENT_PHRASE_DROP_LUFS, EVENT_PHRASE_ENERGY_SURGE,
     EVENT_PHRASE_SPECTRAL_FLASH, EVENT_PHRASE_TURN_DISRUPTION, EVENT_PHRASE_RETURN_LOCK,
-    PATTERN_BREAK_MIN_DISRUPTION, ATTENTION_GRIP_SHIFT_THRESHOLD, TOP_DISRUPTION_COUNT,
+    PATTERN_BREAK_MIN_DISRUPTION, ATTENTION_SHIFT_THRESHOLD, TOP_DISRUPTION_COUNT,
     ACTIVE_FRAME_SILENCE_PCT_THRESHOLD,
 )
 
@@ -67,34 +67,34 @@ def _duration_to_frames(duration_sec: float, frame_step_sec: float, max_len: int
     return frames
 
 
-def compute_attention_grip(beat_times, duration,
-                     window_sec=ATTENTION_GRIP_WINDOW_SEC,
-                     hop_sec=ATTENTION_GRIP_HOP_SEC):
-    """Rolling rhythmic attention grip — how locked-in the beat is right now.
+def compute_attention(beat_times, duration,
+                     window_sec=ATTENTION_WINDOW_SEC,
+                     hop_sec=ATTENTION_HOP_SEC):
+    """Rolling rhythmic attention — how locked-in the beat is right now.
 
-    Returns (times, attention_grip) where attention_grip is 0-1.
+    Returns (times, attention) where attention is 0-1.
     1.0 = perfectly regular beats in the window (listener locked).
     0.0 = no beats in the window (listener holding/lost).
     """
     times = np.arange(0, duration, hop_sec)
-    attention_grip = np.zeros_like(times)
+    attention = np.zeros_like(times)
 
     for i, t in enumerate(times):
         # Find beats within the window centered on t
         window_beats = beat_times[
             (beat_times >= t - window_sec / 2) & (beat_times < t + window_sec / 2)
         ]
-        if len(window_beats) < ATTENTION_GRIP_MIN_BEATS:
-            attention_grip[i] = 0.0
+        if len(window_beats) < ATTENTION_MIN_BEATS:
+            attention[i] = 0.0
             continue
 
         intervals = np.diff(window_beats)
         mean_interval = np.mean(intervals)
         if mean_interval == 0:
-            attention_grip[i] = 0.0
+            attention[i] = 0.0
             continue
 
-        # Regularity: low variance = high attention_grip
+        # Regularity: low variance = high attention
         cv = np.std(intervals) / mean_interval  # coefficient of variation
         regularity = max(0, 1.0 - cv)
 
@@ -102,12 +102,12 @@ def compute_attention_grip(beat_times, duration,
         expected_beats = window_sec / mean_interval
         density = min(1.0, len(window_beats) / max(1, expected_beats))
 
-        attention_grip[i] = regularity * density
+        attention[i] = regularity * density
 
-    return times, attention_grip
+    return times, attention
 
 
-def compute_disruption(y, sr, beat_times, duration, hop_sec=ATTENTION_GRIP_HOP_SEC):
+def compute_disruption(y, sr, beat_times, duration, hop_sec=ATTENTION_HOP_SEC):
     """Where the pattern breaks — how much expectations deviate from what arrives.
 
     Three components:
@@ -116,7 +116,7 @@ def compute_disruption(y, sr, beat_times, duration, hop_sec=ATTENTION_GRIP_HOP_S
     3. Energy disruption: the loudness jumped or dropped faster than the local trend
 
     Returns (times, disruption_total, disruption_beat, disruption_spectral, disruption_energy)
-    Invert (1.0 - disruption) to get pattern_integrity.
+    Invert (1.0 - disruption) to get pattern.
     """
     times = np.arange(0, duration, hop_sec)
 
@@ -197,7 +197,7 @@ def compute_disruption(y, sr, beat_times, duration, hop_sec=ATTENTION_GRIP_HOP_S
     return times, disruption_total, disruption_beat, disruption_spectral, disruption_energy
 
 
-def compute_loudness(y, sr, duration, hop_sec=ATTENTION_GRIP_HOP_SEC):
+def compute_loudness(y, sr, duration, hop_sec=ATTENTION_HOP_SEC):
     """EBU R128 loudness curve for heard pressure.
 
     Returns a dict with integrated LUFS plus a silence-aware short-term curve
@@ -245,19 +245,19 @@ def compute_loudness(y, sr, duration, hop_sec=ATTENTION_GRIP_HOP_SEC):
             np.flatnonzero(~np.isfinite(filled)), valid_idx, filled[valid_idx]
         )
 
-    pressure_motion_smooth_frames = _duration_to_frames(PRESSURE_MOTION_SMOOTH_SEC, hop_sec, max_len=len(filled))
-    smoothed = uniform_filter1d(filled, size=pressure_motion_smooth_frames)
+    pressure_smooth_frames = _duration_to_frames(PRESSURE_SMOOTH_SEC, hop_sec, max_len=len(filled))
+    smoothed = uniform_filter1d(filled, size=pressure_smooth_frames)
     if len(smoothed) > 1:
         delta = np.gradient(smoothed)
         delta[silence_mask] = 0.0
-        # Ignore sub-audible numerical flutter in steady material. LUFS pressure motion
-        # should describe real pressure motion, not floating point dust.
+        # Ignore sub-audible numerical flutter in steady material. LUFS pressure
+        # should describe real pressure, not floating point dust.
         delta[np.abs(delta) < 0.05] = 0.0
         max_abs = np.max(np.abs(delta))
-        pressure_motion = delta / max_abs if max_abs > 0 else np.zeros_like(delta)
+        pressure = delta / max_abs if max_abs > 0 else np.zeros_like(delta)
     else:
         delta = np.zeros_like(smoothed)
-        pressure_motion = np.zeros_like(smoothed)
+        pressure = np.zeros_like(smoothed)
 
     return {
         "times": times,
@@ -265,22 +265,22 @@ def compute_loudness(y, sr, duration, hop_sec=ATTENTION_GRIP_HOP_SEC):
         "short_term_lufs": curve,
         "smoothed_lufs": smoothed,
         "loudness_delta": delta,
-        "pressure_motion": pressure_motion,
+        "pressure": pressure,
         "silence_mask": silence_mask,
         "floor_lufs": floor_lufs,
     }
 
 
-def compute_pressure_motion(y, sr, duration, hop_sec=ATTENTION_GRIP_HOP_SEC):
-    """Heard-pressure motion — building, sustaining, or releasing.
+def compute_pressure(y, sr, duration, hop_sec=ATTENTION_HOP_SEC):
+    """Heard-pressure — building, sustaining, or releasing.
 
-    Returns (times, pressure_motion) where:
+    Returns (times, pressure) where:
     - Positive = building (perceived pressure increasing)
     - Zero = sustaining (stable or silence-aware)
     - Negative = releasing (perceived pressure decreasing)
     """
     loudness = compute_loudness(y, sr, duration, hop_sec=hop_sec)
-    return loudness["times"], loudness["pressure_motion"]
+    return loudness["times"], loudness["pressure"]
 
 
 def detect_silences(y, sr, threshold_db=SILENCE_THRESHOLD_DB,
@@ -355,25 +355,25 @@ def _silence_boundary_position(silence, duration, boundary_sec=2.0, closing_sec=
     return "internal"
 
 
-def _classify_reentry(pre_attention_grip, post_attention_grip, pre_pressure, post_pressure, silence, duration):
+def _classify_reentry(pre_attention, post_attention, pre_pressure, post_pressure, silence, duration):
     """Classify what the return after silence does to listener state."""
     boundary_position = _silence_boundary_position(silence, duration)
     if boundary_position == "opening":
         return "entry_preparation"
-    if boundary_position == "closing" or post_attention_grip is None:
+    if boundary_position == "closing" or post_attention is None:
         return "terminal_decay"
 
-    pre_m = 0.0 if pre_attention_grip is None else pre_attention_grip
-    post_m = 0.0 if post_attention_grip is None else post_attention_grip
+    pre_m = 0.0 if pre_attention is None else pre_attention
+    post_m = 0.0 if post_attention is None else post_attention
     pre_p = 0.0 if pre_pressure is None else pre_pressure
     post_p = 0.0 if post_pressure is None else post_pressure
 
-    attention_grip_delta = post_m - pre_m
+    attention_delta = post_m - pre_m
     pressure_delta = post_p - pre_p
 
-    if post_m >= 0.75 and abs(attention_grip_delta) <= 0.20 and pressure_delta >= -0.15:
+    if post_m >= 0.75 and abs(attention_delta) <= 0.20 and pressure_delta >= -0.15:
         return "continuation"
-    if attention_grip_delta >= 0.25 or pressure_delta >= 0.25:
+    if attention_delta >= 0.25 or pressure_delta >= 0.25:
         return "rupture"
     if pre_m < 0.45 and post_m >= 0.60:
         return "reset"
@@ -382,14 +382,14 @@ def _classify_reentry(pre_attention_grip, post_attention_grip, pre_pressure, pos
     return "continuation"
 
 
-def compute_silence_reentries(silences, times, attention_grip, pressure_motion, loudness_delta, duration,
+def compute_silence_reentries(silences, times, attention, pressure, loudness_delta, duration,
                               short_window_sec=1.5, recovery_threshold=0.85,
                               max_recovery_sec=8.0):
     """Measure return behavior after detected silences.
 
     Silence itself is only half the gesture.  This records what happens
     immediately after the gap: how forcefully pressure returns, how long
-    listener attention_grip takes to recover, and whether the return behaves like
+    listener attention takes to recover, and whether the return behaves like
     continuation, rupture, reset, withdrawal, entry preparation, or terminal
     decay.
     """
@@ -398,8 +398,8 @@ def compute_silence_reentries(silences, times, attention_grip, pressure_motion, 
         return events
 
     times = np.asarray(times)
-    attention_grip = np.asarray(attention_grip)
-    pressure_motion = np.asarray(pressure_motion)
+    attention = np.asarray(attention)
+    pressure = np.asarray(pressure)
     loudness_delta = np.asarray(loudness_delta)
 
     for silence in silences:
@@ -408,33 +408,33 @@ def compute_silence_reentries(silences, times, attention_grip, pressure_motion, 
         pre_start = max(0.0, start - short_window_sec)
         post_end = min(duration, end + short_window_sec)
 
-        pre_attention_grip = _window_mean(attention_grip, times, pre_start, start)
-        post_attention_grip = _window_mean(attention_grip, times, end, post_end)
-        pre_pressure = _window_mean(pressure_motion, times, pre_start, start)
-        post_pressure = _window_mean(pressure_motion, times, end, post_end)
+        pre_attention = _window_mean(attention, times, pre_start, start)
+        post_attention = _window_mean(attention, times, end, post_end)
+        pre_pressure = _window_mean(pressure, times, pre_start, start)
+        post_pressure = _window_mean(pressure, times, end, post_end)
         post_loudness_delta = _window_mean(loudness_delta, times, end, post_end)
 
-        baseline = pre_attention_grip if pre_attention_grip is not None else None
+        baseline = pre_attention if pre_attention is not None else None
         recovery_time = None
         recovered = False
         if baseline is not None and end < duration:
             target = min(max(baseline * recovery_threshold, 0.35), 0.9)
             recovery_mask = (times >= end) & (times <= min(duration, end + max_recovery_sec))
-            candidates = np.where(recovery_mask & (attention_grip >= target))[0]
+            candidates = np.where(recovery_mask & (attention >= target))[0]
             if candidates.size:
                 recovery_time = round(float(times[candidates[0]] - end), 2)
                 recovered = True
 
         pre_p = 0.0 if pre_pressure is None else pre_pressure
         post_p = 0.0 if post_pressure is None else post_pressure
-        post_m = 0.0 if post_attention_grip is None else post_attention_grip
-        pre_m = 0.0 if pre_attention_grip is None else pre_attention_grip
+        post_m = 0.0 if post_attention is None else post_attention
+        pre_m = 0.0 if pre_attention is None else pre_attention
         force = max(0.0, (post_m - pre_m) * 0.55 + max(0.0, post_p - pre_p) * 0.45)
         if post_loudness_delta is not None:
             force += max(0.0, post_loudness_delta) * 0.15
 
         boundary_position = _silence_boundary_position(silence, duration)
-        shape = _classify_reentry(pre_attention_grip, post_attention_grip, pre_pressure, post_pressure, silence, duration)
+        shape = _classify_reentry(pre_attention, post_attention, pre_pressure, post_pressure, silence, duration)
 
         events.append({
             "silence_start": round(start, 2),
@@ -446,8 +446,8 @@ def compute_silence_reentries(silences, times, attention_grip, pressure_motion, 
             "reentry_force": round(float(min(force, 1.0)), 3),
             "recovery_time_sec": recovery_time,
             "recovered": recovered,
-            "pre_attention_grip": None if pre_attention_grip is None else round(float(pre_attention_grip), 3),
-            "post_attention_grip": None if post_attention_grip is None else round(float(post_attention_grip), 3),
+            "pre_attention": None if pre_attention is None else round(float(pre_attention), 3),
+            "post_attention": None if post_attention is None else round(float(post_attention), 3),
             "pre_pressure": None if pre_pressure is None else round(float(pre_pressure), 3),
             "post_pressure": None if post_pressure is None else round(float(post_pressure), 3),
         })
@@ -455,8 +455,8 @@ def compute_silence_reentries(silences, times, attention_grip, pressure_motion, 
     return events
 
 
-def compute_harmonic_percussive_attention_grip(y, sr, duration,
-                                         hop_sec=ATTENTION_GRIP_HOP_SEC):
+def compute_harmonic_percussive_attention(y, sr, duration,
+                                         hop_sec=ATTENTION_HOP_SEC):
     """Track which channel is carrying the energy over time.
 
     Returns (times, h_energy, p_energy, balance) where balance is
@@ -489,11 +489,11 @@ def compute_harmonic_percussive_attention_grip(y, sr, duration,
     return times, h_energy, p_energy, balance
 
 
-def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float = ATTENTION_GRIP_HOP_SEC) -> dict:
+def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float = ATTENTION_HOP_SEC) -> dict:
     """Compute perception stream and report from audio array. No file I/O, no plots.
 
-    Calls the existing pure DSP functions (compute_attention_grip, compute_disruption,
-    compute_pressure_motion, detect_silences, compute_harmonic_percussive_attention_grip),
+    Calls the existing pure DSP functions (compute_attention, compute_disruption,
+    compute_pressure, detect_silences, compute_harmonic_percussive_attention),
     assembles the stream, builds the report, and embeds stream under report["stream"].
 
     Args:
@@ -527,7 +527,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr)
 
     # Compute perception dimensions
-    m_times, attention_grip = compute_attention_grip(beat_times, duration, hop_sec=hop_sec)
+    m_times, attention = compute_attention(beat_times, duration, hop_sec=hop_sec)
 
     s_times, disruption, d_beat, d_spectral, d_energy = compute_disruption(
         y, sr, beat_times, duration, hop_sec=hop_sec
@@ -535,25 +535,26 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
 
     loudness = compute_loudness(y, sr, duration, hop_sec=hop_sec)
     p_times = loudness["times"]
-    pressure_motion = loudness["pressure_motion"]
+    pressure = loudness["pressure"]
 
     silences = detect_silences(y, sr)
 
-    hp_times, h_energy, p_energy, hp_balance = compute_harmonic_percussive_attention_grip(
+    hp_times, h_energy, p_energy, hp_balance = compute_harmonic_percussive_attention(
         y, sr, duration, hop_sec=hop_sec
     )
 
     silence_reentries = compute_silence_reentries(
-        silences, m_times, attention_grip, pressure_motion, loudness["loudness_delta"], duration
+        silences, m_times, attention, pressure, loudness["loudness_delta"], duration
     )
     reentries_by_start = {r["silence_start"]: r for r in silence_reentries}
 
-    # Energy interpolated to our time grid
-    energy = np.interp(m_times, rms_times, rms)
+    # RMS energy interpolated to our time grid. Keep this separate from the
+    # public `weight` metric, which now means physical hold.
+    rms_energy = np.interp(m_times, rms_times, rms)
 
     def _local_body_and_weight(t: float, idx: int) -> tuple[dict, dict]:
-        """Compute local body-lock and physical hold for the current listening window."""
-        half_window = ATTENTION_GRIP_WINDOW_SEC / 2.0
+        """Compute local body-lock and weight for the current listening window."""
+        half_window = ATTENTION_WINDOW_SEC / 2.0
         start = max(0.0, t - half_window)
         end = min(duration, t + half_window)
         window_duration = max(end - start, hop_sec)
@@ -562,11 +563,11 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         if len(local_beats) > 2:
             intervals = np.diff(local_beats)
             mean_interval = float(np.mean(intervals))
-            pulse_steadiness = max(0.0, 1.0 - (float(np.std(intervals)) / mean_interval)) if mean_interval > 0 else 0.0
+            pulse = max(0.0, 1.0 - (float(np.std(intervals)) / mean_interval)) if mean_interval > 0 else 0.0
             expected_beats = window_duration / mean_interval if mean_interval > 0 else 0.0
             pulse_confidence = float(np.clip(len(local_beats) / max(expected_beats, 1.0), 0.0, 1.0))
         else:
-            pulse_steadiness = 0.0
+            pulse = 0.0
             pulse_confidence = 0.0
 
         local_onsets = onset_times[(onset_times >= start) & (onset_times < end)]
@@ -579,27 +580,27 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         local_harmonic = float(np.mean(h_energy[frame_mask]))
         local_percussive = float(np.mean(p_energy[frame_mask]))
         total_texture = local_harmonic + local_percussive
-        texture_weight = local_percussive / total_texture if total_texture > HP_BALANCE_MIN_ENERGY else 0.0
+        texture = local_percussive / total_texture if total_texture > HP_BALANCE_MIN_ENERGY else 0.0
 
         rms_mask = (rms_times >= start) & (rms_times < end)
         local_rms = rms[rms_mask]
         positive_rms = local_rms[local_rms > 0]
         dynamic_range_ratio = float(np.max(positive_rms) / np.min(positive_rms)) if len(positive_rms) > 1 else 1.0
 
-        body = compute_body_grip(
+        body = compute_body(
             duration=window_duration,
             beat_count=len(local_beats),
-            pulse_steadiness=pulse_steadiness,
+            pulse=pulse,
             pulse_confidence=pulse_confidence,
             pulse_ambiguous=False,
-            texture_weight=texture_weight,
+            texture=texture,
             onsets_per_second=onsets_per_second,
         )
-        weight = compute_physical_hold(
-            pulse_steadiness=pulse_steadiness,
+        weight = compute_weight(
+            pulse=pulse,
             pulse_confidence=pulse_confidence,
-            body_grip=body["body_grip"],
-            texture_weight=texture_weight,
+            body=body["body"],
+            texture=texture,
             onsets_per_second=onsets_per_second,
             harmonic_weight=local_harmonic,
             percussive_weight=local_percussive,
@@ -622,8 +623,8 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         if len(phrase) < 3:
             return False
 
-        body_vals = [float(e["body_grip"]) for e in phrase]
-        texture_vals = [float(e["texture_weight"]) for e in phrase]
+        body_vals = [float(e["body"]) for e in phrase]
+        texture_vals = [float(e["texture"]) for e in phrase]
         loudness_vals = [float(e["loudness_lufs"]) for e in phrase if e.get("loudness_lufs") is not None]
         if not loudness_vals:
             return False
@@ -640,22 +641,22 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
 
     def _wds_slope_event(entry: dict, idx: int, direction: str) -> bool:
         """Gate WDS prose events by felt movement, not label-boundary chatter."""
-        current = float(entry["physical_hold"])
+        current = float(entry["weight"])
         t = float(entry["t"])
         lookback = np.where(m_times <= t - EVENT_WDS_SLOPE_WINDOW_SEC)[0]
         if len(lookback) == 0:
             return False
 
         prior = stream[int(lookback[-1])]
-        previous = float(prior["physical_hold"])
+        previous = float(prior["weight"])
         delta = current - previous
-        entry["physical_hold_delta"] = round(delta, 3)
+        entry["weight_delta"] = round(delta, 3)
 
         loudness_lufs = entry.get("loudness_lufs")
         if entry.get("silence") or (loudness_lufs is not None and loudness_lufs <= EVENT_WDS_SILENCE_LUFS_CEILING):
             return False
         if _stable_phrase_motion(entry):
-            entry["physical_hold_motion"] = "phrase_internal"
+            entry["weight_motion"] = "phrase_internal"
             return False
 
         if direction == "arrives":
@@ -677,19 +678,19 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
 
         baseline = lookback[: max(3, len(lookback) // 2)]
         base_loudness = float(np.mean([float(e["loudness_lufs"]) for e in baseline]))
-        base_texture = float(np.mean([float(e["texture_weight"]) for e in baseline]))
+        base_texture = float(np.mean([float(e["texture"]) for e in baseline]))
         base_percussive = float(np.mean([float(e["percussive_weight"]) for e in baseline]))
 
         loudness_rise = float(entry["loudness_lufs"]) - base_loudness
-        texture_rise = float(entry["texture_weight"]) - base_texture
+        texture_rise = float(entry["texture"]) - base_texture
         percussive_ratio = float(entry["percussive_weight"]) / max(base_percussive, 1e-6)
 
-        body_holds = float(entry["body_grip"]) >= EVENT_SURFACE_BODY_HOLD_MIN
-        pattern_holds = float(entry["pattern_integrity"]) >= EVENT_SURFACE_PATTERN_HOLD_MIN
+        body_holds = float(entry["body"]) >= EVENT_SURFACE_BODY_HOLD_MIN
+        pattern_holds = float(entry["pattern"]) >= EVENT_SURFACE_PATTERN_HOLD_MIN
         hardens = (
             loudness_rise >= EVENT_SURFACE_LOUDNESS_RISE_LUFS
             and texture_rise >= EVENT_SURFACE_TEXTURE_RISE
-            and float(entry["texture_weight"]) >= EVENT_SURFACE_CURRENT_TEXTURE_MIN
+            and float(entry["texture"]) >= EVENT_SURFACE_CURRENT_TEXTURE_MIN
             and float(entry["percussive_weight"]) >= EVENT_SURFACE_CURRENT_PERCUSSIVE_MIN
             and percussive_ratio >= EVENT_SURFACE_PERCUSSIVE_RISE_RATIO
             and body_holds
@@ -724,31 +725,31 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         recent = phrase[half:]
         base_loudness = float(np.mean([float(e["loudness_lufs"]) for e in baseline]))
         recent_loudness = float(np.mean([float(e["loudness_lufs"]) for e in recent]))
-        base_weight = float(np.mean([float(e["weight"]) for e in baseline]))
-        recent_weight = float(np.mean([float(e["weight"]) for e in recent]))
-        base_texture = float(np.mean([float(e["texture_weight"]) for e in baseline]))
-        recent_texture = float(np.mean([float(e["texture_weight"]) for e in recent]))
-        recent_pattern = float(np.mean([float(e["pattern_integrity"]) for e in recent]))
+        base_energy = float(np.mean([float(e["rms_energy"]) for e in baseline]))
+        recent_energy = float(np.mean([float(e["rms_energy"]) for e in recent]))
+        base_texture = float(np.mean([float(e["texture"]) for e in baseline]))
+        recent_texture = float(np.mean([float(e["texture"]) for e in recent]))
+        recent_pattern = float(np.mean([float(e["pattern"]) for e in recent]))
 
         loudness_delta = float(entry["loudness_lufs"]) - base_loudness
         recent_loudness_delta = recent_loudness - base_loudness
-        weight_delta = float(entry["weight"]) - base_weight
-        texture_delta = float(entry["texture_weight"]) - base_texture
-        disruption_now = 1.0 - float(entry["pattern_integrity"])
+        energy_delta = float(entry["rms_energy"]) - base_energy
+        texture_delta = float(entry["texture"]) - base_texture
+        disruption_now = 1.0 - float(entry["pattern"])
 
         entry["phrase_loudness_delta_lufs"] = round(loudness_delta, 2)
-        entry["phrase_weight_delta"] = round(weight_delta, 4)
+        entry["phrase_energy_delta"] = round(energy_delta, 4)
         entry["phrase_texture_delta"] = round(texture_delta, 3)
 
         if (
             loudness_delta >= EVENT_PHRASE_LIFT_LUFS
-            and weight_delta >= EVENT_PHRASE_ENERGY_SURGE
+            and energy_delta >= EVENT_PHRASE_ENERGY_SURGE
             and texture_delta >= EVENT_PHRASE_SPECTRAL_FLASH
         ):
             return "ornamental_flash", "bright local flash inside the phrase"
-        if loudness_delta >= EVENT_PHRASE_LIFT_LUFS and weight_delta >= EVENT_PHRASE_ENERGY_SURGE:
+        if loudness_delta >= EVENT_PHRASE_LIFT_LUFS and energy_delta >= EVENT_PHRASE_ENERGY_SURGE:
             return "phrase_lifts", "phrase lifts"
-        if recent_loudness_delta <= EVENT_PHRASE_DROP_LUFS and float(entry["pattern_integrity"]) >= EVENT_PHRASE_RETURN_LOCK:
+        if recent_loudness_delta <= EVENT_PHRASE_DROP_LUFS and float(entry["pattern"]) >= EVENT_PHRASE_RETURN_LOCK:
             return "phrase_drops", "phrase drops back"
         if disruption_now >= EVENT_PHRASE_TURN_DISRUPTION and recent_pattern >= EVENT_PHRASE_RETURN_LOCK:
             return "section_turns", "phrase turns while the larger pattern holds"
@@ -763,7 +764,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     last_pressure_event_t = -float("inf")
     attention_ready_to_grip = True
     attention_ready_to_release = False
-    last_attention_grip_event_t = -float("inf")
+    last_attention_event_t = -float("inf")
     body_lock_active = False
     body_lock_since = None
     body_unlock_since = None
@@ -771,18 +772,18 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     last_phrase_event_t = -float("inf")
     for i, t in enumerate(m_times):
         local_body, local_weight = _local_body_and_weight(float(t), i)
-        local_body_state = local_body["body_grip_state"]
-        local_weight_state = local_weight["physical_hold_state"]
+        local_body_state = local_body["body_state"]
+        local_weight_state = local_weight["weight_state"]
         entry = {
             "t": round(float(t), 3),
-            "weight": round(float(energy[i]), 4),
-            "attention_grip": round(float(attention_grip[i]), 3),
-            "pattern_integrity": round(1.0 - float(disruption[i]), 3),
-            "pressure_motion": round(float(pressure_motion[i]), 3),
-            "body_grip": local_body["body_grip"],
-            "body_grip_state": local_body_state,
-            "physical_hold": local_weight["physical_hold"],
-            "physical_hold_state": local_weight_state,
+            "rms_energy": round(float(rms_energy[i]), 4),
+            "attention": round(float(attention[i]), 3),
+            "pattern": round(1.0 - float(disruption[i]), 3),
+            "pressure": round(float(pressure[i]), 3),
+            "body": local_body["body"],
+            "body_state": local_body_state,
+            "weight": local_weight["weight"],
+            "weight_state": local_weight_state,
             "loudness_lufs": (
                 None if not np.isfinite(loudness["short_term_lufs"][i])
                 else round(float(loudness["short_term_lufs"][i]), 2)
@@ -790,12 +791,12 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             "pressure_lufs_delta": round(float(loudness["loudness_delta"][i]), 3),
             "pressure_state": (
                 "silence" if loudness["silence_mask"][i]
-                else "building" if pressure_motion[i] > EVENT_PRESSURE_BUILDING
-                else "releasing" if pressure_motion[i] < EVENT_PRESSURE_RELEASING
+                else "building" if pressure[i] > EVENT_PRESSURE_BUILDING
+                else "releasing" if pressure[i] < EVENT_PRESSURE_RELEASING
                 else "sustaining"
             ),
             "loudness_silence": bool(loudness["silence_mask"][i]),
-            "texture_weight": round(float(hp_balance[i]), 3),
+            "texture": round(float(hp_balance[i]), 3),
             "harmonic_weight": round(float(h_energy[i]), 4),
             "percussive_weight": round(float(p_energy[i]), 4),
         }
@@ -876,30 +877,30 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             _mark_event(entry, "weight_lifts", "weight lifts")
             last_macro_event_t = float(t)
         elif (
-            attention_grip[i] > EVENT_ATTENTION_GRIP_LOCKED
+            attention[i] > EVENT_ATTENTION_LOCKED
             and attention_ready_to_grip
-            and float(t) - last_attention_grip_event_t >= EVENT_ATTENTION_GRIP_MIN_GAP_SEC
+            and float(t) - last_attention_event_t >= EVENT_ATTENTION_MIN_GAP_SEC
         ):
-            _mark_event(entry, "attention_grip_arrives", "motion settles into a reliable pattern")
+            _mark_event(entry, "attention_arrives", "motion settles into a reliable pattern")
             attention_ready_to_grip = False
             attention_ready_to_release = True
-            last_attention_grip_event_t = float(t)
+            last_attention_event_t = float(t)
             last_macro_event_t = float(t)
         elif (
-            attention_grip[i] < EVENT_ATTENTION_GRIP_FLOATING
+            attention[i] < EVENT_ATTENTION_FLOATING
             and attention_ready_to_release
-            and float(t) - last_attention_grip_event_t >= EVENT_ATTENTION_GRIP_MIN_GAP_SEC
+            and float(t) - last_attention_event_t >= EVENT_ATTENTION_MIN_GAP_SEC
         ):
-            _mark_event(entry, "attention_grip_releases", "motion loses its hold")
+            _mark_event(entry, "attention_releases", "motion loses its hold")
             attention_ready_to_release = False
             attention_ready_to_grip = True
-            last_attention_grip_event_t = float(t)
+            last_attention_event_t = float(t)
             last_macro_event_t = float(t)
         elif disruption[i] > EVENT_DISRUPTION_BREAK:
             _mark_event(entry, "pattern_breaks", "pattern breaks")
             last_macro_event_t = float(t)
         elif (
-            pressure_motion[i] > EVENT_PRESSURE_BUILDING
+            pressure[i] > EVENT_PRESSURE_BUILDING
             and pressure_ready_to_build
             and float(t) - last_pressure_event_t >= EVENT_PRESSURE_MIN_GAP_SEC
         ):
@@ -909,7 +910,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             last_pressure_event_t = float(t)
             last_macro_event_t = float(t)
         elif (
-            pressure_motion[i] < EVENT_PRESSURE_RELEASING
+            pressure[i] < EVENT_PRESSURE_RELEASING
             and pressure_ready_to_release
             and float(t) - last_pressure_event_t >= EVENT_PRESSURE_MIN_GAP_SEC
         ):
@@ -924,13 +925,13 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
                 _mark_event(entry, phrase_event, phrase_note)
                 last_phrase_event_t = float(t)
 
-        if pressure_motion[i] <= EVENT_PRESSURE_BUILD_RESET:
+        if pressure[i] <= EVENT_PRESSURE_BUILD_RESET:
             pressure_ready_to_build = True
-        if pressure_motion[i] >= EVENT_PRESSURE_RELEASE_RESET:
+        if pressure[i] >= EVENT_PRESSURE_RELEASE_RESET:
             pressure_ready_to_release = True
-        if attention_grip[i] <= EVENT_ATTENTION_GRIP_LOCK_RESET:
+        if attention[i] <= EVENT_ATTENTION_LOCK_RESET:
             attention_ready_to_grip = True
-        if attention_grip[i] >= EVENT_ATTENTION_GRIP_FLOAT_RESET:
+        if attention[i] >= EVENT_ATTENTION_FLOAT_RESET:
             attention_ready_to_release = True
 
         previous_weight_state = local_weight_state
@@ -951,24 +952,24 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
                     f"(beat:{d_beat[idx]:.2f} spectral:{d_spectral[idx]:.2f} energy:{d_energy[idx]:.2f})"
             })
 
-    # Attention grip shifts
-    attention_grip_diff = np.diff(attention_grip)
-    big_drops = np.where(attention_grip_diff < -ATTENTION_GRIP_SHIFT_THRESHOLD)[0]
+    # Attention shifts
+    attention_diff = np.diff(attention)
+    big_drops = np.where(attention_diff < -ATTENTION_SHIFT_THRESHOLD)[0]
     for idx in big_drops:
         pattern_breaks.append({
             "time": round(float(m_times[idx]), 1),
-            "type": "attention_grip_drop",
-            "from": round(float(attention_grip[idx]), 3),
-            "to": round(float(attention_grip[idx + 1]), 3),
+            "type": "attention_drop",
+            "from": round(float(attention[idx]), 3),
+            "to": round(float(attention[idx + 1]), 3),
         })
 
-    big_gains = np.where(attention_grip_diff > ATTENTION_GRIP_SHIFT_THRESHOLD)[0]
+    big_gains = np.where(attention_diff > ATTENTION_SHIFT_THRESHOLD)[0]
     for idx in big_gains:
         pattern_breaks.append({
             "time": round(float(m_times[idx]), 1),
-            "type": "attention_grip_gain",
-            "from": round(float(attention_grip[idx]), 3),
-            "to": round(float(attention_grip[idx + 1]), 3),
+            "type": "attention_gain",
+            "from": round(float(attention[idx]), 3),
+            "to": round(float(attention[idx + 1]), 3),
         })
 
     # Silences
@@ -997,7 +998,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     # Identify which stream indices are silent (inside a detected silence window).
     # Active frames are everything else — this lets us report clean stats
     # for tracks that use silence intentionally (Helvegen, Feldman, etc.)
-    # without contaminating attention_grip/pattern_integrity with flat-line silence frames.
+    # without contaminating attention/pattern with flat-line silence frames.
     silent_mask = np.zeros(len(m_times), dtype=bool)
     for s in silences:
         silent_mask |= (m_times >= s["start"]) & (m_times <= s["end"])
@@ -1007,31 +1008,31 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     active_duration_sec = round(duration - total_silence_sec, 1)
     silence_pct = round(total_silence_sec / duration * 100, 1) if duration > 0 else 0.0
 
-    # Active-frame attention_grip and pattern_integrity (only meaningful if there's significant silence)
+    # Active-frame attention and pattern (only meaningful if there's significant silence)
     if active_mask.any():
-        active_attention_grip = attention_grip[active_mask]
+        active_attention = attention[active_mask]
         active_disruption = disruption[active_mask]
-        mean_attention_grip_active = round(float(np.mean(active_attention_grip)), 3)
-        mean_pattern_integrity_active = round(1.0 - float(np.mean(active_disruption)), 3)
-        attention_grip_range_active = [
-            round(float(np.min(active_attention_grip)), 3),
-            round(float(np.max(active_attention_grip)), 3),
+        mean_attention_active = round(float(np.mean(active_attention)), 3)
+        mean_pattern_active = round(1.0 - float(np.mean(active_disruption)), 3)
+        attention_range_active = [
+            round(float(np.min(active_attention)), 3),
+            round(float(np.max(active_attention)), 3),
         ]
     else:
-        mean_attention_grip_active = round(float(np.mean(attention_grip)), 3)
-        mean_pattern_integrity_active = round(1.0 - float(np.mean(disruption)), 3)
-        attention_grip_range_active = [round(float(np.min(attention_grip)), 3), round(float(np.max(attention_grip)), 3)]
+        mean_attention_active = round(float(np.mean(attention)), 3)
+        mean_pattern_active = round(1.0 - float(np.mean(disruption)), 3)
+        attention_range_active = [round(float(np.min(attention)), 3), round(float(np.max(attention)), 3)]
 
     # ===== PERCEPTION REPORT =====
     summary = {
-        "mean_attention_grip": round(float(np.mean(attention_grip)), 3),
-        "mean_pattern_integrity": round(1.0 - float(np.mean(disruption)), 3),
-        "attention_grip_range": [round(float(np.min(attention_grip)), 3), round(float(np.max(attention_grip)), 3)],
+        "mean_attention": round(float(np.mean(attention)), 3),
+        "mean_pattern": round(1.0 - float(np.mean(disruption)), 3),
+        "attention_range": [round(float(np.min(attention)), 3), round(float(np.max(attention)), 3)],
         "total_silence_sec": total_silence_sec,
         "pattern_break_count": len(pattern_breaks),
-        "pressure_building_pct": round(float(np.mean(pressure_motion > 0.05)) * 100, 1),
-        "pressure_releasing_pct": round(float(np.mean(pressure_motion < -0.05)) * 100, 1),
-        "pressure_sustaining_pct": round(float(np.mean(np.abs(pressure_motion) <= 0.05)) * 100, 1),
+        "pressure_building_pct": round(float(np.mean(pressure > 0.05)) * 100, 1),
+        "pressure_releasing_pct": round(float(np.mean(pressure < -0.05)) * 100, 1),
+        "pressure_sustaining_pct": round(float(np.mean(np.abs(pressure) <= 0.05)) * 100, 1),
         "integrated_lufs": loudness["integrated_lufs"],
         "loudness_floor_lufs": loudness["floor_lufs"],
         "loudness_silence_pct": round(float(np.mean(loudness["silence_mask"])) * 100, 1),
@@ -1039,9 +1040,9 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         "active_duration_sec": active_duration_sec,
         "silent_duration_sec": total_silence_sec,
         "silence_pct": silence_pct,
-        "mean_attention_grip_active": mean_attention_grip_active,
-        "mean_pattern_integrity_active": mean_pattern_integrity_active,
-        "attention_grip_range_active": attention_grip_range_active,
+        "mean_attention_active": mean_attention_active,
+        "mean_pattern_active": mean_pattern_active,
+        "attention_range_active": attention_range_active,
         "silence_reentry_count": len(silence_reentries),
         "silence_reentry_shapes": {
             shape: sum(1 for r in silence_reentries if r["reentry_shape"] == shape)
@@ -1057,7 +1058,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     }
 
     # Count pattern_breaks by type
-    pb_types = ["pattern_break", "attention_grip_drop", "attention_grip_gain", "silence"]
+    pb_types = ["pattern_break", "attention_drop", "attention_gain", "silence"]
     pb_counts = {t: sum(1 for pb in pattern_breaks if pb["type"] == t) for t in pb_types}
     summary["pattern_break_counts"] = pb_counts
 
@@ -1077,7 +1078,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     return report
 
 
-def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: float = ATTENTION_GRIP_HOP_SEC):
+def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: float = ATTENTION_HOP_SEC):
     """Generate a second-by-second perception stream.
 
     This is the core output: a temporal narrative of what the music
@@ -1093,9 +1094,9 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
     y, sr = librosa.load(audio_path, sr=22050, mono=True)
 
     print("  Tracking beats...")
-    print("  Computing attention_grip...")
-    print("  Computing pattern integrity...")
-    print("  Computing pressure motion...")
+    print("  Computing attention...")
+    print("  Computing pattern...")
+    print("  Computing pressure...")
     print("  Detecting silences...")
     print("  Computing harmonic/percussive balance...")
 
@@ -1108,12 +1109,12 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
     tempo_val = report.get("tempo", 0)
     _, beats = librosa.beat.beat_track(y=y, sr=sr)
     beat_times_viz = librosa.frames_to_time(beats, sr=sr)
-    m_times, attention_grip = compute_attention_grip(beat_times_viz, duration, hop_sec=hop_sec)
+    m_times, attention = compute_attention(beat_times_viz, duration, hop_sec=hop_sec)
     s_times, disruption, d_beat, d_spectral, d_energy = compute_disruption(
         y, sr, beat_times_viz, duration, hop_sec=hop_sec
     )
-    p_times, pressure_motion = compute_pressure_motion(y, sr, duration, hop_sec=hop_sec)
-    hp_times, h_energy_viz, p_energy_viz, hp_balance = compute_harmonic_percussive_attention_grip(
+    p_times, pressure = compute_pressure(y, sr, duration, hop_sec=hop_sec)
+    hp_times, h_energy_viz, p_energy_viz, hp_balance = compute_harmonic_percussive_attention(
         y, sr, duration, hop_sec=hop_sec
     )
 
@@ -1131,44 +1132,44 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
     print(f"  Perception report saved: {report_path}")
 
     # ===== VISUALIZATIONS =====
-    if m_times is not None and attention_grip is not None:
+    if m_times is not None and attention is not None:
         fig_w, fig_h = 16, 3
 
-        # 1. Attention grip + Surprise (the listener plot)
+        # 1. Attention + Surprise (the listener plot)
         print("  Generating perception plot...")
         fig, axes = plt.subplots(3, 1, figsize=(fig_w, fig_h * 3), sharex=True)
 
-        # Attention grip
-        axes[0].fill_between(m_times, attention_grip, alpha=0.4, color="#2ecc71")
-        axes[0].plot(m_times, attention_grip, color="#27ae60", linewidth=1)
-        axes[0].set_ylabel("Attention grip")
+        # Attention
+        axes[0].fill_between(m_times, attention, alpha=0.4, color="#2ecc71")
+        axes[0].plot(m_times, attention, color="#27ae60", linewidth=1)
+        axes[0].set_ylabel("Attention")
         axes[0].set_ylim(-0.05, 1.05)
-        axes[0].set_title(f"{track_name} — Rhythmic Attention grip (listener)", fontsize=13)
+        axes[0].set_title(f"{track_name} — Rhythmic Attention (listener)", fontsize=13)
         for s in silences:
             axes[0].axvspan(s["start"], s["end"], alpha=0.3, color="#e74c3c", label="silence")
 
-        # Pattern integrity (inverted disruption: high = locked in)
-        pattern_integrity_total = 1.0 - disruption
-        pattern_integrity_beat = 1.0 - d_beat
-        pattern_integrity_spectral = 1.0 - d_spectral
-        pattern_integrity_energy = 1.0 - d_energy
-        axes[1].fill_between(s_times, pattern_integrity_total, alpha=0.3, color="#2980b9")
-        axes[1].plot(s_times, pattern_integrity_beat, color="#e67e22", linewidth=0.8, alpha=0.7, label="beat")
-        axes[1].plot(s_times, pattern_integrity_spectral, color="#9b59b6", linewidth=0.8, alpha=0.7, label="spectral")
-        axes[1].plot(s_times, pattern_integrity_energy, color="#3498db", linewidth=0.8, alpha=0.7, label="energy")
-        axes[1].set_ylabel("Pattern integrity")
+        # Pattern (inverted disruption: high = locked in)
+        pattern_total = 1.0 - disruption
+        pattern_beat = 1.0 - d_beat
+        pattern_spectral = 1.0 - d_spectral
+        pattern_energy = 1.0 - d_energy
+        axes[1].fill_between(s_times, pattern_total, alpha=0.3, color="#2980b9")
+        axes[1].plot(s_times, pattern_beat, color="#e67e22", linewidth=0.8, alpha=0.7, label="beat")
+        axes[1].plot(s_times, pattern_spectral, color="#9b59b6", linewidth=0.8, alpha=0.7, label="spectral")
+        axes[1].plot(s_times, pattern_energy, color="#3498db", linewidth=0.8, alpha=0.7, label="energy")
+        axes[1].set_ylabel("Pattern")
         axes[1].set_ylim(-0.05, 1.05)
-        axes[1].set_title("Pattern integrity (prediction accuracy)", fontsize=13)
+        axes[1].set_title("Pattern (prediction accuracy)", fontsize=13)
         axes[1].legend(loc="lower right", fontsize=9)
 
-        # Pressure motion
-        axes[2].fill_between(p_times, pressure_motion, where=pressure_motion > 0, alpha=0.4, color="#2ecc71", label="building")
-        axes[2].fill_between(p_times, pressure_motion, where=pressure_motion < 0, alpha=0.4, color="#e74c3c", label="releasing")
+        # Pressure
+        axes[2].fill_between(p_times, pressure, where=pressure > 0, alpha=0.4, color="#2ecc71", label="building")
+        axes[2].fill_between(p_times, pressure, where=pressure < 0, alpha=0.4, color="#e74c3c", label="releasing")
         axes[2].axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
-        axes[2].set_ylabel("Pressure motion")
+        axes[2].set_ylabel("Pressure")
         axes[2].set_ylim(-1.05, 1.05)
         axes[2].set_xlabel("Time (s)")
-        axes[2].set_title("Pressure motion (heard pressure direction)", fontsize=13)
+        axes[2].set_title("Pressure (heard pressure direction)", fontsize=13)
         axes[2].legend(loc="upper right", fontsize=9)
 
         plt.tight_layout()

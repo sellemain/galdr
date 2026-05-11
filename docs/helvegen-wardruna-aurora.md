@@ -32,7 +32,7 @@ From `0:40` onward, the text's central question becomes audible in the body's ex
 
 Around `1:30`, the piece has fully locked. The pulse is strong without becoming percussive in a modern way. The texture stays harmonic and vocal dominant. There is impact, but it is not drum-forward impact. It is the pressure of repeated sound occupying the same place until the place changes shape.
 
-The voice is the condition's spine. It does not dominate the analyzer as a clean foreground pitch all the time, and that matters. Much of the vocal force here is not a neat melody line for pitch tracking to catch. It is grain, mass, pressure motion, vowel, room. The foreground pitch evidence can look modest while the heard voice is everywhere.
+The voice is the condition's spine. It does not dominate the analyzer as a clean foreground pitch all the time, and that matters. Much of the vocal force here is not a neat melody line for pitch tracking to catch. It is grain, mass, pressure, vowel, room. The foreground pitch evidence can look modest while the heard voice is everywhere.
 
 Aurora's role sharpens that point. Her voice does not simply add a prettier upper line. It changes the ritual topology. Wardruna supplies the road, the floor, the ancestral weight. Aurora gives the crossing a human edge: fragile, bright, almost childlike beside the darker mass. The contrast makes the song less like a chant about death and more like someone being accompanied through it.
 
@@ -50,7 +50,7 @@ Around `6:33`, the withdrawal becomes undeniable. The track drops into a deeper 
 
 It cannot.
 
-At `6:39`, pressure releases hard. Attention grip falls out from under the listener. Structural lock loosens. The sound is still present, but the carrying function has failed. This is the first true break in the experience, not because it is loud or spectacular, but because the long ritual grip finally stops being able to hold attention in the old way.
+At `6:39`, pressure releases hard. Attention falls out from under the listener. Structural lock loosens. The sound is still present, but the carrying function has failed. This is the first true break in the experience, not because it is loud or spectacular, but because the long ritual grip finally stops being able to hold attention in the old way.
 
 From `6:43` to `6:46`, the ending breaks in fragments. The pulse no longer feels like a road. It feels like the last stones of one. The pressure keeps dropping, and the voice-world that had seemed so immovable begins to depart.
 

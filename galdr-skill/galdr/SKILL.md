@@ -1,6 +1,6 @@
 ---
 name: galdr
-description: Music perception SDK for AI agents — turns tracks into listener-state traces: attention grip, pressure motion, silence, tempo confidence, harmony, melody, overtones.
+description: Music perception SDK for AI agents — turns tracks into listener-state traces: attention, pressure, silence, tempo confidence, harmony, melody, overtones.
 version: 0.2.2
 author: Sellemain
 license: MIT
@@ -8,7 +8,7 @@ platforms: [linux, macos]
 ---
 # galdr
 
-Music perception SDK for AI agents — turns tracks into listener-state traces: attention grip, pressure motion, silence, tempo confidence, harmony, melody, overtones.
+Music perception SDK for AI agents — turns tracks into listener-state traces: attention, pressure, silence, tempo confidence, harmony, melody, overtones.
 
 ## Install
 
@@ -85,7 +85,7 @@ Reading order:
 1. Read `PERCEPTION-MODEL.md` first.
 2. Treat `*_stream.json` as the main evidence surface.
 3. Walk the track in order.
-4. Mark transitions: silence, re-entry, pattern breaks, attention grip shifts, pressure/pressure motion changes, harmonic movement.
+4. Mark transitions: silence, re-entry, pattern breaks, attention shifts, pressure/pressure changes, harmonic movement.
 5. Translate pressure fields into listening language: comes forward, holds, releases, empties. Do not quote LUFS values in experience prose.
 6. Only then compress upward into a larger interpretation.
 
@@ -148,11 +148,11 @@ prompt = subprocess.run(
 See [references/metrics.md](references/metrics.md) for full metric reference.
 
 **Quick read:**
-- `pattern_integrity` near 1.0 → listener is locked; near 0 → constant disruption
-- `texture_weight` negative → harmonic dominant (warm, tonal); positive → percussive dominant
-- `pressure_motion_balance` building/releasing/sustaining → heard-pressure shape across the track
+- `pattern` near 1.0 → listener is locked; near 0 → constant disruption
+- `texture` negative → harmonic dominant (warm, tonal); positive → percussive dominant
+- `pressure_balance` building/releasing/sustaining → heard-pressure shape across the track
 - Clustered `pattern_breaks` at the end → planned release; distributed → varied structure
-- `silence` depth below -60dB with re-lock above 0.93 attention grip → structured withdrawal/return
+- `silence` depth below -60dB with re-lock above 0.93 attention → structured withdrawal/return
 
 ## Writing Experience Prose (without piping)
 

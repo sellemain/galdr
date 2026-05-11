@@ -34,7 +34,7 @@ except PackageNotFoundError:
 
 # ─── Analysis pipeline ────────────────────────────────────────────────────────
 from .analyze import analyze_track, compute_track_features
-from .perceive import generate_perception_stream, compute_attention_grip, compute_perception
+from .perceive import generate_perception_stream, compute_attention, compute_perception
 from .harmony import analyze_harmony, detect_key_kk
 from .melody import analyze_melody
 from .overtone import analyze_overtones
@@ -72,7 +72,7 @@ __all__ = [
     "compute_track_features",
     "generate_perception_stream",
     "compute_perception",
-    "compute_attention_grip",
+    "compute_attention",
     "analyze_harmony",
     "detect_key_kk",
     "analyze_melody",

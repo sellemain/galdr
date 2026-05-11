@@ -176,11 +176,11 @@ def test_version_not_unknown_when_installed():
     )
 
 
-# ─── 5. mean_pattern_integrity = 0.0 not replaced by mean_surprise ────────────────
+# ─── 5. mean_pattern = 0.0 not replaced by mean_surprise ────────────────
 
 
-def test_catalog_mean_pattern_integrity_zero_preserved():
-    """CatalogState.index_track() must preserve mean_pattern_integrity=0.0, not fall back to mean_surprise."""
+def test_catalog_mean_pattern_zero_preserved():
+    """CatalogState.index_track() must preserve mean_pattern=0.0, not fall back to mean_surprise."""
     from galdr.catalog import CatalogState
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -188,9 +188,9 @@ def test_catalog_mean_pattern_integrity_zero_preserved():
 
         perception = {
             "summary": {
-                "mean_pattern_integrity": 0.0,   # falsy but explicitly set
+                "mean_pattern": 0.0,   # falsy but explicitly set
                 "mean_surprise": 99.9,       # must NOT be used
-                "mean_attention_grip": 0.5,
+                "mean_attention": 0.5,
                 "total_silence_sec": 10.0,
                 "pattern_break_count": 3,
                 "pressure_building_pct": 40.0,
@@ -202,9 +202,9 @@ def test_catalog_mean_pattern_integrity_zero_preserved():
         cat.index_track("test_track", perception=perception)
 
         track_metrics = cat.tracks.get("test_track", {})
-        assert "mean_pattern_integrity" in track_metrics
-        assert track_metrics["mean_pattern_integrity"] == 0.0, (
-            f"Expected 0.0 but got {track_metrics['mean_pattern_integrity']!r} — "
+        assert "mean_pattern" in track_metrics
+        assert track_metrics["mean_pattern"] == 0.0, (
+            f"Expected 0.0 but got {track_metrics['mean_pattern']!r} — "
             "0.0 was likely replaced by mean_surprise"
         )
 
@@ -300,7 +300,7 @@ def test_pattern_break_counts_present_in_summary():
         "summary missing 'pattern_break_counts' key"
     )
     pbc = summary["pattern_break_counts"]
-    for key in ("pattern_break", "attention_grip_drop", "attention_grip_gain", "silence"):
+    for key in ("pattern_break", "attention_drop", "attention_gain", "silence"):
         assert key in pbc, f"pattern_break_counts missing key '{key}'"
     # Values must be non-negative integers
     for key, val in pbc.items():
@@ -397,30 +397,30 @@ def test_pressure_events_use_hysteresis_not_threshold_chatter():
     assert events.count("pressure_builds") == 1
 
 
-def test_attention_grip_events_use_hysteresis_not_threshold_chatter(monkeypatch):
-    """Attention grip event labels should not chatter around lock/unmoor thresholds."""
+def test_attention_events_use_hysteresis_not_threshold_chatter(monkeypatch):
+    """Attention event labels should not chatter around lock/unmoor thresholds."""
     import galdr.perceive as perceive
     from galdr.perceive import compute_perception
 
     sr = 22050
     duration = 18.0
     y = np.zeros(int(sr * duration), dtype=np.float32)
-    attention_grip_values = np.array([
+    attention_values = np.array([
         0.70, 0.81, 0.79, 0.82, 0.78, 0.83, 0.74, 0.66, 0.64,
         0.69, 0.62, 0.36, 0.19, 0.22, 0.18, 0.24, 0.40, 0.18,
     ])
-    times = np.arange(len(attention_grip_values), dtype=float)
+    times = np.arange(len(attention_values), dtype=float)
 
-    def fake_attention_grip(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
-        return times, attention_grip_values
+    def fake_attention(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
+        return times, attention_values
 
-    monkeypatch.setattr(perceive, "compute_attention_grip", fake_attention_grip)
+    monkeypatch.setattr(perceive, "compute_attention", fake_attention)
 
-    result = compute_perception(y, sr, "attention_grip-threshold-chatter", hop_sec=1.0)
+    result = compute_perception(y, sr, "attention-threshold-chatter", hop_sec=1.0)
     events = [entry["event"] for entry in result["stream"] if entry.get("event")]
 
-    assert events.count("attention_grip_arrives") == 1
-    assert events.count("attention_grip_releases") == 1
+    assert events.count("attention_arrives") == 1
+    assert events.count("attention_releases") == 1
 
 
 def test_body_lock_events_require_sustained_dwell(monkeypatch):
@@ -437,17 +437,17 @@ def test_body_lock_events_require_sustained_dwell(monkeypatch):
         0.80, 0.30, 0.30, 0.30, 0.10, 0.55, 0.30, 0.30,
     ])
 
-    def fake_attention_grip(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
+    def fake_attention(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
         return times, np.full(len(times), 0.5)
 
     def fake_body(
         *,
         duration,
         beat_count,
-        pulse_steadiness,
+        pulse,
         pulse_confidence,
         pulse_ambiguous,
-        texture_weight,
+        texture,
         onsets_per_second,
     ):
         idx = fake_body.idx
@@ -461,12 +461,12 @@ def test_body_lock_events_require_sustained_dwell(monkeypatch):
             state = "weak"
         else:
             state = "absent"
-        return {"body_grip": score, "body_grip_state": state, "entrainment_note": state}
+        return {"body": score, "body_state": state, "entrainment_note": state}
 
     fake_body.idx = 0
 
-    monkeypatch.setattr(perceive, "compute_attention_grip", fake_attention_grip)
-    monkeypatch.setattr(perceive, "compute_body_grip", fake_body)
+    monkeypatch.setattr(perceive, "compute_attention", fake_attention)
+    monkeypatch.setattr(perceive, "compute_body", fake_body)
 
     result = compute_perception(y, sr, "body-lock-dwell", hop_sec=1.0)
     events = [entry["event"] for entry in result["stream"] if entry.get("event")]
@@ -492,7 +492,7 @@ def test_phrase_dynamic_events_capture_local_lift_when_macro_state_holds(monkeyp
     )
     y = (np.sin(2 * np.pi * 440.0 * audio_t) * amp).astype(np.float32)
 
-    def fake_attention_grip(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
+    def fake_attention(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
         return times, np.full(len(times), 0.7)
 
     def fake_disruption(y, sr, beat_times, duration, hop_sec=0.5):
@@ -505,9 +505,9 @@ def test_phrase_dynamic_events_capture_local_lift_when_macro_state_holds(monkeyp
         hp = p / (h + p)
         return times, h, p, hp
 
-    monkeypatch.setattr(perceive, "compute_attention_grip", fake_attention_grip)
+    monkeypatch.setattr(perceive, "compute_attention", fake_attention)
     monkeypatch.setattr(perceive, "compute_disruption", fake_disruption)
-    monkeypatch.setattr(perceive, "compute_harmonic_percussive_attention_grip", fake_hp)
+    monkeypatch.setattr(perceive, "compute_harmonic_percussive_attention", fake_hp)
 
     result = compute_perception(y, sr, "phrase-lift", hop_sec=hop_sec)
     events = [entry["event"] for entry in result["stream"] if entry.get("event")]
@@ -522,7 +522,7 @@ def test_assemble_includes_stream_listening_events():
     prompt = assemble_prompt({
         "report": {"duration_seconds": 12.0, "tempo_bpm": 120.0},
         "perception": {
-            "summary": {"mean_attention_grip": 0.9, "mean_pattern_integrity": 0.95},
+            "summary": {"mean_attention": 0.9, "mean_pattern": 0.95},
             "stream": [
                 {"t": 6.0, "event": "phrase_lifts", "event_note": "phrase lifts"},
             ],
@@ -818,7 +818,7 @@ def test_compute_track_features_callable_with_synthetic_audio():
 
     assert isinstance(result, dict)
     assert "detected_pulse_bpm" in result
-    assert "pulse_steadiness" in result
+    assert "pulse" in result
     assert "weight_arc" in result
     # Private arrays should have been added but are stripped on JSON serialization;
     # verify the report fields are present.
