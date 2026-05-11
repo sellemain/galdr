@@ -19,9 +19,9 @@ def test_import_analyze():
 
 def test_import_perceive():
     """perceive module loads and exposes key functions."""
-    from galdr.perceive import generate_perception_stream, compute_momentum
+    from galdr.perceive import generate_perception_stream, compute_attention_grip
     assert callable(generate_perception_stream)
-    assert callable(compute_momentum)
+    assert callable(compute_attention_grip)
 
 
 def test_import_harmony():

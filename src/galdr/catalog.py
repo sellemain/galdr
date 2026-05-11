@@ -16,6 +16,7 @@ from collections import OrderedDict
 import numpy as np
 
 from .constants import ACTIVE_FRAME_SILENCE_PCT_THRESHOLD
+from .metric_vocabulary import display_name
 
 
 def _default_catalog_dir():
@@ -103,40 +104,40 @@ class CatalogState:
 
         if perception:
             s = perception.get("summary", perception)
-            # mean_surprise was renamed to mean_pattern_lock in the disruption refactor
-            val = s.get("mean_pattern_lock")
-            pattern_lock = val if val is not None else s.get("mean_surprise")
+            # mean_surprise was renamed to mean_pattern_integrity in the disruption refactor
+            val = s.get("mean_pattern_integrity")
+            pattern_integrity = val if val is not None else s.get("mean_surprise")
 
             # Use active-frame stats for catalog ranking when silence is significant.
             # This prevents tracks with long silences (Helvegen, Feldman) from ranking
-            # artificially low on momentum vs. tracks with no silence.
+            # artificially low on attention_grip vs. tracks with no silence.
             silence_pct = s.get("silence_pct", 0.0) or 0.0
             if silence_pct >= ACTIVE_FRAME_SILENCE_PCT_THRESHOLD:
-                catalog_momentum = s.get("mean_momentum_active", s.get("mean_momentum"))
-                catalog_pattern_lock = s.get("mean_pattern_lock_active", pattern_lock)
+                catalog_attention_grip = s.get("mean_attention_grip_active", s.get("mean_attention_grip"))
+                catalog_pattern_integrity = s.get("mean_pattern_integrity_active", pattern_integrity)
             else:
-                catalog_momentum = s.get("mean_momentum")
-                catalog_pattern_lock = pattern_lock
+                catalog_attention_grip = s.get("mean_attention_grip")
+                catalog_pattern_integrity = pattern_integrity
 
             metrics.update({
-                "mean_momentum": catalog_momentum,
-                "mean_pattern_lock": catalog_pattern_lock,
+                "mean_attention_grip": catalog_attention_grip,
+                "mean_pattern_integrity": catalog_pattern_integrity,
                 "total_silence_sec": s.get("total_silence_sec"),
                 "silence_pct": silence_pct,
                 "active_duration_sec": s.get("active_duration_sec"),
                 "pattern_break_count": s.get("pattern_break_count"),
-                "breath_positive_pct": s.get("breath_positive_pct"),
-                "breath_negative_pct": s.get("breath_negative_pct"),
-                "breath_sustain_pct": s.get("breath_sustain_pct"),
+                "pressure_building_pct": s.get("pressure_building_pct"),
+                "pressure_releasing_pct": s.get("pressure_releasing_pct"),
+                "pressure_sustaining_pct": s.get("pressure_sustaining_pct"),
             })
 
         if harmony:
             metrics.update({
-                "mean_tuning_alignment": harmony.get("mean_tuning_alignment"),
-                "mean_harmonic_series_consonance": harmony.get("mean_harmonic_series_consonance"),
-                "mean_harmonic_tension": harmony.get("mean_harmonic_tension"),
-                "mean_chroma_flux": harmony.get("mean_chroma_flux"),
-                "mean_tonal_stability": harmony.get("mean_tonal_stability"),
+                "mean_pitch_grid_alignment": harmony.get("mean_pitch_grid_alignment"),
+                "mean_interval_coherence": harmony.get("mean_interval_coherence"),
+                "mean_harmonic_pull": harmony.get("mean_harmonic_pull"),
+                "mean_harmonic_color_motion": harmony.get("mean_harmonic_color_motion"),
+                "mean_tonal_anchor": harmony.get("mean_tonal_anchor"),
                 "mean_major_minor": harmony.get("mean_major_minor"),
                 "detected_key": harmony.get("detected_key"),
                 "detected_mode": harmony.get("detected_mode"),
@@ -147,7 +148,7 @@ class CatalogState:
             metrics.update({
                 "overall_range_semitones": melody.get("overall_range_semitones"),
                 "overall_center_note": melody.get("overall_center_note"),
-                "mean_vocal_presence": melody.get("mean_vocal_presence"),
+                "mean_foreground_line_evidence": melody.get("mean_foreground_line_evidence"),
                 "contour_ascending_pct": melody.get("contour_ascending_pct"),
                 "contour_descending_pct": melody.get("contour_descending_pct"),
                 "mean_direction": melody.get("mean_direction"),
@@ -155,8 +156,8 @@ class CatalogState:
 
         if overtone:
             metrics.update({
-                "mean_harmonic_series_fit": overtone.get("mean_harmonic_series_fit"),
-                "mean_overtone_richness": overtone.get("mean_overtone_richness"),
+                "mean_overtone_fit": overtone.get("mean_overtone_fit"),
+                "mean_overtone_density": overtone.get("mean_overtone_density"),
                 "mean_inharmonicity": overtone.get("mean_inharmonicity"),
             })
 
@@ -165,10 +166,10 @@ class CatalogState:
                 "duration_seconds": report.get("duration_seconds"),
                 "detected_pulse_bpm": report.get("detected_pulse_bpm"),
                 "felt_pulse_bpm": report.get("felt_pulse_bpm"),
-                "pulse_stability": report.get("pulse_stability"),
-                "body_entrainment": report.get("body_entrainment"),
-                "weight_drag_sway": report.get("weight_drag_sway"),
-                "texture_balance": report.get("texture_balance"),
+                "pulse_steadiness": report.get("pulse_steadiness"),
+                "body_grip": report.get("body_grip"),
+                "physical_hold": report.get("physical_hold"),
+                "texture_weight": report.get("texture_weight"),
                 "spectral_centroid_mean_hz": report.get("spectral_centroid_mean_hz"),
             })
 
@@ -246,20 +247,20 @@ class CatalogState:
         lines = [f"=== {track_name} -- Catalog Position ===\n"]
 
         key_metrics = [
-            ("mean_pattern_lock", "Pattern Lock", "higher = the structure keeps its pattern intact"),
-            ("mean_momentum", "Momentum", "higher = stronger attention grip"),
+            ("mean_pattern_integrity", display_name("pattern_integrity"), "higher = the structure keeps its pattern intact"),
+            ("mean_attention_grip", display_name("attention_grip"), "higher = stronger attention grip"),
             ("silence_pct", "Silence %", "fraction of track that is truly empty"),
             ("active_duration_sec", "Active Duration", "seconds of non-silent audio"),
-            ("breath_positive_pct", "Pressure Building", "fraction of track moving into more pressure"),
-            ("breath_negative_pct", "Pressure Releasing", "fraction of track letting pressure go"),
-            ("breath_sustain_pct", "Pressure Sustaining", "fraction of track holding pressure steady"),
-            ("pattern_break_count", "Structural Breaks", "count of silence, momentum shifts, and pattern ruptures"),
-            ("pulse_stability", "Pulse Stability", "higher = steadier measured pulse"),
-            ("body_entrainment", "Body Entrainment", "higher = stronger felt body-lock"),
-            ("weight_drag_sway", "Weight/Drag/Sway", "higher = stronger physical hold from weight, drag, or suspended sway"),
-            ("texture_balance", "Texture Balance", "negative = harmonic weight, positive = percussive weight"),
-            ("mean_harmonic_tension", "Harmonic Pull", "higher = more harmonic pull, motion, or refusal to settle"),
-            ("mean_chroma_flux", "Harmonic Color Motion", "higher = faster shifts in harmonic color"),
+            ("pressure_building_pct", "Pressure Building", "fraction of track moving into more pressure"),
+            ("pressure_releasing_pct", "Pressure Releasing", "fraction of track letting pressure go"),
+            ("pressure_sustaining_pct", "Pressure Sustaining", "fraction of track holding pressure steady"),
+            ("pattern_break_count", "Structural Breaks", "count of silence, attention_grip shifts, and pattern ruptures"),
+            ("pulse_steadiness", display_name("pulse_steadiness"), "higher = steadier measured pulse"),
+            ("body_grip", display_name("body_grip"), "higher = stronger felt body-lock"),
+            ("physical_hold", display_name("physical_hold"), "higher = stronger physical hold from weight, drag, or suspended sway"),
+            ("texture_weight", display_name("texture_weight"), "negative = harmonic weight, positive = percussive weight"),
+            ("mean_harmonic_pull", display_name("harmonic_pull"), "higher = more harmonic pull, motion, or refusal to settle"),
+            ("mean_harmonic_color_motion", display_name("harmonic_color_motion"), "higher = faster shifts in harmonic color"),
         ]
 
         for metric, label, desc in key_metrics:

@@ -39,7 +39,7 @@ def flatten_metrics(data):
     if "report" in data:
         r = data["report"]
         for k in ["duration_seconds", "detected_pulse_bpm", "felt_pulse_bpm",
-                   "beat_count", "pulse_stability", "body_entrainment", "weight_drag_sway", "texture_balance",
+                   "beat_count", "pulse_steadiness", "body_grip", "physical_hold", "texture_weight",
                    "harmonic_weight", "percussive_weight", "spectral_centroid_mean_hz",
                    "onset_count", "onsets_per_second", "mean_zcr", "dynamic_range_ratio"]:
             if k in r and isinstance(r[k], (int, float)):
@@ -47,24 +47,24 @@ def flatten_metrics(data):
 
     if "perception" in data:
         s = data["perception"].get("summary", data["perception"])
-        for k in ["mean_momentum", "mean_pattern_lock",
+        for k in ["mean_attention_grip", "mean_pattern_integrity",
                    "total_silence_sec", "pattern_break_count",
-                   "breath_positive_pct", "breath_negative_pct",
-                   "breath_sustain_pct"]:
+                   "pressure_building_pct", "pressure_releasing_pct",
+                   "pressure_sustaining_pct"]:
             if k in s and isinstance(s[k], (int, float)):
                 metrics[k] = s[k]
 
     if "harmony" in data:
         h = data["harmony"]
-        for k in ["mean_tuning_alignment", "mean_harmonic_series_consonance", "mean_harmonic_tension",
-                   "mean_chroma_flux", "mean_tonal_stability",
+        for k in ["mean_pitch_grid_alignment", "mean_interval_coherence", "mean_harmonic_pull",
+                   "mean_harmonic_color_motion", "mean_tonal_anchor",
                    "mean_major_minor", "key_confidence"]:
             if k in h and isinstance(h[k], (int, float)):
                 metrics[k] = h[k]
 
     if "melody" in data:
         m = data["melody"]
-        for k in ["overall_range_semitones", "mean_vocal_presence",
+        for k in ["overall_range_semitones", "mean_foreground_line_evidence",
                    "contour_ascending_pct", "contour_descending_pct",
                    "contour_holding_pct", "mean_direction"]:
             if k in m and isinstance(m[k], (int, float)):
@@ -72,7 +72,7 @@ def flatten_metrics(data):
 
     if "overtone" in data:
         o = data["overtone"]
-        for k in ["mean_harmonic_series_fit", "mean_overtone_richness", "mean_inharmonicity",
+        for k in ["mean_overtone_fit", "mean_overtone_density", "mean_inharmonicity",
                    "voiced_frames", "total_frames"]:
             if k in o and isinstance(o[k], (int, float)):
                 metrics[k] = o[k]

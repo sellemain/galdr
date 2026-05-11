@@ -23,14 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python API helpers for listening, assembling, fetching, and DataFrame-oriented catalog exploration.
 - Notebook and script examples for agent and application integration.
 - Tempo profile validation with candidate tempos, confidence scoring, ambiguity flags, and windowed cross-checks.
-- LUFS-based loudness and breath/pressure analysis using `pyloudnorm`.
-- Perception stream fields for loudness, LUFS breath delta, pressure state, and loudness-aware silence.
+- LUFS-based loudness and pressure_motion/pressure analysis using `pyloudnorm`.
+- Perception stream fields for loudness, LUFS pressure_motion delta, pressure state, and loudness-aware silence.
 - Perception-first roadmap and listening-test templates for future metric validation.
 - GitHub issue templates for bug reports and usage questions.
 - Public support/contact guidance in the README.
 
 ### Changed
-- Breath and assembled prose now describe pressure/build/release/sustain instead of raw loudness jargon.
+- Pressure motion and assembled prose now describe pressure/build/release/sustain instead of raw loudness jargon.
 - Package author email now uses the public galdr alias at `galdr@sellemain.com`.
 - Security policy now reflects the current supported release line and fallback contact path.
 - Agent skill packaging now uses `galdr-skill/galdr/SKILL.md` as the canonical distributable skill, with `docs/AGENT-CLI-REFERENCE.md` as the no-frontmatter CLI reference.
@@ -88,7 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `galdr update-deps`: command to update yt-dlp and other dependencies in place
-- Active-frame silence stats in perception summary: `silence_pct`, `active_duration_sec`, `silent_duration_sec`, `mean_momentum_active`, `mean_pattern_lock_active`, `momentum_range_active` — when silence exceeds 10%, catalog ranking uses active-frame stats instead of whole-track means
+- Active-frame silence stats in perception summary: `silence_pct`, `active_duration_sec`, `silent_duration_sec`, `mean_attention_grip_active`, `mean_pattern_integrity_active`, `attention_grip_range_active` — when silence exceeds 10%, catalog ranking uses active-frame stats instead of whole-track means
 - Null signal guard: tracks with RMS below threshold exit early with `{null_signal: true}`, no files written, not indexed — prevents degenerate inputs from polluting catalog
 - `pythonpath = ["src"]` in pytest config for correct src-layout test isolation
 
@@ -138,7 +138,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of galdr
-- Perception stream: momentum, pattern_lock, breath, hp_balance metrics
+- Perception stream: attention_grip, pattern_integrity, pressure_motion, hp_balance metrics
 - Audio analysis: tempo, beat regularity, energy arc, silence detection
 - Harmony analysis: temperament alignment, HP balance, tonal center
 - Melody analysis: pitch contour, melodic range, phrase structure

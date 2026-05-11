@@ -59,14 +59,14 @@ def detect_null_signal(audio_path: str, track_name: str) -> dict | None:
     return _null_signal_report(y, sr, track_name)
 
 
-def compute_body_entrainment(
+def compute_body_grip(
     *,
     duration: float,
     beat_count: int,
-    pulse_stability: float,
+    pulse_steadiness: float,
     pulse_confidence: float | None,
     pulse_ambiguous: bool,
-    texture_balance: float,
+    texture_weight: float,
     onsets_per_second: float,
 ) -> dict:
     """Estimate felt body-lock separately from raw tempo detection.
@@ -77,11 +77,11 @@ def compute_body_entrainment(
     does not erase entrainment, but it dampens confidence and changes the note.
     """
     pulse_conf = 0.5 if pulse_confidence is None else float(np.clip(pulse_confidence, 0.0, 1.0))
-    pulse_component = float(np.clip(pulse_stability, 0.0, 1.0)) * pulse_conf
+    pulse_component = float(np.clip(pulse_steadiness, 0.0, 1.0)) * pulse_conf
     if pulse_ambiguous:
         pulse_component *= 0.75
 
-    percussive_component = float(np.clip(texture_balance, 0.0, 1.0))
+    percussive_component = float(np.clip(texture_weight, 0.0, 1.0))
 
     # Body-lock needs audible events, but extra density stops helping once the
     # surface is busy enough.  4 onsets/sec is already plenty of handle.
@@ -126,18 +126,18 @@ def compute_body_entrainment(
         note += "; pulse interpretation is ambiguous/alternate-pulse"
 
     return {
-        "body_entrainment": round(score, 3),
-        "body_entrainment_state": state,
+        "body_grip": round(score, 3),
+        "body_grip_state": state,
         "entrainment_note": note,
     }
 
 
-def compute_weight_drag_sway(
+def compute_physical_hold(
     *,
-    pulse_stability: float,
+    pulse_steadiness: float,
     pulse_confidence: float | None,
-    body_entrainment: float,
-    texture_balance: float,
+    body_grip: float,
+    texture_weight: float,
     onsets_per_second: float,
     harmonic_weight: float,
     percussive_weight: float,
@@ -145,7 +145,7 @@ def compute_weight_drag_sway(
 ) -> dict:
     """Estimate physical hold that comes from weight, drag, or sway.
 
-    This is intentionally separate from body entrainment.  Entrainment asks
+    This is intentionally separate from body grip.  Entrainment asks
     whether the body locks to a forward motor; this asks whether the track
     makes the body feel held, slowed, or pulled by sustained pressure.
     """
@@ -155,9 +155,9 @@ def compute_weight_drag_sway(
 
     slow_density = float(np.clip(1.0 - (onsets_per_second / 4.0), 0.0, 1.0))
     very_sparse = float(np.clip(1.0 - (onsets_per_second / 2.2), 0.0, 1.0))
-    pulse_component = float(np.clip(pulse_stability, 0.0, 1.0)) * pulse_conf
-    drag_gap = float(np.clip((pulse_component - body_entrainment) / 0.35, 0.0, 1.0))
-    texture_component = float(np.clip((0.55 - texture_balance) / 0.55, 0.0, 1.0))
+    pulse_component = float(np.clip(pulse_steadiness, 0.0, 1.0)) * pulse_conf
+    drag_gap = float(np.clip((pulse_component - body_grip) / 0.35, 0.0, 1.0))
+    texture_component = float(np.clip((0.55 - texture_weight) / 0.55, 0.0, 1.0))
     dynamics_component = float(np.clip(np.log10(max(dynamic_range_ratio, 1.0)) / 4.0, 0.0, 1.0))
     pressure_component = harmonic_component * texture_component
     suspended_pull = drag_gap * slow_density
@@ -184,8 +184,8 @@ def compute_weight_drag_sway(
         state = "light"
 
     return {
-        "weight_drag_sway": round(score, 3),
-        "weight_drag_sway_state": state,
+        "physical_hold": round(score, 3),
+        "physical_hold_state": state,
     }
 
 
@@ -221,10 +221,10 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     # Beat intervals for rhythm analysis
     if len(beat_times) > 1:
         beat_intervals = np.diff(beat_times)
-        pulse_stability = max(0.0, 1.0 - (np.std(beat_intervals) / np.mean(beat_intervals)))
+        pulse_steadiness = max(0.0, 1.0 - (np.std(beat_intervals) / np.mean(beat_intervals)))
     else:
         beat_intervals = np.array([])
-        pulse_stability = 0.0
+        pulse_steadiness = 0.0
 
     # --- Spectral features ---
     # Mel spectrogram
@@ -283,20 +283,20 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     dynamic_range = float(np.max(rms) / np.min(rms[rms > 0])) if np.any(rms > 0) else 0
 
     onsets_per_second = len(onset_times) / duration
-    body_entrainment = compute_body_entrainment(
+    body_grip = compute_body_grip(
         duration=duration,
         beat_count=len(beat_times),
-        pulse_stability=pulse_stability,
+        pulse_steadiness=pulse_steadiness,
         pulse_confidence=tempo_profile.get("pulse_confidence"),
         pulse_ambiguous=bool(tempo_profile.get("pulse_ambiguous")),
-        texture_balance=perc_ratio,
+        texture_weight=perc_ratio,
         onsets_per_second=onsets_per_second,
     )
-    weight_drag_sway = compute_weight_drag_sway(
-        pulse_stability=pulse_stability,
+    physical_hold = compute_physical_hold(
+        pulse_steadiness=pulse_steadiness,
         pulse_confidence=tempo_profile.get("pulse_confidence"),
-        body_entrainment=body_entrainment["body_entrainment"],
-        texture_balance=perc_ratio,
+        body_grip=body_grip["body_grip"],
+        texture_weight=perc_ratio,
         onsets_per_second=onsets_per_second,
         harmonic_weight=harm_energy,
         percussive_weight=perc_energy,
@@ -344,16 +344,16 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         "duration_seconds": round(duration, 1),
         **tempo_profile,
         "beat_count": len(beat_times),
-        "pulse_stability": round(pulse_stability, 3),  # 1.0 = perfectly regular
-        **body_entrainment,
-        **weight_drag_sway,
+        "pulse_steadiness": round(pulse_steadiness, 3),  # 1.0 = perfectly regular
+        **body_grip,
+        **physical_hold,
         "rhythm_description": (
-            "very regular/metronomic" if pulse_stability > 0.9
-            else "steady" if pulse_stability > 0.7
-            else "organic/fluid" if pulse_stability > 0.5
+            "very regular/metronomic" if pulse_steadiness > 0.9
+            else "steady" if pulse_steadiness > 0.7
+            else "organic/fluid" if pulse_steadiness > 0.5
             else "free/rubato"
         ),
-        "texture_balance": round(perc_ratio, 3),  # 0=all harmonic, 1=all percussive
+        "texture_weight": round(perc_ratio, 3),  # 0=all harmonic, 1=all percussive
         "harmonic_weight": round(harm_energy, 6),
         "percussive_weight": round(perc_energy, 6),
         "character": (

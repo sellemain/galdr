@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Galdr analyzes a piece of music and produces structured data about what it does to a listener — momentum, harmonic structure, breath, pattern, silence. It does not run an LLM during analysis; it gives downstream AI agents the ears. Then you give that data to an AI and ask it to write what it hears.
+Galdr analyzes a piece of music and produces structured data about what it does to a listener — attention grip, harmonic structure, pressure motion, pattern integrity, silence. It does not run an LLM during analysis; it gives downstream AI agents the ears. Then you give that data to an AI and ask it to write what it hears.
 
 This is what comes back:
 
@@ -119,7 +119,7 @@ Useful extras if you want a richer read:
 1. Read `PERCEPTION-MODEL.md` first.
 2. Treat the stream as the primary evidence.
 3. Walk through time in order.
-4. Mark transitions: silence, re-entry, pattern breaks, momentum shifts, pressure/breath changes, harmonic movement.
+4. Mark transitions: silence, re-entry, pattern breaks, attention grip shifts, pressure-motion changes, harmonic movement.
 5. Translate pressure fields into listening language: comes forward, holds, releases, empties. Do not quote LUFS values in experience prose.
 6. Only after that should you compress the track into a larger arc.
 
@@ -158,7 +158,7 @@ galdr assemble my-track --mode blind > prompt.txt
 
 Once you've done a first listen, galdr has more to give.
 
-**Read the perception model first.** The metrics describe listener *attention*, not audio features. High pattern_lock is not mechanical — it may be ritual. Negative breath is not failure — the track may be exhaling. LUFS-backed pressure is there to improve the evidence; in prose, write what it means: pressure comes forward, holds, releases, or empties. [PERCEPTION-MODEL.md](PERCEPTION-MODEL.md) defines each metric in detail.
+**Read the perception model first.** The metrics describe listener *attention*, not audio features. High pattern_integrity is not mechanical — it may be ritual. Negative pressure motion is not failure — the track may be exhaling. LUFS-backed pressure is there to improve the evidence; in prose, write what it means: pressure comes forward, holds, releases, or empties. [PERCEPTION-MODEL.md](PERCEPTION-MODEL.md) defines each metric in detail.
 
 **Focus on one thing.** Run only the harmony module to explore chord structure:
 
