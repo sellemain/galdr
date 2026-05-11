@@ -32,7 +32,9 @@ from .constants import (
     BREATH_SMOOTH_SEC,
     SILENCE_THRESHOLD_DB, SILENCE_MIN_DURATION_SEC,
     HP_BALANCE_MIN_ENERGY, HP_SMOOTH_SEC,
-    EVENT_MOMENTUM_LOCKED, EVENT_MOMENTUM_FLOATING,
+    EVENT_MOMENTUM_LOCKED, EVENT_MOMENTUM_LOCK_RESET,
+    EVENT_MOMENTUM_FLOATING, EVENT_MOMENTUM_FLOAT_RESET, EVENT_MOMENTUM_MIN_GAP_SEC,
+    EVENT_BODY_LOCK_DWELL_SEC, EVENT_BODY_UNLOCK_DWELL_SEC,
     EVENT_DISRUPTION_BREAK, EVENT_BREATH_BUILDING, EVENT_BREATH_RELEASING,
     EVENT_PRESSURE_BUILD_RESET, EVENT_PRESSURE_RELEASE_RESET, EVENT_PRESSURE_MIN_GAP_SEC,
     EVENT_WDS_SLOPE_WINDOW_SEC, EVENT_WDS_MIN_DELTA, EVENT_WDS_SILENCE_LUFS_CEILING,
@@ -699,12 +701,17 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
 
     # ===== BUILD PERCEPTION STREAM =====
     stream = []
-    previous_body_state = None
     previous_weight_state = None
     last_surface_event_t = -float("inf")
     pressure_ready_to_build = True
     pressure_ready_to_release = True
     last_pressure_event_t = -float("inf")
+    momentum_ready_to_lock = True
+    momentum_ready_to_unmoor = False
+    last_momentum_event_t = -float("inf")
+    body_lock_active = False
+    body_lock_since = None
+    body_unlock_since = None
     for i, t in enumerate(m_times):
         local_body, local_weight = _local_body_and_weight(float(t), i)
         local_body_state = local_body["body_entrainment_state"]
@@ -750,21 +757,45 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
                     entry["reentry_force"] = reentry["reentry_force"]
                 break
 
+        body_is_locked = local_body_state in {"emerging", "locked"}
+        body_is_unlocked = local_body_state in {"absent", "weak"}
+        if body_is_locked:
+            if body_lock_since is None:
+                body_lock_since = float(t)
+            body_unlock_since = None
+        elif body_is_unlocked:
+            if body_unlock_since is None:
+                body_unlock_since = float(t)
+            body_lock_since = None
+
+        body_lock_arrives = (
+            not body_lock_active
+            and body_lock_since is not None
+            and float(t) - body_lock_since >= EVENT_BODY_LOCK_DWELL_SEC
+        )
+        body_lock_recedes = (
+            body_lock_active
+            and body_unlock_since is not None
+            and float(t) - body_unlock_since >= EVENT_BODY_UNLOCK_DWELL_SEC
+        )
+
         # Narrative flags (for experience write-ups).  Surface-transform events
         # get first claim when the whole surface hardens while the body current
         # remains continuous. Then local body/WDS changes describe felt carriage.
         if _surface_hardens(entry) and float(t) - last_surface_event_t >= EVENT_SURFACE_COOLDOWN_SEC:
             _mark_event(entry, "surface_hardens", "surface hardens while the body current holds")
             last_surface_event_t = float(t)
-        elif local_body_state in {"emerging", "locked"} and previous_body_state in {None, "absent", "weak"}:
+        elif body_lock_arrives:
             note = (
                 "body finds the pulse under weight"
                 if local_weight_state in {"suspended", "heavy"}
                 else "body finds the pulse"
             )
             _mark_event(entry, "body_lock_arrives", note)
-        elif local_body_state in {"absent", "weak"} and previous_body_state in {"emerging", "locked"}:
+            body_lock_active = True
+        elif body_lock_recedes:
             _mark_event(entry, "body_lock_recedes", "body lock loosens")
+            body_lock_active = False
         elif (
             local_weight_state in {"present", "suspended", "heavy"}
             and previous_weight_state in {None, "light"}
@@ -782,10 +813,24 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             and _wds_slope_event(entry, i, "lifts")
         ):
             _mark_event(entry, "weight_lifts", "weight lifts")
-        elif momentum[i] > EVENT_MOMENTUM_LOCKED and (i == 0 or momentum[i-1] <= EVENT_MOMENTUM_LOCKED):
+        elif (
+            momentum[i] > EVENT_MOMENTUM_LOCKED
+            and momentum_ready_to_lock
+            and float(t) - last_momentum_event_t >= EVENT_MOMENTUM_MIN_GAP_SEC
+        ):
             _mark_event(entry, "momentum_locks", "motion settles into a reliable pattern")
-        elif momentum[i] < EVENT_MOMENTUM_FLOATING and i > 0 and momentum[i-1] >= EVENT_MOMENTUM_FLOATING:
+            momentum_ready_to_lock = False
+            momentum_ready_to_unmoor = True
+            last_momentum_event_t = float(t)
+        elif (
+            momentum[i] < EVENT_MOMENTUM_FLOATING
+            and momentum_ready_to_unmoor
+            and float(t) - last_momentum_event_t >= EVENT_MOMENTUM_MIN_GAP_SEC
+        ):
             _mark_event(entry, "momentum_unmoors", "motion loses its hold")
+            momentum_ready_to_unmoor = False
+            momentum_ready_to_lock = True
+            last_momentum_event_t = float(t)
         elif disruption[i] > EVENT_DISRUPTION_BREAK:
             _mark_event(entry, "pattern_breaks", "pattern breaks")
         elif (
@@ -811,8 +856,11 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             pressure_ready_to_build = True
         if breath[i] >= EVENT_PRESSURE_RELEASE_RESET:
             pressure_ready_to_release = True
+        if momentum[i] <= EVENT_MOMENTUM_LOCK_RESET:
+            momentum_ready_to_lock = True
+        if momentum[i] >= EVENT_MOMENTUM_FLOAT_RESET:
+            momentum_ready_to_unmoor = True
 
-        previous_body_state = local_body_state
         previous_weight_state = local_weight_state
         stream.append(entry)
 
