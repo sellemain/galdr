@@ -45,4 +45,4 @@ This run gives galdr a useful classical baseline:
 - LUFS-aware pressure language is better than raw loudness language for classical music, where perceived force depends on space, contrast, and accumulated weight.
 - The real break can be the ending. In a work this stable, collapse only becomes meaningful because the structure refused to collapse earlier.
 
-For galdr 0.2.1, Dvořák's finale is not just another example. It is a proof that the framework can leave the song world and still behave like a listener: tracking body, pressure, return, pressure motion, tonal gravity, and orchestral mass without pretending the piece has lyrics or a pop-form skeleton.
+For galdr 0.2.1, Dvořák's finale is not just another example. It is a proof that the framework can leave the song world and still behave like a listener: tracking body, pressure, return, pressure, tonal gravity, and orchestral mass without pretending the piece has lyrics or a pop-form skeleton.

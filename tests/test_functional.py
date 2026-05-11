@@ -57,7 +57,7 @@ def test_perception_stream_entry_keys(audio_path, tmp_path):
     report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
     stream = report.get("stream", [])
 
-    expected_keys = {"t", "weight", "attention_grip", "pattern_integrity", "pressure_motion", "texture_weight",
+    expected_keys = {"t", "weight", "attention", "pattern", "pressure", "texture",
                      "harmonic_weight", "percussive_weight"}
     for entry in stream:
         assert expected_keys.issubset(entry.keys()), (
@@ -67,30 +67,30 @@ def test_perception_stream_entry_keys(audio_path, tmp_path):
 
 
 @pytest.mark.slow
-def test_perception_stream_pattern_integrity_range(audio_path, tmp_path):
-    """pattern_integrity values must be between 0.0 and 1.0."""
+def test_perception_stream_pattern_range(audio_path, tmp_path):
+    """pattern values must be between 0.0 and 1.0."""
     from galdr.perceive import generate_perception_stream
 
     report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
     stream = report.get("stream", [])
 
     for entry in stream:
-        assert 0.0 <= entry["pattern_integrity"] <= 1.0, (
-            f"pattern_integrity out of range at t={entry['t']}: {entry['pattern_integrity']}"
+        assert 0.0 <= entry["pattern"] <= 1.0, (
+            f"pattern out of range at t={entry['t']}: {entry['pattern']}"
         )
 
 
 @pytest.mark.slow
-def test_perception_stream_attention_grip_range(audio_path, tmp_path):
-    """attention_grip values must be between 0.0 and 1.0."""
+def test_perception_stream_attention_range(audio_path, tmp_path):
+    """attention values must be between 0.0 and 1.0."""
     from galdr.perceive import generate_perception_stream
 
     report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
     stream = report.get("stream", [])
 
     for entry in stream:
-        assert 0.0 <= entry["attention_grip"] <= 1.0, (
-            f"attention_grip out of range at t={entry['t']}: {entry['attention_grip']}"
+        assert 0.0 <= entry["attention"] <= 1.0, (
+            f"attention out of range at t={entry['t']}: {entry['attention']}"
         )
 
 
@@ -106,7 +106,7 @@ def test_analyze_track_report_structure(audio_path, tmp_path):
 
     assert isinstance(report, dict)
     for key in ["track", "duration_seconds", "detected_pulse_bpm", "felt_pulse_bpm", "beat_count",
-                 "pulse_steadiness", "texture_weight", "weight_arc"]:
+                 "pulse", "texture", "weight_arc"]:
         assert key in report, f"Missing report key: {key}"
     assert report["track"] == "test-track"
     assert report["duration_seconds"] > 0

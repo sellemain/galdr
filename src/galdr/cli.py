@@ -186,20 +186,20 @@ def cmd_listen(args):
         r = results["report"]
         print(f"  Duration: {r.get('duration_seconds', '?')}s | "
               f"Felt pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
-              f"Pulse steadiness: {r.get('pulse_steadiness', '?')} | "
-              f"Body grip: {r.get('body_grip', '?')} "
-              f"({r.get('body_grip_state', '?')}) | "
-              f"Physical hold: {r.get('physical_hold', '?')} "
-              f"({r.get('physical_hold_state', '?')}) | "
-              f"Texture weight: {r.get('texture_weight', '?')}")
+              f"Pulse: {r.get('pulse', '?')} | "
+              f"Body: {r.get('body', '?')} "
+              f"({r.get('body_state', '?')}) | "
+              f"Weight: {r.get('weight', '?')} "
+              f"({r.get('weight_state', '?')}) | "
+              f"Texture: {r.get('texture', '?')}")
 
     if "perception" in results:
         s = results["perception"].get("summary", results["perception"])
-        print(f"  Attention grip: {s.get('mean_attention_grip', '?')} | "
-              f"Pattern integrity: {s.get('mean_pattern_integrity', '?')} | "
+        print(f"  Attention: {s.get('mean_attention', '?')} | "
+              f"Pattern: {s.get('mean_pattern', '?')} | "
               f"Silence: {s.get('total_silence_sec', '?')}s | "
               f"Pattern Breaks: {s.get('pattern_break_count', '?')}")
-        print(f"  Pressure motion: +{s.get('pressure_building_pct', '?')}% / "
+        print(f"  Pressure: +{s.get('pressure_building_pct', '?')}% / "
               f"-{s.get('pressure_releasing_pct', '?')}% / "
               f"={s.get('pressure_sustaining_pct', '?')}%")
 
@@ -207,11 +207,11 @@ def cmd_listen(args):
         h = results["harmony"]
         print(f"  Harmonic pull: {h.get('mean_harmonic_pull', '?')} | "
               f"Tonal anchor: {h.get('mean_tonal_anchor', '?')} | "
-              f"Harmonic color motion: {h.get('mean_harmonic_color_motion', '?')}")
+              f"Chroma motion: {h.get('mean_chroma_motion', '?')}")
 
     if "melody" in results:
         m = results["melody"]
-        print(f"  Foreground line evidence: {m.get('mean_foreground_line_evidence', '?')} "
+        print(f"  Foreground line: {m.get('mean_foreground_line', '?')} "
               "(pitch-tracking support, not a vocal claim)")
 
     if "overtone" in results:

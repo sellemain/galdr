@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "galdr"
 version = "0.2.2"
-description = "AI-native music perception framework for agent listening experiences. Listener-state traces, pattern integrity, attention grip, harmonic analysis, lyric integration."
+description = "AI-native music perception framework for agent listening experiences. Listener-state traces, pattern, attention, harmonic analysis, lyric integration."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

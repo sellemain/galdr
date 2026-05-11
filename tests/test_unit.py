@@ -113,16 +113,16 @@ class TestFlattenMetrics:
         data = {
             "perception": {
                 "summary": {
-                    "mean_attention_grip": 0.85,
-                    "mean_pattern_integrity": 0.96,
+                    "mean_attention": 0.85,
+                    "mean_pattern": 0.96,
                     "total_silence_sec": 4.2,
                     "pattern_break_count": 3,
                 }
             }
         }
         result = self.fn(data)
-        assert result["mean_attention_grip"] == pytest.approx(0.85)
-        assert result["mean_pattern_integrity"] == pytest.approx(0.96)
+        assert result["mean_attention"] == pytest.approx(0.85)
+        assert result["mean_pattern"] == pytest.approx(0.96)
         assert result["pattern_break_count"] == 3
 
     def test_harmony_section_extracted(self):
@@ -130,7 +130,7 @@ class TestFlattenMetrics:
             "harmony": {
                 "mean_harmonic_pull": 0.35,
                 "key_confidence": 0.72,
-                "mean_harmonic_color_motion": 0.21,
+                "mean_chroma_motion": 0.21,
             }
         }
         result = self.fn(data)
@@ -140,13 +140,13 @@ class TestFlattenMetrics:
     def test_all_sections_combined(self):
         data = {
             "report": {"duration_seconds": 200.0, "detected_pulse_bpm": 100.0},
-            "perception": {"summary": {"mean_attention_grip": 0.8, "pattern_break_count": 2}},
+            "perception": {"summary": {"mean_attention": 0.8, "pattern_break_count": 2}},
             "harmony": {"mean_harmonic_pull": 0.4},
             "melody": {"mean_direction": 0.1},
         }
         result = self.fn(data)
         assert "duration_seconds" in result
-        assert "mean_attention_grip" in result
+        assert "mean_attention" in result
         assert "mean_harmonic_pull" in result
         assert "mean_direction" in result
 
@@ -167,8 +167,8 @@ class TestAssemblePrompt:
 
     def _minimal_analysis(self):
         return {
-            "report": {"duration_seconds": 200.0, "detected_pulse_bpm": 120.0, "felt_pulse_bpm": 120.0, "pulse_steadiness": 0.96},
-            "perception": {"summary": {"mean_attention_grip": 0.85, "mean_pattern_integrity": 0.95}},
+            "report": {"duration_seconds": 200.0, "detected_pulse_bpm": 120.0, "felt_pulse_bpm": 120.0, "pulse": 0.96},
+            "perception": {"summary": {"mean_attention": 0.85, "mean_pattern": 0.95}},
         }
 
     def test_invalid_mode_raises(self):
@@ -256,16 +256,16 @@ def _sm308_analysis():
             "duration_seconds": 180.0,
             "detected_pulse_bpm": 92.0,
             "felt_pulse_bpm": 92.0,
-            "pulse_steadiness": 0.76,
+            "pulse": 0.76,
             "harmonic_weight": 0.7,
             "percussive_weight": 0.3,
-            "texture_weight": -0.4,
+            "texture": -0.4,
             "character": "pure harmonic/vocal",
         },
         "perception": {
             "summary": {
-                "mean_attention_grip": 0.52,
-                "mean_pattern_integrity": 0.81,
+                "mean_attention": 0.52,
+                "mean_pattern": 0.81,
                 "pressure_building_pct": 35.0,
                 "pressure_releasing_pct": 25.0,
                 "pressure_sustaining_pct": 40.0,
@@ -274,7 +274,7 @@ def _sm308_analysis():
                 "pattern_break_count": 3,
             },
             "pattern_breaks": [
-                {"time": 42.0, "type": "attention_grip_drop", "intensity": 0.62},
+                {"time": 42.0, "type": "attention_drop", "intensity": 0.62},
                 {"time": 80.0, "type": "silence", "duration": 1.2, "depth_db": -72.0},
             ],
         },
@@ -286,12 +286,12 @@ def _sm308_analysis():
             "top_chords": [{"chord": "Dm"}, {"chord": "A7"}],
             "mean_harmonic_pull": 0.33,
             "mean_tonal_anchor": 0.58,
-            "mean_harmonic_color_motion": 0.27,
+            "mean_chroma_motion": 0.27,
         },
         "melody": {
             "overall_range_semitones": 31.0,
             "overall_center_note": "A4",
-            "mean_foreground_line_evidence": 0.18,
+            "mean_foreground_line": 0.18,
             "contour_ascending_pct": 40.0,
             "contour_descending_pct": 35.0,
             "contour_holding_pct": 25.0,
@@ -310,13 +310,13 @@ def test_sm308_assemble_demotes_theory_and_vocal_labels():
 
     prompt = assemble_prompt(_sm308_analysis(), mode="blind")
 
-    assert "Attention grip:" in prompt
-    assert "Pattern integrity:" in prompt
-    assert "Pressure motion:" in prompt
+    assert "Attention:" in prompt
+    assert "Pattern:" in prompt
+    assert "Pressure:" in prompt
     assert "How to read galdr" in prompt
     assert "Event timeline" in prompt
     assert "Harmonic pull:" in prompt
-    assert "Foreground line evidence:" in prompt
+    assert "Foreground line:" in prompt
 
     forbidden = [
         "Character:",
@@ -349,8 +349,8 @@ def test_sm308_catalog_card_is_perception_first():
     )
     card = cat.summary_card("sm308-track")
 
-    assert "Pattern integrity" in card
-    assert "Attention grip" in card
+    assert "Pattern" in card
+    assert "Attention" in card
     assert "Pressure Building" in card
     assert "Structural Breaks" in card
     assert "Harmonic pull" in card
@@ -439,24 +439,24 @@ class TestNullSignalGuard:
 class TestActiveFrameStats:
     """perceive.py should report active-frame stats alongside whole-track averages."""
 
-    def _make_perception_summary(self, silence_pct, attention_grip_active=0.8, attention_grip_whole=0.4):
+    def _make_perception_summary(self, silence_pct, attention_active=0.8, attention_whole=0.4):
         """Build a minimal perception summary dict as if returned by generate_perception_stream."""
         return {
-            "mean_attention_grip": attention_grip_whole,
-            "mean_pattern_integrity": 0.7,
-            "attention_grip_range": [0.1, 0.9],
+            "mean_attention": attention_whole,
+            "mean_pattern": 0.7,
+            "attention_range": [0.1, 0.9],
             "total_silence_sec": 30.0,
             "silent_duration_sec": 30.0,
             "active_duration_sec": 70.0,
             "silence_pct": silence_pct,
-            "mean_attention_grip_active": attention_grip_active,
-            "mean_pattern_integrity_active": 0.85,
-            "attention_grip_range_active": [0.5, 0.9],
+            "mean_attention_active": attention_active,
+            "mean_pattern_active": 0.85,
+            "attention_range_active": [0.5, 0.9],
             "pattern_break_count": 4,
             "pattern_break_counts": {
                 "pattern_break": 2,
-                "attention_grip_drop": 1,
-                "attention_grip_gain": 0,
+                "attention_drop": 1,
+                "attention_gain": 0,
                 "silence": 1,
             },
             "pressure_building_pct": 40.0,
@@ -469,51 +469,51 @@ class TestActiveFrameStats:
         assert "active_duration_sec" in s
         assert "silent_duration_sec" in s
         assert "silence_pct" in s
-        assert "mean_attention_grip_active" in s
-        assert "mean_pattern_integrity_active" in s
+        assert "mean_attention_active" in s
+        assert "mean_pattern_active" in s
 
     def test_pattern_break_counts_split(self):
         s = self._make_perception_summary(silence_pct=5.0)
         pbc = s["pattern_break_counts"]
         assert "pattern_break" in pbc
-        assert "attention_grip_drop" in pbc
-        assert "attention_grip_gain" in pbc
+        assert "attention_drop" in pbc
+        assert "attention_gain" in pbc
         assert "silence" in pbc
         assert sum(pbc.values()) == s["pattern_break_count"]
 
-    def test_catalog_uses_active_attention_grip_when_silence_high(self):
-        """When silence_pct >= threshold, catalog should index active-frame attention_grip."""
+    def test_catalog_uses_active_attention_when_silence_high(self):
+        """When silence_pct >= threshold, catalog should index active-frame attention."""
         from galdr.catalog import CatalogState
         from galdr.constants import ACTIVE_FRAME_SILENCE_PCT_THRESHOLD
 
         cat = CatalogState(analysis_dir="/tmp", catalog_dir="/tmp/cat-test")
         perception = {"summary": self._make_perception_summary(
             silence_pct=ACTIVE_FRAME_SILENCE_PCT_THRESHOLD + 5.0,
-            attention_grip_active=0.80,
-            attention_grip_whole=0.40,
+            attention_active=0.80,
+            attention_whole=0.40,
         )}
         cat.index_track("test-silence-track", perception=perception)
         indexed = cat.tracks["test-silence-track"]
-        # Should use active-frame attention_grip for catalog ranking
-        assert indexed["mean_attention_grip"] == pytest.approx(0.80, abs=0.01)
+        # Should use active-frame attention for catalog ranking
+        assert indexed["mean_attention"] == pytest.approx(0.80, abs=0.01)
 
-    def test_catalog_uses_whole_attention_grip_when_silence_low(self):
+    def test_catalog_uses_whole_attention_when_silence_low(self):
         from galdr.catalog import CatalogState
         from galdr.constants import ACTIVE_FRAME_SILENCE_PCT_THRESHOLD
 
         cat = CatalogState(analysis_dir="/tmp", catalog_dir="/tmp/cat-test2")
         perception = {"summary": self._make_perception_summary(
             silence_pct=ACTIVE_FRAME_SILENCE_PCT_THRESHOLD - 5.0,
-            attention_grip_active=0.80,
-            attention_grip_whole=0.40,
+            attention_active=0.80,
+            attention_whole=0.40,
         )}
         cat.index_track("test-quiet-track", perception=perception)
         indexed = cat.tracks["test-quiet-track"]
-        # Should use whole-track attention_grip (silence not significant)
-        assert indexed["mean_attention_grip"] == pytest.approx(0.40, abs=0.01)
+        # Should use whole-track attention (silence not significant)
+        assert indexed["mean_attention"] == pytest.approx(0.40, abs=0.01)
 
 
-# ── SM-300 LUFS Pressure motion ───────────────────────────────────────────────────────
+# ── SM-300 LUFS Pressure ───────────────────────────────────────────────────────
 
 
 class TestLufsPressureMotion:
@@ -532,7 +532,7 @@ class TestLufsPressureMotion:
 
         assert loudness["integrated_lufs"] is None
         assert loudness["silence_mask"].all()
-        assert np.allclose(loudness["pressure_motion"], 0.0)
+        assert np.allclose(loudness["pressure"], 0.0)
 
     def test_steady_loudness_sustains(self):
         import numpy as np
@@ -543,7 +543,7 @@ class TestLufsPressureMotion:
 
         assert loudness["integrated_lufs"] is not None
         assert not loudness["silence_mask"].all()
-        assert float(np.mean(np.abs(loudness["pressure_motion"]))) < 0.2
+        assert float(np.mean(np.abs(loudness["pressure"]))) < 0.2
 
     def test_building_pressure_goes_positive(self):
         import numpy as np
@@ -555,7 +555,7 @@ class TestLufsPressureMotion:
         y = (np.sin(2 * np.pi * 440 * t) * amp).astype(np.float32)
         loudness = compute_loudness(y, sr, 8.0)
 
-        assert float(np.mean(loudness["pressure_motion"][2:-2])) > 0.25
+        assert float(np.mean(loudness["pressure"][2:-2])) > 0.25
 
     def test_release_pressure_goes_negative(self):
         import numpy as np
@@ -567,7 +567,7 @@ class TestLufsPressureMotion:
         y = (np.sin(2 * np.pi * 440 * t) * amp).astype(np.float32)
         loudness = compute_loudness(y, sr, 8.0)
 
-        assert float(np.mean(loudness["pressure_motion"][2:-2])) < -0.25
+        assert float(np.mean(loudness["pressure"][2:-2])) < -0.25
 
     def test_perception_stream_keeps_rms_and_adds_lufs_pressure_fields(self):
         from galdr.perceive import compute_perception
@@ -581,10 +581,10 @@ class TestLufsPressureMotion:
         assert "loudness_lufs" in entry
         assert "pressure_lufs_delta" in entry
         assert "pressure_state" in entry
-        assert "body_grip" in entry
-        assert "body_grip_state" in entry
-        assert "physical_hold" in entry
-        assert "physical_hold_state" in entry
+        assert "body" in entry
+        assert "body_state" in entry
+        assert "weight" in entry
+        assert "weight_state" in entry
         event_entries = [e for e in report["stream"] if "event" in e]
         assert event_entries
         assert "event_note" in event_entries[0]
@@ -595,11 +595,11 @@ class TestLufsPressureMotion:
         from galdr.assemble import assemble_prompt
 
         analysis = {
-            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse_steadiness": 0.8},
+            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse": 0.8},
             "perception": {
                 "summary": {
-                    "mean_attention_grip": 0.5,
-                    "mean_pattern_integrity": 0.8,
+                    "mean_attention": 0.5,
+                    "mean_pattern": 0.8,
                     "pressure_building_pct": 45.0,
                     "pressure_releasing_pct": 35.0,
                     "pressure_sustaining_pct": 20.0,
@@ -618,90 +618,90 @@ class TestLufsPressureMotion:
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 
 
-def test_compute_body_grip_separates_body_lock_from_raw_tempo():
-    from galdr.analyze import compute_body_grip
+def test_compute_body_separates_body_lock_from_raw_tempo():
+    from galdr.analyze import compute_body
 
-    locked = compute_body_grip(
+    locked = compute_body(
         duration=120.0,
         beat_count=240,
-        pulse_steadiness=0.94,
+        pulse=0.94,
         pulse_confidence=0.92,
         pulse_ambiguous=False,
-        texture_weight=0.62,
+        texture=0.62,
         onsets_per_second=3.2,
     )
-    loose = compute_body_grip(
+    loose = compute_body(
         duration=120.0,
         beat_count=240,
-        pulse_steadiness=0.94,
+        pulse=0.94,
         pulse_confidence=0.92,
         pulse_ambiguous=False,
-        texture_weight=0.05,
+        texture=0.05,
         onsets_per_second=0.15,
     )
 
-    assert locked["body_grip"] > loose["body_grip"]
-    assert locked["body_grip_state"] == "locked"
-    assert loose["body_grip_state"] in {"weak", "emerging"}
+    assert locked["body"] > loose["body"]
+    assert locked["body_state"] == "locked"
+    assert loose["body_state"] in {"weak", "emerging"}
     assert "groove" not in locked["entrainment_note"]
 
 
-def test_compute_body_grip_damps_ambiguous_pulse():
-    from galdr.analyze import compute_body_grip
+def test_compute_body_damps_ambiguous_pulse():
+    from galdr.analyze import compute_body
 
-    clear = compute_body_grip(
+    clear = compute_body(
         duration=120.0,
         beat_count=220,
-        pulse_steadiness=0.88,
+        pulse=0.88,
         pulse_confidence=0.8,
         pulse_ambiguous=False,
-        texture_weight=0.5,
+        texture=0.5,
         onsets_per_second=2.5,
     )
-    ambiguous = compute_body_grip(
+    ambiguous = compute_body(
         duration=120.0,
         beat_count=220,
-        pulse_steadiness=0.88,
+        pulse=0.88,
         pulse_confidence=0.8,
         pulse_ambiguous=True,
-        texture_weight=0.5,
+        texture=0.5,
         onsets_per_second=2.5,
     )
 
-    assert ambiguous["body_grip"] < clear["body_grip"]
+    assert ambiguous["body"] < clear["body"]
     assert "ambiguous/alternate-pulse" in ambiguous["entrainment_note"]
 
 
-def test_compute_physical_hold_separates_drag_from_motor_lock():
-    from galdr.analyze import compute_physical_hold
+def test_compute_weight_separates_drag_from_motor_lock():
+    from galdr.analyze import compute_weight
 
-    drag = compute_physical_hold(
-        pulse_steadiness=0.95,
+    drag = compute_weight(
+        pulse=0.95,
         pulse_confidence=0.60,
-        body_grip=0.52,
-        texture_weight=0.31,
+        body=0.52,
+        texture=0.31,
         onsets_per_second=1.7,
         harmonic_weight=0.21,
         percussive_weight=0.095,
         dynamic_range_ratio=1000.0,
     )
-    motor = compute_physical_hold(
-        pulse_steadiness=0.97,
+    motor = compute_weight(
+        pulse=0.97,
         pulse_confidence=0.90,
-        body_grip=0.78,
-        texture_weight=0.35,
+        body=0.78,
+        texture=0.35,
         onsets_per_second=4.2,
         harmonic_weight=0.12,
         percussive_weight=0.065,
         dynamic_range_ratio=1000.0,
     )
 
-    assert drag["physical_hold"] > motor["physical_hold"]
-    assert drag["physical_hold_state"] in {"suspended", "heavy"}
-    assert motor["physical_hold_state"] == "light"
+    assert drag["weight"] > motor["weight"]
+    assert drag["weight_state"] in {"suspended", "heavy"}
+    assert motor["weight_state"] == "light"
 
 
-def test_assembled_metrics_include_body_grip_language():
+def test_assembled_metrics_include_body_language():
     from galdr.assemble import assemble_prompt
 
     analysis = {
@@ -709,21 +709,21 @@ def test_assembled_metrics_include_body_grip_language():
             "duration_seconds": 60.0,
             "detected_pulse_bpm": 120.0,
             "felt_pulse_bpm": 120.0,
-            "pulse_steadiness": 0.93,
-            "body_grip": 0.81,
-            "body_grip_state": "locked",
+            "pulse": 0.93,
+            "body": 0.81,
+            "body_state": "locked",
             "entrainment_note": "strong body-lock with real percussive support",
-            "physical_hold": 0.22,
-            "physical_hold_state": "light",
+            "weight": 0.22,
+            "weight_state": "light",
         },
-        "perception": {"summary": {"mean_attention_grip": 0.7, "mean_pattern_integrity": 0.9}},
+        "perception": {"summary": {"mean_attention": 0.7, "mean_pattern": 0.9}},
     }
 
     prompt = assemble_prompt(analysis, mode="blind")
 
-    assert "Body grip: 0.810 (locked)" in prompt
+    assert "Body: 0.810 (locked)" in prompt
     assert "strong body-lock" in prompt
-    assert "Physical hold: 0.220 (light)" in prompt
+    assert "Weight: 0.220 (light)" in prompt
 
 
 # ── Silence Re-entry / Recovery ───────────────────────────────────────────────
@@ -733,12 +733,12 @@ def test_compute_silence_reentries_classifies_post_gap_return():
     from galdr.perceive import compute_silence_reentries
 
     times = np.arange(0.0, 10.0, 0.5)
-    attention_grip = np.array([0.8, 0.82, 0.81, 0.8, 0.1, 0.1, 0.76, 0.82, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84])
-    pressure_motion = np.array([0.02, 0.02, 0.01, 0.0, -0.5, -0.5, 0.15, 0.12, 0.03, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02])
+    attention = np.array([0.8, 0.82, 0.81, 0.8, 0.1, 0.1, 0.76, 0.82, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84])
+    pressure = np.array([0.02, 0.02, 0.01, 0.0, -0.5, -0.5, 0.15, 0.12, 0.03, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02])
     loudness_delta = np.zeros_like(times)
     silences = [{"start": 4.0, "end": 5.0, "duration": 1.0, "depth_db": -80.0}]
 
-    reentries = compute_silence_reentries(silences, times, attention_grip, pressure_motion, loudness_delta, 10.0)
+    reentries = compute_silence_reentries(silences, times, attention, pressure, loudness_delta, 10.0)
 
     assert len(reentries) == 1
     event = reentries[0]
@@ -775,15 +775,15 @@ def test_compute_silence_reentries_marks_boundaries_separately():
     from galdr.perceive import compute_silence_reentries
 
     times = np.arange(0.0, 12.0, 0.5)
-    attention_grip = np.full_like(times, 0.75, dtype=float)
-    pressure_motion = np.zeros_like(times)
+    attention = np.full_like(times, 0.75, dtype=float)
+    pressure = np.zeros_like(times)
     loudness_delta = np.zeros_like(times)
     silences = [
         {"start": 0.0, "end": 1.5, "duration": 1.5, "depth_db": -80.0},
         {"start": 9.4, "end": 11.5, "duration": 2.1, "depth_db": -80.0},
     ]
 
-    reentries = compute_silence_reentries(silences, times, attention_grip, pressure_motion, loudness_delta, 12.0)
+    reentries = compute_silence_reentries(silences, times, attention, pressure, loudness_delta, 12.0)
 
     assert reentries[0]["boundary_position"] == "opening"
     assert reentries[0]["reentry_shape"] == "entry_preparation"
@@ -795,11 +795,11 @@ def test_assembled_structural_events_include_reentry_language():
     from galdr.assemble import assemble_prompt
 
     analysis = {
-        "report": {"duration_seconds": 20.0, "detected_pulse_bpm": 80.0, "pulse_steadiness": 0.7},
+        "report": {"duration_seconds": 20.0, "detected_pulse_bpm": 80.0, "pulse": 0.7},
         "perception": {
             "summary": {
-                "mean_attention_grip": 0.6,
-                "mean_pattern_integrity": 0.8,
+                "mean_attention": 0.6,
+                "mean_pattern": 0.8,
                 "pressure_building_pct": 20.0,
                 "pressure_releasing_pct": 20.0,
                 "pressure_sustaining_pct": 60.0,

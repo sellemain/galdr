@@ -25,7 +25,7 @@ from .constants import (
     MELODY_DIRECTION_WINDOW_SEC, MELODY_RANGE_WINDOW_SEC,
     MELODY_PRESENCE_WINDOW_SEC, MELODY_DIRECTION_MIN_PRESENCE,
     MELODY_ASCENDING_THRESHOLD, MELODY_DESCENDING_THRESHOLD,
-    ATTENTION_GRIP_HOP_SEC,
+    ATTENTION_HOP_SEC,
 )
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -55,7 +55,7 @@ def compute_pitch_contour(y, sr, hop_length=512, fmin=MELODY_FMIN, fmax=MELODY_F
 
 
 def compute_contour_direction(f0, times, window_sec=MELODY_DIRECTION_WINDOW_SEC,
-                              hop_sec=ATTENTION_GRIP_HOP_SEC):
+                              hop_sec=ATTENTION_HOP_SEC):
     """Measure whether the melody is ascending, descending, or holding."""
     f0_midi = np.where(np.isnan(f0), np.nan, librosa.hz_to_midi(np.maximum(f0, 1e-6)))
 
@@ -82,7 +82,7 @@ def compute_contour_direction(f0, times, window_sec=MELODY_DIRECTION_WINDOW_SEC,
 
 
 def compute_pitch_range(f0, times, window_sec=MELODY_RANGE_WINDOW_SEC,
-                        hop_sec=ATTENTION_GRIP_HOP_SEC):
+                        hop_sec=ATTENTION_HOP_SEC):
     """Measure the pitch range (in semitones) within sliding windows."""
     f0_midi = np.where(np.isnan(f0), np.nan, librosa.hz_to_midi(np.maximum(f0, 1e-6)))
 
@@ -105,9 +105,9 @@ def compute_pitch_range(f0, times, window_sec=MELODY_RANGE_WINDOW_SEC,
     return out_times, pitch_range, pitch_center
 
 
-def compute_foreground_line_evidence(voiced_probs, times,
+def compute_foreground_line(voiced_probs, times,
                            window_sec=MELODY_PRESENCE_WINDOW_SEC,
-                           hop_sec=ATTENTION_GRIP_HOP_SEC):
+                           hop_sec=ATTENTION_HOP_SEC):
     """Rolling measure of how much pitched content is present."""
     out_times = np.arange(0, times[-1] if len(times) > 0 else 0, hop_sec)
     presence = np.zeros_like(out_times)
@@ -124,7 +124,7 @@ def compute_foreground_line_evidence(voiced_probs, times,
 
 
 def analyze_melody(audio_path, output_dir, track_name,
-                    hop_sec=ATTENTION_GRIP_HOP_SEC, use_harmonic=True):
+                    hop_sec=ATTENTION_HOP_SEC, use_harmonic=True):
     """Full melodic contour analysis.
 
     Returns (summary_dict, stream_list).
@@ -156,7 +156,7 @@ def analyze_melody(audio_path, output_dir, track_name,
     range_times, pitch_range, pitch_center = compute_pitch_range(f0, pitch_times, hop_sec=hop_sec)
 
     print("  Computing vocal presence...")
-    pres_times, foreground_line_evidence = compute_foreground_line_evidence(voiced_probs, pitch_times, hop_sec=hop_sec)
+    pres_times, foreground_line = compute_foreground_line(voiced_probs, pitch_times, hop_sec=hop_sec)
 
     # ===== BUILD MELODY STREAM =====
     stream_times = np.arange(0, duration, hop_sec)
@@ -172,7 +172,7 @@ def analyze_melody(audio_path, output_dir, track_name,
             center_interp = np.full_like(stream_times, np.nan)
     else:
         center_interp = np.full_like(stream_times, np.nan)
-    presence_interp = np.interp(stream_times, pres_times, foreground_line_evidence) if len(pres_times) > 0 else np.zeros_like(stream_times)
+    presence_interp = np.interp(stream_times, pres_times, foreground_line) if len(pres_times) > 0 else np.zeros_like(stream_times)
 
     # Interpolate voiced probability to stream times for unvoiced frame detection
     voiced_interp = np.interp(stream_times, pitch_times, voiced_probs) if len(pitch_times) > 0 else np.zeros_like(stream_times)
@@ -192,7 +192,7 @@ def analyze_melody(audio_path, output_dir, track_name,
             "direction": round(float(direction_interp[i]), 3) if is_voiced else None,
             "pitch_range_st": round(float(range_interp[i]), 1),
             "pitch_center_midi": round(float(center_interp[i]), 1) if is_voiced and not np.isnan(center_interp[i]) else None,
-            "foreground_line_evidence": round(float(presence_interp[i]), 3),
+            "foreground_line": round(float(presence_interp[i]), 3),
         }
         stream.append(entry)
 
@@ -227,7 +227,7 @@ def analyze_melody(audio_path, output_dir, track_name,
         "overall_center_note": overall_center_note,
         "range_low": overall_low,
         "range_high": overall_high,
-        "mean_foreground_line_evidence": round(float(np.mean(foreground_line_evidence)), 3),
+        "mean_foreground_line": round(float(np.mean(foreground_line)), 3),
         "contour_ascending_pct": round(pct_ascending, 1),
         "contour_descending_pct": round(pct_descending, 1),
         "contour_holding_pct": round(pct_holding, 1),
@@ -270,7 +270,7 @@ def analyze_melody(audio_path, output_dir, track_name,
     axes[2].fill_between(range_times, pitch_range, alpha=0.3, color="#9b59b6")
     axes[2].set_ylabel("Range (semitones)")
 
-    axes[3].fill_between(pres_times, foreground_line_evidence, alpha=0.4, color="#2ecc71")
+    axes[3].fill_between(pres_times, foreground_line, alpha=0.4, color="#2ecc71")
     axes[3].set_ylabel("Vocal Presence")
     axes[3].set_xlabel("Time (s)")
     axes[3].set_ylim(0, 1)

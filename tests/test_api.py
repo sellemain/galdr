@@ -34,12 +34,12 @@ def test_load_stream_df_supports_dict_stream(tmp_path):
     from galdr import load_stream_df
 
     path = tmp_path / "demo_stream.json"
-    path.write_text(json.dumps({"stream": [{"t": 0, "attention_grip": 0.1}, {"t": 1, "attention_grip": 0.2}]}))
+    path.write_text(json.dumps({"stream": [{"t": 0, "attention": 0.1}, {"t": 1, "attention": 0.2}]}))
 
     df = load_stream_df(path)
 
-    assert list(df.columns) == ["t", "attention_grip"]
-    assert df["attention_grip"].tolist() == [0.1, 0.2]
+    assert list(df.columns) == ["t", "attention"]
+    assert df["attention"].tolist() == [0.1, 0.2]
 
 
 def test_load_streams_df_loads_available_modules(tmp_path):

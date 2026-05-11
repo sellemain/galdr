@@ -1,6 +1,6 @@
 # galdr agent CLI reference
 
-Music perception SDK for AI agents — turns tracks into listener-state traces: attention grip, pressure motion, silence, tempo confidence, harmony, melody, overtones.
+Music perception SDK for AI agents — turns tracks into listener-state traces: attention, pressure, silence, tempo confidence, harmony, melody, overtones.
 
 ## Install
 
@@ -30,11 +30,11 @@ galdr listen <audio.wav> [--name NAME] [--analysis-dir DIR]
 ```
 
 Outputs to `<analysis-dir>/<track-name>/`:
-- `*_report.json` — pulse confidence, pulse steadiness, weight arc, texture weight, dominant chroma
+- `*_report.json` — pulse confidence, pulse, weight arc, texture, dominant chroma
 - `*_perception.json` — attention-grip stream, silences, attention shift events, pressure summary
-- `*_stream.json` — per-hop time series (attention grip, pressure motion, pressure_state, loudness_lufs, pressure_lufs_delta, texture_weight, pattern_integrity, silence)
-- `*_harmony.json` — harmonic pull, tonal anchor evidence, harmonic color motion, internal tonal-center evidence
-- `*_melody.json` — foreground line evidence, pitch contour, internal range/center evidence
+- `*_stream.json` — per-hop time series (attention, pressure, pressure_state, loudness_lufs, pressure_lufs_delta, texture, pattern, silence)
+- `*_harmony.json` — harmonic pull, tonal anchor evidence, chroma motion, internal tonal-center evidence
+- `*_melody.json` — foreground line, pitch contour, internal range/center evidence
 - `*_overtone.json` — resonance/grain evidence: overtone fit, overtone density, inharmonicity
 
 Run only specific modules:
@@ -63,7 +63,7 @@ Recommended reading order:
 1. Read `PERCEPTION-MODEL.md` first.
 2. Read `*_stream.json` as the main evidence surface.
 3. Walk the track in order.
-4. Mark transitions: silence, re-entry, pattern breaks, attention grip shifts, pressure-motion changes, harmonic movement.
+4. Mark transitions: silence, re-entry, pattern breaks, attention shifts, pressure-motion changes, harmonic movement.
 5. Translate pressure fields into listening language: comes forward, holds, releases, empties. Do not quote LUFS values in experience prose.
 6. Compress upward into a larger arc only after the timed pass.
 
@@ -132,7 +132,7 @@ Download audio and context via yt-dlp. With `--analyze`, runs the full analysis 
 galdr frames <track-name>
 ```
 
-Extract and describe video frames at structural moments (pattern breaks, silences, attention grip shifts).
+Extract and describe video frames at structural moments (pattern breaks, silences, attention shifts).
 
 ### doctor / update-deps — YouTube download health
 
