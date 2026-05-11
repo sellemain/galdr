@@ -30,9 +30,9 @@ The track data gives you structure. Your job is to render it as sensation, not a
 
    When you quote a lyric, the lyric is the timestamp. Do not prepend `2:58 —` before a quoted line — the reader knows where they are.
 
-   Use explicit `M:SS` timestamps **sparingly**, and **only** for major non-lyric structural moments: an important entrance, a decisive momentum shift, a structural rupture, or closing silence. Format: `3:15` inline in prose.
+   Use explicit `M:SS` timestamps **sparingly**, and **only** for major non-lyric structural moments: an important entrance, a decisive momentum shift, a structural rupture, or closing silence. Format: `3:15` inline in prose. As a hard default, use **no more than 4-6 explicit timestamps** for a normal track. If the event list contains a dense cluster of nearby late events, give the cluster one anchor at most. The event tables below contain many timestamps as evidence; they are not a list of timestamps to copy.
 
-   Do **not** timestamp every event. Phrase-level movement usually reads better without a clock. Translate clusters of nearby events into one continuous sentence or paragraph instead of walking the reader through the event list.
+   Do **not** timestamp every event. Phrase-level movement usually reads better without a clock. Translate clusters of nearby events into one continuous sentence or paragraph instead of walking the reader through the event list. Never walk through adjacent events second by second. If several events happen within a few seconds, describe the felt sequence without enumerating each time. Do not make adjacent timestamp pairs such as `6:37`, `6:38`, `6:39`; that is event logging, not listening prose.
 
    Never wrap timestamps or event names in backticks. This is prose, not code.
 
@@ -68,12 +68,12 @@ The track data gives you structure. Your job is to render it as sensation, not a
 
 8. **Describe first, interpret sparingly.** Stay close to what the structure does. Occasional interpretation is fine. Sustained thematic argument is not. One or two moments of interpretation per piece.
 
-   Treat event labels as internal scaffolding. Do not repeat detector names like `phrase_drops`, `phrase_lifts`, `ornamental_flash`, `pressure_builds`, `pressure_releases`, `surface_hardens`, `body_lock_arrives`, `body_lock_recedes`, `momentum_locks`, or `momentum_unmoors` verbatim unless the phrase is also natural English without the underscore form. Say what the listener feels instead: a phrase drops back, the surface firms, weight arrives, the pulse loosens.
+   Treat event labels as internal scaffolding. Do not repeat detector names like `phrase_drops`, `phrase_lifts`, `ornamental_flash`, `pressure_builds`, `pressure_releases`, `surface_hardens`, `body_lock_arrives`, `body_lock_recedes`, `momentum_locks`, or `momentum_unmoors` verbatim. Avoid simply de-underscoring them into repeated stock phrases (`pressure builds`, `pressure releases`, `phrase drops back`, `pattern breaks`, `surface hardens`). Those phrases may appear in the data, but they should not appear in the final prose except rarely when unavoidable natural English. Say what the listener feels instead: the room tightens, the phrase withdraws, the texture firms, weight arrives, the pulse loosens, the surface gives way.
 
 9. **Voice vs. instruments.** If the track has vocals, name them and note when they enter. If it doesn't, name what carries the harmonic weight instead.
 
 10. **Don't name what the data doesn't give you.** Do not name specific instruments unless they appear in the galdr data or in the track notes. Do not assert recording context (live, studio, year) from memory. Do not argue that the song is *about* something — describe what the structure does and let the listener draw the meaning.
 
-11. **No section headers. No bullet points. No metric summary.** Do not quote raw metric values inline — translate them. Write what the number means in listener terms, not the number itself.
+11. **No section headers. No bullet points. No metric summary.** Do not quote raw metric values inline — translate them. Write what the number means in listener terms, not the number itself. Do not use exact measured durations such as `4.85-second`; round them into natural prose (`a several-second fade`, `a long hold`, `a quick break`).
 
 12. **~800 words.**
