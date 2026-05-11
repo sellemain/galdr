@@ -62,8 +62,10 @@ DISRUPTION_ENERGY_SMOOTH_SEC = 0.5
 # Perception — Breath
 # ============================================================
 
-# LUFS-pressure smoothing window for breath calculation (seconds)
-BREATH_SMOOTH_SEC = 20.0
+# LUFS-pressure smoothing window for breath calculation (seconds).
+# Chosen from fixture-matrix tests as the smoothest value in the 10-12s
+# stable band without suppressing meaningful events.
+BREATH_SMOOTH_SEC = 12.0
 
 
 # ============================================================
