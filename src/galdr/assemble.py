@@ -114,7 +114,16 @@ def load_analysis(slug: str, analysis_dir: Path) -> dict:
     """
     d = analysis_dir / slug
     modules = ["report", "perception", "harmony", "melody", "overtone"]
-    return {m: _load_json(d / f"{slug}_{m}.json") for m in modules}
+    analysis = {m: _load_json(d / f"{slug}_{m}.json") for m in modules}
+
+    # The perception summary and sampled stream are written as separate files.
+    # Attach the stream for prompt assembly so local listening events can be
+    # exposed alongside macro structural events.
+    stream = _load_json(d / f"{slug}_stream.json")
+    if stream and isinstance(analysis.get("perception"), dict):
+        analysis["perception"]["stream"] = stream
+
+    return analysis
 
 
 def load_context(slug: str, analysis_dir: Path) -> dict:
@@ -322,6 +331,20 @@ def _build_metrics(analysis: dict) -> str:
                 f"\nForeground pitch evidence: {foreground_pitch:.3f} "
                 "(pitch-tracking support; not a vocal claim)"
             )
+
+    # Listening events are stream-local narrative anchors. Macro events describe
+    # large state transitions; phrase events describe local gestures inside them.
+    stream_events = [
+        f for f in perception.get("stream", [])
+        if f.get("event") and f.get("event") != "pattern_breaks"
+    ]
+    if stream_events:
+        lines.append("\n### Listening events\n")
+        for f in stream_events:
+            event = f.get("event")
+            note = f.get("event_note")
+            suffix = f" — {note}" if note else ""
+            lines.append(f"{_fmt_time(float(f.get('t', 0)))} — {event}{suffix}")
 
     # Structural events — handles both schemas:
     # New: pattern_breaks (unified list with type="silence"|"break")

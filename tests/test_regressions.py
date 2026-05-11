@@ -475,6 +475,64 @@ def test_body_lock_events_require_sustained_dwell(monkeypatch):
     assert events.count("body_lock_recedes") == 1
 
 
+def test_phrase_dynamic_events_capture_local_lift_when_macro_state_holds(monkeypatch):
+    """Phrase dynamics should mark local gestures inside stable macro lock."""
+    import galdr.perceive as perceive
+    from galdr.perceive import compute_perception
+
+    sr = 22050
+    duration = 18.0
+    hop_sec = 1.0
+    times = np.arange(0, duration, hop_sec)
+    audio_t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+    amp = np.interp(
+        audio_t,
+        [0.0, 5.0, 6.0, 7.0, 18.0],
+        [0.12, 0.12, 0.55, 0.18, 0.18],
+    )
+    y = (np.sin(2 * np.pi * 440.0 * audio_t) * amp).astype(np.float32)
+
+    def fake_momentum(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
+        return times, np.full(len(times), 0.7)
+
+    def fake_disruption(y, sr, beat_times, duration, hop_sec=0.5):
+        zeros = np.zeros(len(times))
+        return times, zeros, zeros, zeros, zeros
+
+    def fake_hp(y, sr, duration, hop_sec=0.5):
+        h = np.full(len(times), 0.05)
+        p = np.array([0.05] * 6 + [0.30] + [0.08] * (len(times) - 7))
+        hp = p / (h + p)
+        return times, h, p, hp
+
+    monkeypatch.setattr(perceive, "compute_momentum", fake_momentum)
+    monkeypatch.setattr(perceive, "compute_disruption", fake_disruption)
+    monkeypatch.setattr(perceive, "compute_harmonic_percussive_momentum", fake_hp)
+
+    result = compute_perception(y, sr, "phrase-lift", hop_sec=hop_sec)
+    events = [entry["event"] for entry in result["stream"] if entry.get("event")]
+
+    assert "ornamental_flash" in events or "phrase_lifts" in events
+
+
+def test_assemble_includes_stream_listening_events():
+    """Assemble prompt should expose stream-local listening events, not only pattern breaks."""
+    from galdr.assemble import assemble_prompt
+
+    prompt = assemble_prompt({
+        "report": {"duration_seconds": 12.0, "tempo_bpm": 120.0},
+        "perception": {
+            "summary": {"mean_momentum": 0.9, "mean_pattern_lock": 0.95},
+            "stream": [
+                {"t": 6.0, "event": "phrase_lifts", "event_note": "phrase lifts"},
+            ],
+        },
+    })
+
+    assert "### Listening events" in prompt
+    assert "0:06 — phrase_lifts — phrase lifts" in prompt
+
+
 def test_cli_null_audio_skips_remaining_modules(tmp_path):
     """galdr listen should stop after null_signal and not write analysis artifacts."""
     import soundfile as sf
