@@ -153,6 +153,7 @@ def estimate_metric_tension(*, pulse: float, pulse_confidence: float | None, tem
 
     secondary_scores: list[tuple[float, float, float, float]] = []
     nearby_pressure = 0.0
+    hemiola_pressure = 0.0
     sparse_ambiguity = 0.0
     for candidate in tempo_candidates[1:]:
         bpm = float(candidate.get("bpm") or 0.0)
@@ -175,6 +176,8 @@ def estimate_metric_tension(*, pulse: float, pulse_confidence: float | None, tem
         support_weight = support_ratio ** 0.75
         score = support_weight * max(ratio_distance, hemiola_bonus)
         secondary_scores.append((score, bpm, ratio, support_ratio))
+        if hemiola_bonus > 0.0:
+            hemiola_pressure = max(hemiola_pressure, support_weight * hemiola_bonus)
 
         # Stable nearby tempos are often the audible footprint of a rub /
         # interlocking grid, even when the ratio is "simple" by candidate math.
@@ -187,7 +190,18 @@ def estimate_metric_tension(*, pulse: float, pulse_confidence: float | None, tem
     density_pressure = min(1.0, supported_alternates / 4.0) * 0.24
     complexity_pressure = nearby_pressure * 0.95
     raw_pressure = max(alternate_pressure, complexity_pressure) + density_pressure + sparse_ambiguity
-    score = float(np.clip(pulse_score * (0.80 + confidence * 0.20) * raw_pressure, 0.0, 1.0))
+
+    # Metric tension needs a trusted pulse to be meaningful. Sparse ambient
+    # tracks can emit multiple weak tempo candidates, but without pulse trust
+    # that is ambiguity/noise rather than a cross-rhythm fighting the grid.
+    # Preserve strong 3:2/hemiola evidence: low confidence is expected when a
+    # real alternate grid is present and competing with the primary pulse.
+    pulse_trust = pulse_score * (0.80 + confidence * 0.20)
+    strong_metric_evidence = hemiola_pressure >= 0.22 or nearby_pressure >= 0.70
+    if not strong_metric_evidence and (confidence < 0.38 or pulse_score < 0.35):
+        pulse_trust *= 0.30
+
+    score = float(np.clip(pulse_trust * raw_pressure, 0.0, 1.0))
 
     if score >= 0.55:
         state = "high"
