@@ -106,6 +106,8 @@ galdr assemble queen-bohemian-rhapsody --template arc --mode full > prompts/quee
 
 If you already have the slug and just want to regenerate prose with a different mode/template, you do **not** need to re-run fetch.
 
+Assembled prompts include the raw analysis plus an advisory **perceptual salience guide**. That guide does not filter the data. It helps the downstream model decide what should lead the listening prose: settled groove, heavy body lock, suspended ambient space, metric-grid pressure, release behavior, surface density, or other measured forces. Technical details stay visible, but they do not automatically become the headline if they are not the felt face of the music.
+
 ### 2) Analyze a local file for structural music data
 
 If you care more about the analysis than the prose, start local and inspect the outputs.
