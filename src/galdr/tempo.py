@@ -151,26 +151,43 @@ def estimate_metric_tension(*, pulse: float, pulse_confidence: float | None, tem
     primary_bpm = float(primary.get("bpm") or 0.0)
     primary_support = max(1.0, float(primary.get("support") or 1.0))
 
-    secondary_scores: list[tuple[float, float, float]] = []
+    secondary_scores: list[tuple[float, float, float, float]] = []
+    nearby_pressure = 0.0
+    sparse_ambiguity = 0.0
     for candidate in tempo_candidates[1:]:
         bpm = float(candidate.get("bpm") or 0.0)
         if bpm <= 0 or primary_bpm <= 0:
             continue
         support = max(1.0, float(candidate.get("support") or 1.0))
         support_ratio = min(1.0, support / primary_support)
-        sparse_alternate_bonus = 0.35 if support <= 2 and support_ratio < 0.35 else 0.0
-        support_weight = max(support_ratio, sparse_alternate_bonus)
-        ratio_distance = _simple_ratio_distance(primary_bpm, bpm)
-        # 3:2 / 2:3 relationships are musically simple but cross-metric, so
-        # keep them audible instead of collapsing them to "no tension".
         ratio = max(primary_bpm, bpm) / min(primary_bpm, bpm)
+        ratio_distance = _simple_ratio_distance(primary_bpm, bpm)
         hemiola_bonus = 0.35 if abs(ratio - 1.5) / 1.5 <= 0.04 else 0.0
-        score = support_weight * max(ratio_distance, hemiola_bonus)
-        secondary_scores.append((score, bpm, ratio))
 
-    alternate_pressure = max((s for s, _, _ in secondary_scores), default=0.0)
-    density_pressure = min(1.0, len(secondary_scores) / 4.0) * 0.25
-    score = float(np.clip(pulse_score * confidence * (0.75 * alternate_pressure + density_pressure), 0.0, 1.0))
+        # Sparse half/double/3:2 alternatives are usually bookkeeping, not
+        # musical tension. Do not let one low-support alternate inflate Nirvana-
+        # shaped cases.
+        simple_relation = ratio_distance <= 0.08 or abs(ratio - 1.5) / 1.5 <= 0.04
+        if support <= 2 and support_ratio < 0.20 and simple_relation:
+            sparse_ambiguity += 0.03
+            continue
+
+        support_weight = support_ratio ** 0.75
+        score = support_weight * max(ratio_distance, hemiola_bonus)
+        secondary_scores.append((score, bpm, ratio, support_ratio))
+
+        # Stable nearby tempos are often the audible footprint of a rub /
+        # interlocking grid, even when the ratio is "simple" by candidate math.
+        ratio_delta = abs(1.0 - ratio)
+        if 0.025 <= ratio_delta <= 0.14 and support_ratio >= 0.25:
+            nearby_pressure = max(nearby_pressure, support_ratio * (1.0 - ratio_delta / 0.14))
+
+    alternate_pressure = max((s for s, _, _, _ in secondary_scores), default=0.0)
+    supported_alternates = sum(1 for _, _, _, support_ratio in secondary_scores if support_ratio >= 0.20)
+    density_pressure = min(1.0, supported_alternates / 4.0) * 0.24
+    complexity_pressure = nearby_pressure * 0.95
+    raw_pressure = max(alternate_pressure, complexity_pressure) + density_pressure + sparse_ambiguity
+    score = float(np.clip(pulse_score * (0.80 + confidence * 0.20) * raw_pressure, 0.0, 1.0))
 
     if score >= 0.55:
         state = "high"

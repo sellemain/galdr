@@ -653,8 +653,19 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         return round(float(np.clip((1.0 - concentration) * density_gate, 0.0, 1.0)), 3)
 
     def _groove_comfort(body: float, pattern: float, pressure_now: float, accent_drift: float) -> float:
-        """How easily the body can settle into the local pulse."""
-        comfort = body * pattern * (1.0 - 0.70 * accent_drift) * (1.0 - 0.20 * abs(pressure_now))
+        """How easily the body can settle into the local pulse.
+
+        Accent phase spread is not automatically discomfort: funk pockets,
+        swung dance grids, and sparse programmed beats often feel good because
+        the body has a strong stable pulse under the off-grid attacks. Penalize
+        drift less when pulse/body/pattern are already high, and let stable
+        entrainment recover some comfort.
+        """
+        stable_pocket = body * pattern
+        drift_penalty = 0.45 * accent_drift * (1.0 - 0.35 * stable_pocket)
+        pressure_penalty = 0.16 * abs(pressure_now)
+        comfort = stable_pocket * (1.0 - drift_penalty) * (1.0 - pressure_penalty)
+        comfort += max(0.0, stable_pocket - 0.62) * 0.12
         return round(float(np.clip(comfort, 0.0, 1.0)), 3)
 
     def _section_gravity(attention_now: float, pattern_now: float, body_now: float, accent_drift: float) -> float:
@@ -851,13 +862,14 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         )
         prior_expectation_debt = expectation_debt
         release_force = float(np.clip(max(0.0, -float(pressure[i])) * (0.45 + prior_expectation_debt), 0.0, 1.0))
-        debt_input = (
-            float(disruption[i]) * 0.08
-            + max(0.0, float(pressure[i])) * 0.05
-            + accent_phase_drift * 0.04
-            + max(0.0, 0.45 - groove_comfort) * 0.03
-        )
-        expectation_debt = float(np.clip(expectation_debt * 0.985 + debt_input - release_force * 0.16, 0.0, 1.0))
+        stable_pocket = float(local_body["body"]) * local_pattern
+        drift_debt = accent_phase_drift * 0.025 * (1.0 - 0.45 * stable_pocket)
+        pressure_debt = max(0.0, float(pressure[i])) * 0.035 * (1.0 - 0.30 * groove_comfort)
+        comfort_debt = max(0.0, 0.42 - groove_comfort) * 0.018
+        disruption_debt = float(disruption[i]) * 0.075
+        debt_input = disruption_debt + pressure_debt + drift_debt + comfort_debt
+        debt_decay = 0.968 - min(0.018, release_force * 0.010)
+        expectation_debt = float(np.clip(expectation_debt * debt_decay + debt_input - release_force * 0.24, 0.0, 1.0))
         entry = {
             "t": round(float(t), 3),
             "rms_energy": round(float(rms_energy[i]), 4),
@@ -1044,21 +1056,30 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         mean_body_comfort = float(np.mean([float(e.get("body_comfort", e.get("groove_comfort", 0.0))) for e in frames]))
         mean_release = float(np.mean([float(e.get("release_force", 0.0)) for e in frames]))
 
-        if mean_pattern >= 0.90 and mean_attention >= 0.80 and peak_debt >= 0.75:
-            details = ["locked engine"]
-            if mean_debt >= 0.60:
-                details.append("expectation debt accumulating")
-            if peak_drift >= 0.70 or mean_drift >= 0.25:
-                details.append("accent phase drift active")
-            if mean_body_capture >= 0.55 and mean_body_comfort <= mean_body_capture - 0.12:
-                details.append("body captured but braced")
-            return "locked_engine", "; ".join(details)
-
         if mean_release >= 0.18:
             return "release_span", "release force active"
 
-        if mean_pattern >= 0.90 and mean_attention >= 0.80 and mean_body_comfort >= 0.60 and mean_debt <= 0.45:
+        if mean_pattern >= 0.90 and mean_attention >= 0.80 and mean_body_comfort >= 0.58 and mean_debt <= 0.55:
             return "stable_runway", "stable runway; grid settled; debt low"
+
+        if mean_pattern >= 0.90 and mean_body_capture >= 0.70 and mean_body_comfort >= 0.38 and mean_debt <= 0.72:
+            return "pocket_groove", "body captured by a settled pocket"
+
+        if mean_pattern >= 0.90 and mean_attention >= 0.82 and mean_body_capture >= 0.65 and mean_body_comfort >= 0.34 and mean_drift <= 0.68:
+            return "warped_groove", "stable groove with active surface deformation"
+
+        if mean_pattern >= 0.90 and mean_attention >= 0.82 and mean_body_capture >= 0.68 and mean_drift >= 0.62 and mean_debt <= 0.82:
+            return "lattice_engine", "interlocking grid; body held by precision"
+
+        if mean_pattern >= 0.90 and mean_attention >= 0.80 and mean_body_capture >= 0.55 and peak_debt >= 0.78:
+            details = ["locked engine"]
+            if mean_debt >= 0.62:
+                details.append("expectation debt accumulating")
+            if peak_drift >= 0.70 or mean_drift >= 0.25:
+                details.append("accent phase drift active")
+            if mean_body_capture >= 0.55 and mean_body_comfort <= mean_body_capture - 0.18:
+                details.append("body captured but braced")
+            return "locked_engine", "; ".join(details)
 
         return None, None
 
