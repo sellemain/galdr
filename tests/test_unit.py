@@ -610,9 +610,15 @@ class TestLufsPressureMotion:
         assert float(np.mean(loudness["pressure"][2:-2])) < -0.25
 
     def test_perception_stream_keeps_rms_and_adds_lufs_pressure_fields(self):
+        import numpy as np
         from galdr.perceive import compute_perception
 
-        y, sr = self._tone(amp=0.2)
+        # Tone with a sudden amplitude jump so onset/spectral disruption has a
+        # real transient to detect — a perfectly steady sine produces no
+        # spectral novelty and would never exercise the event code path.
+        y, sr = self._tone(amp=0.15, duration_sec=8.0)
+        mid = len(y) // 2
+        y[mid:] = (y[mid:] * 3.0).astype(np.float32)
         report = compute_perception(y, sr, "steady-tone")
         entry = report["stream"][0]
         summary = report["summary"]
