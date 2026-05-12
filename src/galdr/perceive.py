@@ -146,9 +146,12 @@ def compute_disruption(y, sr, beat_times, duration, hop_sec=ATTENTION_HOP_SEC):
                     disruption_beat[i] = 0.5
 
     # --- Spectral disruption (spectral flux) ---
-    S = np.abs(librosa.stft(y))
-    spectral_flux = np.sqrt(np.mean(np.diff(S, axis=1) ** 2, axis=0))
-    flux_times = librosa.frames_to_time(np.arange(len(spectral_flux)), sr=sr)
+    # onset_strength computes a mel-aggregated spectral flux envelope directly,
+    # so we never materialise the full complex magnitude STFT. On long tracks
+    # this is the difference between a 128-bin mel matrix and a ~1k-bin STFT,
+    # roughly an order of magnitude less peak memory.
+    spectral_flux = librosa.onset.onset_strength(y=y, sr=sr, hop_length=512)
+    flux_times = librosa.times_like(spectral_flux, sr=sr, hop_length=512)
     flux_step_sec = 512 / sr
 
     if spectral_flux.max() > 0:
@@ -466,6 +469,9 @@ def compute_harmonic_percussive_attention(y, sr, duration,
 
     rms_h = librosa.feature.rms(y=y_h)[0]
     rms_p = librosa.feature.rms(y=y_p)[0]
+    # Full-resolution HPSS output is huge for long tracks (two buffers each the
+    # size of y). Drop it immediately — only the RMS envelopes are used below.
+    del y_h, y_p
     rms_times = librosa.frames_to_time(np.arange(len(rms_h)), sr=sr)
     hp_step_sec = 512 / sr
 
@@ -1293,6 +1299,22 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     }
 
     report["stream"] = stream
+
+    # Stash the DSP arrays so the file-writing wrapper can draw plots without
+    # rerunning the STFT/HPSS/loudness passes. Keys are popped before disk
+    # serialization (see generate_perception_stream).
+    report["_viz_m_times"] = m_times
+    report["_viz_attention"] = attention
+    report["_viz_s_times"] = s_times
+    report["_viz_disruption"] = disruption
+    report["_viz_d_beat"] = d_beat
+    report["_viz_d_spectral"] = d_spectral
+    report["_viz_d_energy"] = d_energy
+    report["_viz_p_times"] = p_times
+    report["_viz_pressure"] = pressure
+    report["_viz_hp_times"] = hp_times
+    report["_viz_hp_balance"] = hp_balance
+
     return report
 
 
@@ -1323,18 +1345,20 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
     silences = report.get("silences", [])
     duration = report.get("duration", librosa.get_duration(y=y, sr=sr))
 
-    # Recompute DSP arrays for visualizations
-    tempo_val = report.get("tempo", 0)
-    _, beats = librosa.beat.beat_track(y=y, sr=sr)
-    beat_times_viz = librosa.frames_to_time(beats, sr=sr)
-    m_times, attention = compute_attention(beat_times_viz, duration, hop_sec=hop_sec)
-    s_times, disruption, d_beat, d_spectral, d_energy = compute_disruption(
-        y, sr, beat_times_viz, duration, hop_sec=hop_sec
-    )
-    p_times, pressure = compute_pressure(y, sr, duration, hop_sec=hop_sec)
-    hp_times, h_energy_viz, p_energy_viz, hp_balance = compute_harmonic_percussive_attention(
-        y, sr, duration, hop_sec=hop_sec
-    )
+    # Reuse DSP arrays from compute_perception. Falling back to a recompute
+    # would do a second full-track STFT and HPSS pass — multi-GB on long
+    # tracks and the single biggest savings in the perception pipeline.
+    m_times = report.pop("_viz_m_times")
+    attention = report.pop("_viz_attention")
+    s_times = report.pop("_viz_s_times")
+    disruption = report.pop("_viz_disruption")
+    d_beat = report.pop("_viz_d_beat")
+    d_spectral = report.pop("_viz_d_spectral")
+    d_energy = report.pop("_viz_d_energy")
+    p_times = report.pop("_viz_p_times")
+    pressure = report.pop("_viz_pressure")
+    hp_times = report.pop("_viz_hp_times")
+    hp_balance = report.pop("_viz_hp_balance")
 
     # Save stream (separate file — it's large)
     stream_path = out / f"{track_name}_stream.json"
@@ -1342,8 +1366,11 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
         json.dump(stream, f)
     print(f"  Stream saved: {stream_path} ({len(stream)} entries)")
 
-    # Save report (without stream to keep file manageable)
-    report_for_disk = {k: v for k, v in report.items() if k != "stream"}
+    # Save report (without stream or internal viz arrays)
+    report_for_disk = {
+        k: v for k, v in report.items()
+        if k != "stream" and not k.startswith("_")
+    }
     report_path = out / f"{track_name}_perception.json"
     with open(report_path, "w") as f:
         json.dump(report_for_disk, f, indent=2)

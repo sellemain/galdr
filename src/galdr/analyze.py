@@ -276,6 +276,15 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     harm_energy = float(np.mean(librosa.feature.rms(y=y_harmonic)[0]))
     perc_ratio = perc_energy / (perc_energy + harm_energy) if (perc_energy + harm_energy) > 0 else 0
 
+    # The only downstream consumer of the full HPSS waveforms is the
+    # harm/perc viz plot, which subsamples to ~10k points anyway. Capture
+    # those plot-sized arrays now and let the full buffers (each the size
+    # of y — up to ~600 MB per buffer on long tracks) go.
+    plot_step = max(1, len(y_harmonic) // 10000)
+    y_harmonic_plot = y_harmonic[::plot_step].copy()
+    y_percussive_plot = y_percussive[::plot_step].copy()
+    del y_harmonic, y_percussive
+
     # --- Zero crossing rate (texture) ---
     zcr = librosa.feature.zero_crossing_rate(y)[0]
 
@@ -415,8 +424,8 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         "_rms_times": rms_times,
         "_beat_times": beat_times,
         "_tempo": tempo,
-        "_y_harmonic": y_harmonic,
-        "_y_percussive": y_percussive,
+        "_y_harmonic_plot": y_harmonic_plot,
+        "_y_percussive_plot": y_percussive_plot,
         "_duration": duration,
     }
 
@@ -435,8 +444,8 @@ def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_
     rms_times = report.pop("_rms_times", None)
     beat_times = report.pop("_beat_times", None)
     tempo = report.pop("_tempo", report.get("detected_pulse_bpm", 0))
-    y_harmonic = report.pop("_y_harmonic", None)
-    y_percussive = report.pop("_y_percussive", None)
+    y_harmonic_plot = report.pop("_y_harmonic_plot", None)
+    y_percussive_plot = report.pop("_y_percussive_plot", None)
     duration = report.pop("_duration", report.get("duration_seconds", 0))
 
     # Recompute if needed (shouldn't happen in normal flow)
@@ -453,8 +462,12 @@ def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_
     if beat_times is None:
         _, beats = librosa.beat.beat_track(y=y, sr=sr)
         beat_times = librosa.frames_to_time(beats, sr=sr)
-    if y_harmonic is None or y_percussive is None:
-        y_harmonic, y_percussive = librosa.effects.hpss(y)
+    if y_harmonic_plot is None or y_percussive_plot is None:
+        y_h_full, y_p_full = librosa.effects.hpss(y)
+        plot_step = max(1, len(y_h_full) // 10000)
+        y_harmonic_plot = y_h_full[::plot_step].copy()
+        y_percussive_plot = y_p_full[::plot_step].copy()
+        del y_h_full, y_p_full
 
     # 1. Mel spectrogram
     print("  Generating spectrogram...")
@@ -507,13 +520,11 @@ def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_
     # 5. Percussive vs harmonic waveform comparison
     print("  Generating harmonic/percussive plot...")
     fig, axes = plt.subplots(2, 1, figsize=(fig_w, fig_h * 1.5), sharex=True)
-    t = np.linspace(0, duration, len(y_harmonic))
-    # Downsample for plotting
-    step = max(1, len(t) // 10000)
-    axes[0].plot(t[::step], y_harmonic[::step], color="#2ecc71", linewidth=0.3)
+    t = np.linspace(0, duration, len(y_harmonic_plot))
+    axes[0].plot(t, y_harmonic_plot, color="#2ecc71", linewidth=0.3)
     axes[0].set_title("Harmonic (voices, strings, sustained tones)")
     axes[0].set_ylabel("Amplitude")
-    axes[1].plot(t[::step], y_percussive[::step], color="#e67e22", linewidth=0.3)
+    axes[1].plot(t, y_percussive_plot, color="#e67e22", linewidth=0.3)
     axes[1].set_title("Percussive (drums, impacts, transients)")
     axes[1].set_ylabel("Amplitude")
     axes[1].set_xlabel("Time (s)")
