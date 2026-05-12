@@ -68,3 +68,40 @@ def test_metric_tension_stays_low_for_plain_half_double_alternates():
 
     assert tension["metric_tension"] < 0.30
     assert tension["metric_tension_state"] in {"absent", "trace"}
+
+
+def test_metric_tension_gates_sparse_ambient_without_trusted_pulse():
+    from galdr.tempo import estimate_metric_tension
+
+    tension = estimate_metric_tension(
+        pulse=0.94,
+        pulse_confidence=0.29,
+        tempo_candidates=[
+            {"bpm": 129.2, "support": 6, "source": "alternate:1+detected:1+window:4"},
+            {"bpm": 107.7, "support": 3, "source": "window:3"},
+            {"bpm": 123.0, "support": 3, "source": "window:3"},
+            {"bpm": 101.4, "support": 2, "source": "window:2"},
+            {"bpm": 136.0, "support": 2, "source": "window:2"},
+        ],
+    )
+
+    assert tension["metric_tension"] < 0.30
+    assert tension["metric_tension_state"] in {"absent", "trace"}
+
+
+def test_metric_tension_keeps_hemiola_pressure_despite_lower_confidence():
+    from galdr.tempo import estimate_metric_tension
+
+    tension = estimate_metric_tension(
+        pulse=0.95,
+        pulse_confidence=0.26,
+        tempo_candidates=[
+            {"bpm": 152.0, "support": 6, "source": "alternate:1+detected:1+window:4"},
+            {"bpm": 103.4, "support": 4, "source": "window:4"},
+            {"bpm": 117.5, "support": 4, "source": "alternate:1+window:3"},
+            {"bpm": 161.5, "support": 4, "source": "window:4"},
+        ],
+    )
+
+    assert tension["metric_tension"] >= 0.55
+    assert tension["metric_tension_state"] == "high"
