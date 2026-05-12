@@ -904,3 +904,18 @@ class TestContextConfidenceScoring:
         )
         assert result["confidence"] in {"medium", "high"}
         assert result["use_in_prompt"] is True
+
+    def test_wikipedia_disambiguation_stub_rejected_even_with_title_match(self):
+        from galdr.fetch import _score_wikipedia_result
+
+        result = _score_wikipedia_result(
+            {
+                "found": True,
+                "title": "Teardrop",
+                "extract": "Teardrop or Teardrops may refer to:",
+            },
+            expected_name="Teardrop",
+            entity_type="song",
+        )
+        assert result["confidence"] == "rejected"
+        assert result["use_in_prompt"] is False
