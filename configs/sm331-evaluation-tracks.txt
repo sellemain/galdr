@@ -1,0 +1,46 @@
+# SM-331 breadth evaluation queue
+# One track per line: audio_path<TAB>slug
+# Keep this list boring and explicit. Comment out tracks you want skipped.
+audio/animals-as-leaders-cafo-wide.mp3	animals-as-leaders-cafo-wide
+audio/aphex-twin-rhubarb-t04-cut.mp3	aphex-twin-rhubarb-t04
+audio/aphex-twin-windowlicker-calibration.mp3	aphex-twin-windowlicker-calibration
+audio/aurora-runaway.mp3	aurora-runaway
+audio/band-of-the-atholl-highlanders-the-atholl-highlanders.mp3	band-of-the-atholl-highlanders-the-atholl-highlanders
+audio/billie-eilish-bad-guy-calibration.mp3	billie-eilish-bad-guy-calibration
+audio/bjork-hyperballad-calibration.mp3	bjork-hyperballad-calibration
+audio/black-sabbath-black-sabbath.mp3	black-sabbath-black-sabbath
+audio/brahms-hungarian-dance-5.mp3	brahms-hungarian-dance-5
+audio/brian-eno-an-ending-ascent-wide.mp3	brian-eno-an-ending-ascent-wide
+audio/chic-good-times-wide.mp3	chic-good-times-wide
+audio/crowded-house-dont-dream-its-over.mp3	crowded-house-dont-dream-its-over
+audio/cyndi-lauper-girls-just-want-to-have-fun.mp3	cyndi-lauper-girls-just-want-to-have-fun
+audio/d-angelo-spanish-joint-wide.mp3	d-angelo-spanish-joint-wide
+audio/daft-punk-get-lucky-calibration.mp3	daft-punk-get-lucky-calibration
+audio/deftones-change.mp3	deftones-change
+audio/don-caballero-fire-back-wide.mp3	don-caballero-fire-back-wide
+audio/fast-drum-bass-pop.mp3	fast-drum-bass-pop
+audio/helvegen-good-audio-n90SVmnomdM.mp3	helvegen-good-audio-n90SVmnomdM
+audio/helvegen-wardruna-aurora-sm317.mp3	helvegen-wardruna-aurora-sm317
+audio/j-dilla-workinonit-wide.mp3	j-dilla-workinonit-wide
+audio/james-brown-funky-drummer-calibration.mp3	james-brown-funky-drummer-calibration
+audio/jinjer-pisces.mp3	jinjer-pisces
+audio/king-crimson-frame-by-frame-calibration.mp3	king-crimson-frame-by-frame-calibration
+audio/laboratorium-pieni-saidalo-video-art-by-bui-sisters.mp3	laboratorium-pieni-saidalo-video-art-by-bui-sisters
+audio/massive-attack-angel.mp3	massive-attack-angel
+audio/massive-attack-teardrop-t03.mp3	massive-attack-teardrop-t03
+audio/meshuggah-bleed.mp3	meshuggah-bleed
+audio/michael-jackson-billie-jean-wide.mp3	michael-jackson-billie-jean-wide
+audio/modern-hiphop.mp3	modern-hiphop
+audio/nirvana-smells-like-teen-spirit-calibration.mp3	nirvana-smells-like-teen-spirit-calibration
+audio/nz-edm.mp3	nz-edm
+audio/prince-kiss-wide.mp3	prince-kiss-wide
+audio/radiohead-everything-right-place-calibration.mp3	radiohead-everything-right-place-calibration
+audio/reggae.mp3	reggae
+audio/sabaton-resist-and-bite-10-years-of-ukrainian-resist.mp3	sabaton-resist-and-bite-10-years-of-ukrainian-resist
+audio/spiritbox-holy-roller.mp3	spiritbox-holy-roller
+audio/stars-of-the-lid-requiem-wide.mp3	stars-of-the-lid-requiem-wide
+audio/stevie-wonder-superstition-calibration.mp3	stevie-wonder-superstition-calibration
+audio/talking-heads-once-in-a-lifetime-calibration.mp3	talking-heads-once-in-a-lifetime-calibration
+audio/the-meters-cissy-strut-wide.mp3	the-meters-cissy-strut-wide
+audio/tigran-hamasyan-the-grid-calibration.mp3	tigran-hamasyan-the-grid-calibration
+audio/tool-schism-calibration.mp3	tool-schism-calibration

@@ -24,6 +24,15 @@ Galdr keeps three layers separate:
 | `pattern` | Pattern | the music keeps carried time intact |
 | `pulse` | Pulse | the measured pulse is stable |
 | `body` | Body | the pulse takes the body, not just the ear |
+| `body_capture` | Body capture | the rhythm seizes motor attention, comfortable or not |
+| `body_comfort` | Body comfort | the captured body can settle into the pulse |
+| `groove_comfort` | Groove comfort | the pulse gives the body a usable seat |
+| `accent_phase_drift` | Accent phase drift | local attacks lean around the beat grid |
+| `metric_tension` | Metric tension | a stable pulse is pressured by competing grids |
+| `expectation_debt` | Expectation debt | unresolved local tension is being carried forward |
+| `release_force` | Release force | accumulated pressure is being paid back or opened |
+| `section_gravity` | Section gravity | the moment feels like an anchor rather than passage material |
+| `surface_density` | Surface density | local event-load/detail is high or sparse |
 | `weight` | Weight | weight, drag, suspension, or room-pressure arrives |
 | `weight_arc` | Weight arc | where the track puts macro weight over time |
 | `pressure` | Pressure | pressure builds, releases, sustains, or empties |
@@ -74,6 +83,44 @@ Display name: **Texture**. Where the track's weight sits between sustained harmo
 Implementation evidence: harmonic/percussive source separation energy, smoothed at the perception-stream hop. Very low total energy is treated as neutral rather than forcing a false texture claim.
 
 Deep negative values often feel like voice, drone, strings, choir, or tonal atmosphere taking over the room. Strong positive values feel like strike, groove, attack, or drum-forward physicality. The deepest negative values typically occur when only a single voice remains.
+
+---
+
+### `body_capture`, `body_comfort`, and `groove_comfort`
+`body_capture` and `body_comfort` split two things that used to collapse into one Body reading.
+
+`body_capture` measures whether the rhythm has seized motor attention. It can be high in dance music, funk, metal, minimalism, ritual music, or anything where the pulse takes the body. It does not mean the listener is comfortable.
+
+`body_comfort` measures whether the captured body can settle. A pocket groove can have high capture and high comfort. Punishing, stiff, pressurized, or hostile music can have high capture and low comfort. That distinction matters: Meshuggah and James Brown may both seize the body, but they do not give the body the same kind of seat.
+
+`groove_comfort` is the local stream form of that comfort reading. It blends body-lock and pattern, then reduces comfort when pressure and accent drift make the groove harder to inhabit.
+
+In prose, use capture language for seizure and motor grip; use comfort language for pocket, ease, seat, bracing, or withheld comfort.
+
+---
+
+### `accent_phase_drift` and `metric_tension`
+`accent_phase_drift` measures how much local attacks spread around the beat grid instead of landing in one stable phase. High drift can mean accents are leaning, walking around the barline, or creating local grid friction. It is not proof of a notated polyrhythm.
+
+`metric_tension` is a track-level estimate of competing metric pressure. It looks for alternate tempo or periodicity evidence that does not collapse into simple half-time or double-time readings. Strong values mean the listener can feel the grid while another cycle leans against it.
+
+This is deliberately conservative language. `metric_tension` is not a full polyrhythm detector. Treat it as cross-rhythm pressure evidence. If the dominant experience is body/pressure lock, the prompt may keep metric tension as a technical underlayer rather than making it the headline.
+
+---
+
+### `expectation_debt` and `release_force`
+`expectation_debt` is a listener-state accumulator. It rises when disruption, pressure, accent drift, or low groove comfort carry unresolved tension forward. It falls when release behavior pays some of that debt back.
+
+`release_force` measures how consequential a local drop, exhale, or opening is, based on negative pressure and the immediately prior debt. A quieting moment with little prior debt may be audible but low-release; a drop after prolonged pressure can feel earned.
+
+These are not claims about composer intent. They are evidence about whether the listener is being asked to keep carrying expectation, and whether a release has enough prior pressure behind it to matter.
+
+---
+
+### `section_gravity` and `surface_density`
+`section_gravity` measures whether a moment feels like an anchor rather than passage material. It combines local pattern, attention, body-lock, and beat-grid stability. High section gravity is not automatically a chorus or formal section; it means the listener has a floor.
+
+`surface_density` measures local detail-load independent of raw loudness. High density means busy, particulate, detailed, or texturally loaded. Low density means sparse, smooth, sustained, or wall-like. Density is not heaviness: a loud sustained wall can be low-density, and a quiet texture can be dense.
 
 ---
 
@@ -143,6 +190,14 @@ Display name: **Weight arc**. The track divided into segments with mean and peak
 | `attention` | Beat regularity × beat density in rolling windows | How strongly attention is carried forward |
 | `pressure` / `pressure_state` | Short-term LUFS movement | Whether pressure builds, releases, sustains, or empties |
 | `pattern` | `1.0 - disruption`; disruption = beat + spectral + energy expectation failures | How intact the musical pattern feels |
+| `body_capture` | Local body-lock before comfort penalties | Whether rhythm seizes motor attention |
+| `body_comfort` / `groove_comfort` | Body capture reduced by pressure and accent phase drift | Whether the captured body can settle into the pulse |
+| `accent_phase_drift` | Circular phase dispersion of onsets against beat positions | Whether attacks sit on the grid or lean around it |
+| `metric_tension` | Trusted pulse plus competing non-simple tempo/grid evidence | Whether the pulse is being pressured by another metric layer |
+| `expectation_debt` | Accumulated disruption, pressure, drift, and low comfort | Whether unresolved expectation is being carried forward |
+| `release_force` | Negative pressure weighted by prior debt | Whether a drop or opening pays back accumulated pressure |
+| `section_gravity` | Attention, pattern, body-lock, and grid stability | Whether a moment feels like a local anchor |
+| `surface_density` | Onset density plus spectral/energy surface motion | How busy or sparse the surface feels |
 | `texture` / Texture | Harmonic/percussive separated energy | Whether weight sits in sustained tone or attack |
 | `pitch_grid` | Chroma concentration in equal-tempered pitch classes | How centered or outside-the-grid the pitch world feels |
 | `interval_coherence` | Chroma interval relationships weighted by energy | How easily pitch classes organize into stable relations |
@@ -206,6 +261,23 @@ Reading galdr output is translating metrics into what is happening in the listen
 > "The track is fully locked — resonance has been running near-maximum for over five minutes without degrading. The rhythm is extremely metronomic, but this isn't rigidity — it's the steadiness of ritual, a pulse the listener can surrender to rather than track. The music is voice and harmony dominant throughout. The pressure holds rather than climbing or collapsing; the listener knows exactly where they are."
 
 Meaning lives in the relationships between metrics, not individual values.
+
+---
+
+## Advisory Salience Guide
+
+`galdr assemble` may include a **Perceptual salience guide**. This is not another analysis pass and it does not hide data. It is an advisory layer that asks: given all the measured evidence, which forces should probably lead the listening prose?
+
+The guide has four parts:
+
+- **Listening contract** — a compact description of the dominant listener state, such as `settled_pocket_or_groove`, `coercive_heavy_lock`, `suspended_texture_or_ambient_space`, `metric_grid_pressure`, `sparse_hook_or_minimal_grid`, or `sustained_pattern_hold`.
+- **Headline forces** — the forces most likely to deserve narrative emphasis.
+- **Supporting forces** — secondary evidence that shapes the read but may not be the first thing a listener feels.
+- **Technical underlayer / low-confidence metrics** — real measurements that should stay visible, but should not automatically dominate the prose.
+
+This matters because technically interesting structure is not always the felt face of the music. A track can contain metric tension while the dominant experience is heavy body capture. Ambient music can produce suspicious metric readings from weak pulse evidence; those readings should be named as low-confidence rather than turned into false claims. Conversely, groove music may be technically simple and still perceptually strong because the body is fully settled.
+
+Use the salience guide to choose emphasis. Do not treat it as censorship. The raw metrics remain the evidence, and a downstream reader can disagree with the advisory ranking.
 
 ---
 

@@ -24,6 +24,7 @@ from .constants import (
     ENERGY_ARC_SEGMENTS,
     NULL_SIGNAL_RMS_THRESHOLD,
 )
+from .audio_context import AudioContext, load_audio_context
 from .tempo import estimate_metric_tension, estimate_tempo_profile, windowed_beat_tempos
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -53,10 +54,10 @@ def _null_signal_report(y: np.ndarray, sr: int, track_name: str) -> dict | None:
     }
 
 
-def detect_null_signal(audio_path: str, track_name: str) -> dict | None:
+def detect_null_signal(audio_path: str, track_name: str, audio: AudioContext | None = None) -> dict | None:
     """Load an audio file and return a null-signal report if it is degenerate."""
-    y, sr = librosa.load(audio_path, sr=22050, mono=True)
-    return _null_signal_report(y, sr, track_name)
+    ctx = audio or load_audio_context(audio_path)
+    return _null_signal_report(ctx.y, ctx.sr, track_name)
 
 
 def compute_body(
@@ -534,13 +535,13 @@ def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_
     plt.close()
 
 
-def analyze_track(audio_path: str, output_dir: str, track_name: str) -> dict:
+def analyze_track(audio_path: str, output_dir: str, track_name: str, audio: AudioContext | None = None) -> dict:
     """Full audio analysis of a single track."""
     out = Path(output_dir)
 
     print(f"Loading {audio_path}...")
-    y, sr = librosa.load(audio_path, sr=22050, mono=True)
-    duration = librosa.get_duration(y=y, sr=sr)
+    ctx = audio or load_audio_context(audio_path)
+    y, sr, duration = ctx.y, ctx.sr, ctx.duration
     print(f"  Duration: {duration:.1f}s, Sample rate: {sr}")
 
     if duration <= 0:

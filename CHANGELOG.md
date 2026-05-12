@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Local stream listener-state metrics for body capture vs body comfort, groove comfort, accent phase drift, expectation debt, release force, section gravity, and surface density.
+- Metric tension reporting for stable pulses pressured by competing metric grids, with conservative low-confidence handling for weak pulse evidence.
+- Advisory perceptual salience guide in assembled prompts, ranking headline forces, supporting forces, technical underlayers, low-confidence metrics, and conflict notes without hiding raw evidence.
+- Documentation for stream-first listener-state interpretation, the new local metrics, and the salience guide.
+
 ### Changed
 - Shortened public metric field/display names (`attention`, `pattern`, `pulse`, `body`, `weight`, `pressure`, `texture`, `chroma_motion`, `pitch_grid`, `foreground_line`) and promoted `metric_vocabulary.py` into the canonical glossary layer for agent and human interpretation.
 - Assembled prompts now include compact metric glossary lines with definitions, evidence, and caveats so downstream LLMs read short metric names in context.

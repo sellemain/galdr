@@ -1015,3 +1015,51 @@ class TestContextConfidenceScoring:
         )
         assert result["confidence"] == "rejected"
         assert result["use_in_prompt"] is False
+
+
+def test_salience_guide_is_advisory_and_preserves_metric_detail():
+    from galdr.assemble import assemble_prompt
+
+    analysis = {
+        "report": {
+            "duration_seconds": 240.0,
+            "detected_pulse_bpm": 152.0,
+            "felt_pulse_bpm": 152.0,
+            "pulse_confidence": 0.82,
+            "pulse": 0.96,
+            "body": 0.60,
+            "body_state": "emerging",
+            "weight": 0.45,
+            "weight_state": "suspended",
+            "metric_tension": 0.36,
+            "metric_tension_state": "present",
+            "metric_tension_note": "stable pulse with audible alternate metric pressure",
+        },
+        "perception": {
+            "summary": {
+                "mean_attention": 0.94,
+                "mean_pattern": 0.96,
+                "pressure_building_pct": 4.0,
+                "pressure_releasing_pct": 5.0,
+                "pressure_sustaining_pct": 91.0,
+                "mean_body_capture": 0.72,
+                "peak_body_capture": 0.88,
+                "mean_body_comfort": 0.31,
+                "peak_body_comfort": 0.45,
+                "mean_groove_comfort": 0.31,
+                "peak_groove_comfort": 0.45,
+                "mean_surface_density": 0.38,
+                "peak_surface_density": 0.55,
+                "peak_release_force": 0.20,
+            }
+        },
+    }
+
+    prompt = assemble_prompt(analysis, mode="blind")
+
+    assert "Metric tension: 0.360 (present)" in prompt
+    assert "Local stream metrics:" in prompt
+    assert "Perceptual salience guide (advisory, not a filter):" in prompt
+    assert "Listening contract: coercive_heavy_lock" in prompt
+    assert "Technical underlayer: metric tension" in prompt
+    assert "do not hide technically true secondary evidence" in prompt

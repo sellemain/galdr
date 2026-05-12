@@ -8,13 +8,31 @@ Usage:
 """
 
 import argparse
+import os
 import re
 import sys
+import tempfile
 import time
 from pathlib import Path
 
 _SLUG_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 YT_DLP_UPGRADE_SPEC = "yt-dlp[default,curl-cffi]"
+
+
+def _ensure_cache_dirs() -> None:
+    """Keep runtime caches out of /tmp unless the caller chose otherwise."""
+    cache_root = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "galdr"
+    for env_name, child in (("NUMBA_CACHE_DIR", "numba"), ("UV_CACHE_DIR", "uv")):
+        if env_name in os.environ:
+            continue
+        cache_dir = cache_root / child
+        try:
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            os.environ[env_name] = str(cache_dir)
+        except OSError:
+            fallback = Path(tempfile.gettempdir()) / "galdr" / child
+            fallback.mkdir(parents=True, exist_ok=True)
+            os.environ[env_name] = str(fallback)
 
 
 def _validate_slug(slug: str) -> str:
@@ -69,6 +87,7 @@ def _print_null_signal_summary(track_name, total_start, result):
 def cmd_listen(args):
     """Run full analysis pipeline on an audio file."""
     from .analyze import analyze_track, detect_null_signal
+    from .audio_context import load_audio_context
     from .perceive import generate_perception_stream
     from .harmony import analyze_harmony
     from .melody import analyze_melody
@@ -115,9 +134,17 @@ def cmd_listen(args):
     total_start = time.time()
     results = {}
 
+    print("  Loading audio once for this listen run...")
+    try:
+        audio = load_audio_context(audio_path)
+    except Exception as e:
+        print(f"Error: audio load failed: {e}")
+        sys.exit(1)
+    print(f"  Duration: {audio.duration:.1f}s, Sample rate: {audio.sr}")
+
     if "report" not in modules:
         try:
-            result = detect_null_signal(audio_path, track_name)
+            result = detect_null_signal(audio_path, track_name, audio=audio)
         except Exception as e:
             print(f"Error: null-signal check failed: {e}")
             sys.exit(1)
@@ -126,7 +153,7 @@ def cmd_listen(args):
             return
 
     if "report" in modules:
-        result = run_module("Audio Analysis", analyze_track, audio_path, output_dir, track_name)
+        result = run_module("Audio Analysis", analyze_track, audio_path, output_dir, track_name, audio=audio)
         if result:
             results["report"] = result
             if result.get("null_signal"):
@@ -134,22 +161,22 @@ def cmd_listen(args):
                 return
 
     if "perceive" in modules:
-        result = run_module("Perception", generate_perception_stream, audio_path, output_dir, track_name, args.hop_sec)
+        result = run_module("Perception", generate_perception_stream, audio_path, output_dir, track_name, args.hop_sec, audio=audio)
         if result:
             results["perception"] = result
 
     if "harmony" in modules:
-        result = run_module("Harmony", analyze_harmony, audio_path, output_dir, track_name)
+        result = run_module("Harmony", analyze_harmony, audio_path, output_dir, track_name, audio=audio)
         if result:
             results["harmony"] = result
 
     if "melody" in modules:
-        result = run_module("Melody", analyze_melody, audio_path, output_dir, track_name)
+        result = run_module("Melody", analyze_melody, audio_path, output_dir, track_name, audio=audio)
         if result:
             results["melody"] = result
 
     if "overtone" in modules:
-        result = run_module("Overtone", analyze_overtones, audio_path, output_dir, track_name)
+        result = run_module("Overtone", analyze_overtones, audio_path, output_dir, track_name, audio=audio)
         if result:
             results["overtone"] = result
 
@@ -572,6 +599,8 @@ def cmd_update_deps():
 
 
 def main():
+    _ensure_cache_dirs()
+
     import importlib.metadata
     try:
         _version = importlib.metadata.version("galdr")
