@@ -468,6 +468,9 @@ class TestNullSignalGuard:
         assert "pulse_confidence" in result
         assert "pulse_ambiguous" in result
         assert "pulse_note" in result
+        assert "metric_tension" in result
+        assert "metric_tension_state" in result
+        assert "metric_tension_note" in result
 
 
 # ── Active-Frame Silence Stats ────────────────────────────────────────────────
@@ -622,6 +625,20 @@ class TestLufsPressureMotion:
         assert "body_state" in entry
         assert "weight" in entry
         assert "weight_state" in entry
+        for field in (
+            "groove_comfort",
+            "accent_phase_drift",
+            "expectation_debt",
+            "release_force",
+            "section_gravity",
+            "body_capture",
+            "body_comfort",
+            "surface_density",
+        ):
+            assert field in entry
+            assert 0.0 <= entry[field] <= 1.0
+            assert f"mean_{field}" in summary
+            assert f"peak_{field}" in summary
         event_entries = [e for e in report["stream"] if "event" in e]
         assert event_entries
         assert "event_note" in event_entries[0]
@@ -651,6 +668,74 @@ class TestLufsPressureMotion:
         assert "releasing" in prompt
         assert "silence-aware" in prompt
         assert "LUFS" not in prompt
+
+    def test_assembled_metrics_include_local_stream_metrics(self):
+        from galdr.assemble import assemble_prompt
+
+        analysis = {
+            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse": 0.8},
+            "perception": {
+                "summary": {
+                    "mean_attention": 0.5,
+                    "mean_pattern": 0.8,
+                    "pressure_building_pct": 45.0,
+                    "pressure_releasing_pct": 35.0,
+                    "pressure_sustaining_pct": 20.0,
+                    "mean_groove_comfort": 0.42,
+                    "peak_groove_comfort": 0.73,
+                    "mean_accent_phase_drift": 0.19,
+                    "peak_accent_phase_drift": 0.64,
+                    "mean_expectation_debt": 0.31,
+                    "peak_expectation_debt": 0.88,
+                    "mean_release_force": 0.11,
+                    "peak_release_force": 0.57,
+                    "mean_section_gravity": 0.55,
+                    "peak_section_gravity": 0.91,
+                    "mean_body_capture": 0.62,
+                    "peak_body_capture": 0.84,
+                    "mean_body_comfort": 0.38,
+                    "peak_body_comfort": 0.65,
+                    "mean_surface_density": 0.25,
+                    "peak_surface_density": 0.79,
+                }
+            },
+        }
+        prompt = assemble_prompt(analysis, mode="blind")
+
+        assert "Local stream metrics:" in prompt
+        assert "Groove comfort mean 0.420, peak 0.730" in prompt
+        assert "Body capture mean 0.620, peak 0.840" in prompt
+        assert "Body comfort mean 0.380, peak 0.650" in prompt
+        assert "Expectation debt mean 0.310, peak 0.880" in prompt
+
+
+    def test_assembled_timeline_includes_sustained_state_spans(self):
+        from galdr.assemble import assemble_prompt
+
+        analysis = {
+            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 120.0, "felt_pulse_bpm": 120.0, "pulse": 0.9},
+            "perception": {
+                "summary": {"mean_attention": 0.9, "mean_pattern": 0.95},
+                "sustained_state_spans": [
+                    {
+                        "start": 10.0,
+                        "end": 40.0,
+                        "type": "locked_engine",
+                        "description": "locked engine; expectation debt accumulating",
+                        "peak_expectation_debt": 0.91,
+                        "peak_accent_phase_drift": 0.82,
+                        "mean_body_capture": 0.70,
+                        "mean_body_comfort": 0.44,
+                    }
+                ],
+                "pattern_breaks": [],
+            },
+        }
+
+        prompt = assemble_prompt(analysis, mode="blind")
+
+        assert "0:10–0:40 — locked engine; expectation debt accumulating" in prompt
+        assert "body capture 0.700 / comfort 0.440" in prompt
 
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 
@@ -752,6 +837,9 @@ def test_assembled_metrics_include_body_language():
             "entrainment_note": "strong body-lock with real percussive support",
             "weight": 0.22,
             "weight_state": "light",
+            "metric_tension": 0.61,
+            "metric_tension_state": "high",
+            "metric_tension_note": "stable pulse with strong competing metric evidence",
         },
         "perception": {"summary": {"mean_attention": 0.7, "mean_pattern": 0.9}},
     }
@@ -761,6 +849,8 @@ def test_assembled_metrics_include_body_language():
     assert "Body: 0.810 (locked)" in prompt
     assert "strong body-lock" in prompt
     assert "Weight: 0.220 (light)" in prompt
+    assert "Metric tension: 0.610 (high)" in prompt
+    assert "competing metric evidence" in prompt
 
 
 # ── Silence Re-entry / Recovery ───────────────────────────────────────────────
@@ -904,3 +994,18 @@ class TestContextConfidenceScoring:
         )
         assert result["confidence"] in {"medium", "high"}
         assert result["use_in_prompt"] is True
+
+    def test_wikipedia_disambiguation_stub_rejected_even_with_title_match(self):
+        from galdr.fetch import _score_wikipedia_result
+
+        result = _score_wikipedia_result(
+            {
+                "found": True,
+                "title": "Teardrop",
+                "extract": "Teardrop or Teardrops may refer to:",
+            },
+            expected_name="Teardrop",
+            entity_type="song",
+        )
+        assert result["confidence"] == "rejected"
+        assert result["use_in_prompt"] is False

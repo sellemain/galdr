@@ -24,7 +24,7 @@ from .constants import (
     ENERGY_ARC_SEGMENTS,
     NULL_SIGNAL_RMS_THRESHOLD,
 )
-from .tempo import estimate_tempo_profile, windowed_beat_tempos
+from .tempo import estimate_metric_tension, estimate_tempo_profile, windowed_beat_tempos
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -225,6 +225,12 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     else:
         beat_intervals = np.array([])
         pulse = 0.0
+
+    tempo_profile.update(estimate_metric_tension(
+        pulse=pulse,
+        pulse_confidence=tempo_profile.get("pulse_confidence"),
+        tempo_candidates=tempo_profile.get("tempo_candidates", []),
+    ))
 
     # --- Spectral features ---
     # Mel spectrogram

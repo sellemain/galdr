@@ -715,10 +715,26 @@ def fetch_wikipedia_intro(title: str, max_chars: int = 2000) -> dict:
     return {"found": False}
 
 
+def _looks_like_disambiguation_stub(result: dict) -> bool:
+    """Return True when a Wikipedia intro is only a disambiguation stub."""
+    extract = str(result.get("extract", "")).strip().lower()
+    if not extract:
+        return False
+    title = str(result.get("title", "")).strip().lower()
+    return extract in {f"{title} may refer to:", f"{title} or {title}s may refer to:"} or extract.endswith(" may refer to:")
+
+
 def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) -> dict:
     """Attach confidence metadata to a Wikipedia intro result."""
     if not result.get("found"):
         return {"confidence": "rejected", "match_score": 0.0, "match_reasons": ["not found"], "use_in_prompt": False}
+    if _looks_like_disambiguation_stub(result):
+        return {
+            "confidence": "rejected",
+            "match_score": 0.0,
+            "match_reasons": ["Wikipedia disambiguation stub"],
+            "use_in_prompt": False,
+        }
 
     title_score, title_reasons = _identity_match_score(expected_name, result.get("title", ""))
     extract_score, extract_reasons = _identity_match_score(expected_name, result.get("extract", ""))

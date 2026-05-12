@@ -290,6 +290,16 @@ def _build_metrics(analysis: dict) -> str:
             "present = some hold; suspended = held, slowed, dragged, or swaying; "
             "heavy = strong sustained pressure or drag. Suspended is not automatically heavy."
         )
+    metric_tension = report.get("metric_tension")
+    metric_tension_state = report.get("metric_tension_state")
+    metric_tension_note = report.get("metric_tension_note")
+    if metric_tension is not None:
+        line = f"{display_name('metric_tension')}: {float(metric_tension):.3f}"
+        if metric_tension_state:
+            line += f" ({metric_tension_state})"
+        if metric_tension_note:
+            line += f" — {metric_tension_note}"
+        lines.append(line)
 
     # Perception summary — handles both new schema (mean_pattern) and
     # old schema (mean_surprise = disruption, pattern = 1 - surprise)
@@ -315,6 +325,24 @@ def _build_metrics(analysis: dict) -> str:
                 "describe movement as pressure, build, release, or sustain "
                 "rather than meter readings"
             )
+        local_metric_fields = (
+            "groove_comfort",
+            "accent_phase_drift",
+            "expectation_debt",
+            "release_force",
+            "section_gravity",
+            "body_capture",
+            "body_comfort",
+            "surface_density",
+        )
+        local_bits = []
+        for field in local_metric_fields:
+            mean_value = summary.get(f"mean_{field}")
+            peak_value = summary.get(f"peak_{field}")
+            if mean_value is not None and peak_value is not None:
+                local_bits.append(f"{display_name(field)} mean {float(mean_value):.3f}, peak {float(peak_value):.3f}")
+        if local_bits:
+            lines.append("Local stream metrics: " + "; ".join(local_bits))
         shapes = summary.get("silence_reentry_shapes") or {}
         boundaries = summary.get("silence_boundary_positions") or {}
         reentry_count = summary.get("silence_reentry_count", 0)
@@ -379,6 +407,7 @@ def _build_metrics(analysis: dict) -> str:
     lines.append(
         "Metric families: pattern / pulse = reliability and carried time; "
         "body = whether the pulse has the body or merely offers itself; "
+        "metric tension = cross-rhythm/accent pressure against a stable pulse; "
         "weight / weight arc = hold, suspension, or macro weight; "
         "pressure = heard pressure movement; texture = harmonic warmth vs percussive edge; "
         "harmonic pull / chroma motion = tonal restlessness, drift, or pitch-color movement; "
@@ -412,6 +441,26 @@ def _build_metrics(analysis: dict) -> str:
     else:
         event_source = [{"start": s["start"], "type": "silence", "duration": s["duration"],
                          "depth_db": s["depth_db"]} for s in raw_silences]
+
+    for span in perception.get("sustained_state_spans", []):
+        start = float(span.get("start", 0.0))
+        end = float(span.get("end", start))
+        desc = span.get("description") or span.get("type", "sustained state")
+        detail_bits = []
+        if span.get("peak_expectation_debt") is not None:
+            detail_bits.append(f"debt peak {float(span['peak_expectation_debt']):.3f}")
+        if span.get("peak_accent_phase_drift") is not None:
+            detail_bits.append(f"drift peak {float(span['peak_accent_phase_drift']):.3f}")
+        if span.get("mean_body_capture") is not None and span.get("mean_body_comfort") is not None:
+            detail_bits.append(
+                f"body capture {float(span['mean_body_capture']):.3f} / comfort {float(span['mean_body_comfort']):.3f}"
+            )
+        details = f" ({', '.join(detail_bits)})" if detail_bits else ""
+        timeline.append((
+            start,
+            _event_rank("sustained_state_span"),
+            f"{_fmt_time(start)}–{_fmt_time(end)} — {desc}{details}",
+        ))
 
     for b in event_source:
         # New schema uses "time"; old uses "start" or "time"
