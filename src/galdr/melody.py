@@ -19,6 +19,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .audio_context import AudioContext, load_audio_context
+
 from .constants import (
     PITCH_NAMES,
     MELODY_FMIN, MELODY_FMAX,
@@ -124,7 +126,8 @@ def compute_foreground_line(voiced_probs, times,
 
 
 def analyze_melody(audio_path, output_dir, track_name,
-                    hop_sec=ATTENTION_HOP_SEC, use_harmonic=True):
+                    hop_sec=ATTENTION_HOP_SEC, use_harmonic=True,
+                    audio: AudioContext | None = None):
     """Full melodic contour analysis.
 
     Returns (summary_dict, stream_list).
@@ -133,8 +136,8 @@ def analyze_melody(audio_path, output_dir, track_name,
     out.mkdir(parents=True, exist_ok=True)
 
     print(f"Analyzing melody: {audio_path}...")
-    y, sr = librosa.load(audio_path, sr=22050, mono=True)
-    duration = librosa.get_duration(y=y, sr=sr)
+    ctx = audio or load_audio_context(audio_path)
+    y, sr, duration = ctx.y, ctx.sr, ctx.duration
 
     if use_harmonic:
         print("  Separating harmonic component...")

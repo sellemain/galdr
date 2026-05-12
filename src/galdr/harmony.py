@@ -24,6 +24,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
+from .audio_context import AudioContext, load_audio_context
 from scipy.ndimage import uniform_filter1d
 
 from .constants import (
@@ -315,7 +317,7 @@ def compute_tension(chroma, sr, hop_length=512,
 # Full Pipeline
 # ============================================================
 
-def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
+def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5, audio: AudioContext | None = None):
     """Full harmonic analysis pipeline.
 
     Returns (summary_dict, stream_list).
@@ -324,8 +326,8 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5):
     out.mkdir(parents=True, exist_ok=True)
 
     print(f"Analyzing harmony: {audio_path}...")
-    y, sr = librosa.load(audio_path, sr=22050, mono=True)
-    duration = librosa.get_duration(y=y, sr=sr)
+    ctx = audio or load_audio_context(audio_path)
+    y, sr, duration = ctx.y, ctx.sr, ctx.duration
 
     hop_length = 512
 

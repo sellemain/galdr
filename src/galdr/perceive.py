@@ -23,6 +23,7 @@ import numpy as np
 from scipy.ndimage import uniform_filter1d
 
 from .analyze import compute_body, compute_weight
+from .audio_context import AudioContext, load_audio_context
 from .constants import (
     ATTENTION_WINDOW_SEC, ATTENTION_HOP_SEC, ATTENTION_MIN_BEATS,
     DISRUPTION_WEIGHT_BEAT, DISRUPTION_WEIGHT_SPECTRAL, DISRUPTION_WEIGHT_ENERGY,
@@ -1296,7 +1297,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     return report
 
 
-def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: float = ATTENTION_HOP_SEC):
+def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: float = ATTENTION_HOP_SEC, audio: AudioContext | None = None):
     """Generate a second-by-second perception stream.
 
     This is the core output: a temporal narrative of what the music
@@ -1309,7 +1310,8 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
     out.mkdir(parents=True, exist_ok=True)
 
     print(f"Perceiving {audio_path}...")
-    y, sr = librosa.load(audio_path, sr=22050, mono=True)
+    ctx = audio or load_audio_context(audio_path)
+    y, sr = ctx.y, ctx.sr
 
     print("  Tracking beats...")
     print("  Computing attention...")

@@ -19,6 +19,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
+from .audio_context import AudioContext, load_audio_context
 from scipy.signal import find_peaks
 
 from .constants import (
@@ -107,11 +109,12 @@ def match_harmonics(f0, peak_freqs, peak_mags,
     return harmonics, round(series_fit, 4), round(inharmonicity, 1), round(richness, 3)
 
 
-def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT):
+def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT, audio: AudioContext | None = None):
     """Compute per-frame overtone analysis."""
     hop_length = 512
 
-    y, sr = librosa.load(audio_path, sr=sr, mono=True)
+    ctx = audio or load_audio_context(audio_path, sr=sr)
+    y, sr = ctx.y, ctx.sr
 
     print("  Tracking fundamental (pyin)...")
     f0_full, voiced_full, voiced_probs_full = librosa.pyin(
@@ -196,7 +199,7 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT):
     }
 
 
-def analyze_overtones(audio_path, output_dir, track_name):
+def analyze_overtones(audio_path, output_dir, track_name, audio: AudioContext | None = None):
     """Full overtone analysis pipeline.
 
     Returns (summary_dict, stream_list).
@@ -206,7 +209,7 @@ def analyze_overtones(audio_path, output_dir, track_name):
 
     print(f"Analyzing overtones: {audio_path}...")
 
-    times, stream, f0, summary_stats = compute_overtone_stream(audio_path)
+    times, stream, f0, summary_stats = compute_overtone_stream(audio_path, audio=audio)
     duration = times[-1] if len(times) > 0 else 0
 
     # ===== AGGREGATE ANALYSIS =====
