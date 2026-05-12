@@ -136,16 +136,27 @@ def load_context(slug: str, analysis_dir: Path) -> dict:
 
 # ─── Section builders ─────────────────────────────────────────────────────────
 
-def _extract_text(ctx_value) -> str:
-    """Extract text from a context field — handles both str and dict (fetch pipeline)."""
+def _context_is_prompt_usable(ctx_value) -> bool:
+    """Return True when fetched context is trusted enough for prompt assembly."""
     if not ctx_value:
-        return ""
+        return False
+    if not isinstance(ctx_value, dict):
+        return bool(str(ctx_value).strip())
+    if not ctx_value.get("found"):
+        return False
+    confidence = ctx_value.get("confidence")
+    if confidence is None:
+        return True  # legacy context.json files had no confidence field
+    return bool(ctx_value.get("use_in_prompt", confidence in {"high", "medium"}))
+
+
+def _extract_text(ctx_value) -> str:
+    """Extract prompt-usable text from a context field."""
     if isinstance(ctx_value, dict):
-        # fetch pipeline stores {found, title, url, extract}
-        if ctx_value.get("found"):
+        if _context_is_prompt_usable(ctx_value):
             return ctx_value.get("extract", "")
         return ""
-    return str(ctx_value)
+    return str(ctx_value) if ctx_value else ""
 
 
 def _build_track_header(context: dict) -> str | None:
@@ -473,7 +484,8 @@ def _build_lyrics(context: dict) -> str | None:
         # Legacy plain-string format
         return f"## Lyrics\n\n{lyrics.strip()}" if lyrics.strip() else None
 
-    genius_text = lyrics.get("genius_text") or ""
+    lyrics_usable = lyrics.get("use_in_prompt", True)
+    genius_text = (lyrics.get("genius_text") or "") if lyrics_usable else ""
     caption_lines = lyrics.get("caption_lines") or []
 
     sections: list[str] = []
@@ -493,7 +505,7 @@ def _build_lyrics(context: dict) -> str | None:
 
     if not sections:
         # Fall back to full_text for old context.json files
-        text = lyrics.get("full_text", "")
+        text = lyrics.get("full_text", "") if lyrics_usable else ""
         if text and text.strip():
             return f"## Lyrics\n\n{text.strip()}"
         return None

@@ -211,6 +211,43 @@ class TestAssemblePrompt:
         result = self.fn(analysis, context=context, mode="lyrics")
         assert "UNIQUE_LYRIC_STRING" in result
 
+
+    def test_low_confidence_context_excluded_from_prompt(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "artist_context": {
+                "found": True,
+                "extract": "WRONG_ARTIST_CONTEXT",
+                "confidence": "rejected",
+                "use_in_prompt": False,
+            },
+            "song_context": {
+                "found": True,
+                "extract": "GOOD_SONG_CONTEXT",
+                "confidence": "medium",
+                "use_in_prompt": True,
+            },
+        }
+        result = self.fn(analysis, context=context, mode="full")
+        assert "WRONG_ARTIST_CONTEXT" not in result
+        assert "GOOD_SONG_CONTEXT" in result
+
+    def test_low_confidence_genius_text_excluded_but_captions_remain(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "genius+autocaptions",
+                "genius_text": "WRONG_GENIUS_TEXT",
+                "caption_lines": [{"ts": "0:01", "text": "caption words"}],
+                "full_text": "WRONG_GENIUS_TEXT",
+                "confidence": "rejected",
+                "use_in_prompt": False,
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "WRONG_GENIUS_TEXT" not in result
+        assert "caption words" in result
+
     def test_no_context_doesnt_crash(self):
         result = self.fn(self._minimal_analysis(), context=None, mode="full")
         assert isinstance(result, str)
@@ -836,3 +873,34 @@ def test_assembled_structural_events_include_reentry_language():
     assert "Silence returns" in prompt
     assert "return: continuation" in prompt
     assert "re-entry force" in prompt
+
+class TestContextConfidenceScoring:
+    def test_genius_hit_rejects_unrelated_result(self):
+        from galdr.fetch import _score_genius_hit
+
+        result = _score_genius_hit(
+            {
+                "title": "The History of England, Vol. I, Chap. 158",
+                "artist": "David Hume",
+                "full_title": "The History of England, Vol. I, Chap. 158 by David Hume",
+            },
+            artist="Band of the Atholl Highlanders",
+            title="The Atholl Highlanders",
+        )
+        assert result["confidence"] == "rejected"
+        assert result["use_in_prompt"] is False
+
+    def test_wikipedia_song_partial_match_can_be_low_but_usable(self):
+        from galdr.fetch import _score_wikipedia_result
+
+        result = _score_wikipedia_result(
+            {
+                "found": True,
+                "title": "Atholl Highlanders",
+                "extract": "The Atholl Highlanders is a Scottish private ceremonial infantry regiment.",
+            },
+            expected_name="The Atholl Highlanders",
+            entity_type="song",
+        )
+        assert result["confidence"] in {"medium", "high"}
+        assert result["use_in_prompt"] is True
