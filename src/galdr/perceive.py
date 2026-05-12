@@ -608,6 +608,65 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         )
         return body, weight
 
+    def _local_surface_density(t: float, idx: int) -> float:
+        """Estimate local event/detail load independent of simple loudness."""
+        half_window = ATTENTION_WINDOW_SEC / 2.0
+        start = max(0.0, t - half_window)
+        end = min(duration, t + half_window)
+        window_duration = max(end - start, hop_sec)
+
+        local_onsets = onset_times[(onset_times >= start) & (onset_times < end)]
+        onset_density = float(np.clip((len(local_onsets) / window_duration) / 4.0, 0.0, 1.0))
+        spectral_motion = float(np.clip(d_spectral[idx], 0.0, 1.0))
+        energy_motion = float(np.clip(d_energy[idx], 0.0, 1.0))
+        texture_detail = float(np.clip(abs(hp_balance[idx]), 0.0, 1.0))
+        return round(float(np.clip(
+            onset_density * 0.45 + spectral_motion * 0.30 + energy_motion * 0.15 + texture_detail * 0.10,
+            0.0,
+            1.0,
+        )), 3)
+
+    def _local_accent_phase_drift(t: float) -> float:
+        """Estimate how much local attacks wander around the beat grid."""
+        half_window = ATTENTION_WINDOW_SEC / 2.0
+        start = max(0.0, t - half_window)
+        end = min(duration, t + half_window)
+        local_onsets = onset_times[(onset_times >= start) & (onset_times < end)]
+        if len(local_onsets) < 4 or len(beat_times) < 3:
+            return 0.0
+
+        phases = []
+        for onset in local_onsets:
+            beat_idx = int(np.searchsorted(beat_times, onset) - 1)
+            if beat_idx < 0 or beat_idx + 1 >= len(beat_times):
+                continue
+            interval = float(beat_times[beat_idx + 1] - beat_times[beat_idx])
+            if interval <= 0:
+                continue
+            phases.append(((float(onset) - float(beat_times[beat_idx])) / interval) % 1.0)
+
+        if len(phases) < 4:
+            return 0.0
+        angles = np.asarray(phases) * 2.0 * np.pi
+        concentration = float(abs(np.mean(np.exp(1j * angles))))
+        density_gate = min(1.0, len(phases) / 10.0)
+        return round(float(np.clip((1.0 - concentration) * density_gate, 0.0, 1.0)), 3)
+
+    def _groove_comfort(body: float, pattern: float, pressure_now: float, accent_drift: float) -> float:
+        """How easily the body can settle into the local pulse."""
+        comfort = body * pattern * (1.0 - 0.70 * accent_drift) * (1.0 - 0.20 * abs(pressure_now))
+        return round(float(np.clip(comfort, 0.0, 1.0)), 3)
+
+    def _section_gravity(attention_now: float, pattern_now: float, body_now: float, accent_drift: float) -> float:
+        """How much this moment feels like an anchor rather than passage material."""
+        gravity = (
+            pattern_now * 0.38
+            + attention_now * 0.27
+            + body_now * 0.20
+            + (1.0 - accent_drift) * 0.15
+        )
+        return round(float(np.clip(gravity, 0.0, 1.0)), 3)
+
     def _mark_event(entry: dict, event: str, note: str) -> None:
         """Attach a controlled listening-event label plus a short readable gloss."""
         entry["event"] = event
@@ -770,16 +829,49 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     body_unlock_since = None
     last_macro_event_t = -float("inf")
     last_phrase_event_t = -float("inf")
+    expectation_debt = 0.0
     for i, t in enumerate(m_times):
         local_body, local_weight = _local_body_and_weight(float(t), i)
         local_body_state = local_body["body_state"]
         local_weight_state = local_weight["weight_state"]
+        local_pattern = 1.0 - float(disruption[i])
+        accent_phase_drift = _local_accent_phase_drift(float(t))
+        surface_density = _local_surface_density(float(t), i)
+        groove_comfort = _groove_comfort(
+            float(local_body["body"]),
+            local_pattern,
+            float(pressure[i]),
+            accent_phase_drift,
+        )
+        section_gravity = _section_gravity(
+            float(attention[i]),
+            local_pattern,
+            float(local_body["body"]),
+            accent_phase_drift,
+        )
+        prior_expectation_debt = expectation_debt
+        release_force = float(np.clip(max(0.0, -float(pressure[i])) * (0.45 + prior_expectation_debt), 0.0, 1.0))
+        debt_input = (
+            float(disruption[i]) * 0.08
+            + max(0.0, float(pressure[i])) * 0.05
+            + accent_phase_drift * 0.04
+            + max(0.0, 0.45 - groove_comfort) * 0.03
+        )
+        expectation_debt = float(np.clip(expectation_debt * 0.985 + debt_input - release_force * 0.16, 0.0, 1.0))
         entry = {
             "t": round(float(t), 3),
             "rms_energy": round(float(rms_energy[i]), 4),
             "attention": round(float(attention[i]), 3),
-            "pattern": round(1.0 - float(disruption[i]), 3),
+            "pattern": round(local_pattern, 3),
             "pressure": round(float(pressure[i]), 3),
+            "body_capture": local_body["body"],
+            "body_comfort": groove_comfort,
+            "groove_comfort": groove_comfort,
+            "accent_phase_drift": accent_phase_drift,
+            "expectation_debt": round(expectation_debt, 3),
+            "release_force": round(release_force, 3),
+            "section_gravity": section_gravity,
+            "surface_density": surface_density,
             "body": local_body["body"],
             "body_state": local_body_state,
             "weight": local_weight["weight"],
@@ -937,6 +1029,73 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         previous_weight_state = local_weight_state
         stream.append(entry)
 
+    # ===== SYNTHESIZE SUSTAINED-STATE SPANS =====
+    def _dominant_span_label(frames: list[dict]) -> tuple[str | None, str | None]:
+        """Name long stable listener states that point-events under-describe."""
+        if not frames:
+            return None, None
+        mean_pattern = float(np.mean([float(e.get("pattern", 0.0)) for e in frames]))
+        mean_attention = float(np.mean([float(e.get("attention", 0.0)) for e in frames]))
+        mean_debt = float(np.mean([float(e.get("expectation_debt", 0.0)) for e in frames]))
+        peak_debt = float(np.max([float(e.get("expectation_debt", 0.0)) for e in frames]))
+        mean_drift = float(np.mean([float(e.get("accent_phase_drift", 0.0)) for e in frames]))
+        peak_drift = float(np.max([float(e.get("accent_phase_drift", 0.0)) for e in frames]))
+        mean_body_capture = float(np.mean([float(e.get("body_capture", e.get("body", 0.0))) for e in frames]))
+        mean_body_comfort = float(np.mean([float(e.get("body_comfort", e.get("groove_comfort", 0.0))) for e in frames]))
+        mean_release = float(np.mean([float(e.get("release_force", 0.0)) for e in frames]))
+
+        if mean_pattern >= 0.90 and mean_attention >= 0.80 and peak_debt >= 0.75:
+            details = ["locked engine"]
+            if mean_debt >= 0.60:
+                details.append("expectation debt accumulating")
+            if peak_drift >= 0.70 or mean_drift >= 0.25:
+                details.append("accent phase drift active")
+            if mean_body_capture >= 0.55 and mean_body_comfort <= mean_body_capture - 0.12:
+                details.append("body captured but braced")
+            return "locked_engine", "; ".join(details)
+
+        if mean_release >= 0.18:
+            return "release_span", "release force active"
+
+        if mean_pattern >= 0.90 and mean_attention >= 0.80 and mean_body_comfort >= 0.60 and mean_debt <= 0.45:
+            return "stable_runway", "stable runway; grid settled; debt low"
+
+        return None, None
+
+    span_boundaries = {0.0, round(float(duration), 3)}
+    for e in stream:
+        if e.get("event"):
+            span_boundaries.add(round(float(e["t"]), 3))
+    for s in silences:
+        span_boundaries.add(round(float(s["start"]), 3))
+        span_boundaries.add(round(float(s["end"]), 3))
+    span_points = sorted(span_boundaries)
+    sustained_state_spans = []
+    min_span_sec = 12.0
+    for start, end in zip(span_points, span_points[1:]):
+        if end - start < min_span_sec:
+            continue
+        frames = [e for e in stream if start <= float(e["t"]) < end and not e.get("silence")]
+        if len(frames) < 4:
+            continue
+        label, note = _dominant_span_label(frames)
+        if not label or not note:
+            continue
+        sustained_state_spans.append({
+            "start": round(float(start), 1),
+            "end": round(float(end), 1),
+            "duration": round(float(end - start), 1),
+            "type": label,
+            "description": note,
+            "mean_pattern": round(float(np.mean([float(e["pattern"]) for e in frames])), 3),
+            "mean_attention": round(float(np.mean([float(e["attention"]) for e in frames])), 3),
+            "mean_expectation_debt": round(float(np.mean([float(e["expectation_debt"]) for e in frames])), 3),
+            "peak_expectation_debt": round(float(np.max([float(e["expectation_debt"]) for e in frames])), 3),
+            "peak_accent_phase_drift": round(float(np.max([float(e["accent_phase_drift"]) for e in frames])), 3),
+            "mean_body_capture": round(float(np.mean([float(e["body_capture"]) for e in frames])), 3),
+            "mean_body_comfort": round(float(np.mean([float(e["body_comfort"]) for e in frames])), 3),
+        })
+
     # ===== FIND KEY MOMENTS (pattern breaks) =====
     pattern_breaks = []
 
@@ -992,6 +1151,20 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         pattern_breaks.append(event)
 
     # Sort pattern breaks chronologically
+    # Terminal silence can make the beat-grid detector report repeated
+    # non-musical breaks after the track has functionally ended. Collapse
+    # those into the silence event instead of listing chatter.
+    terminal_silence_start = None
+    for s in silences:
+        if duration > 0 and s.get("end", 0) >= duration - 0.25:
+            terminal_silence_start = float(s["start"])
+            break
+    if terminal_silence_start is not None:
+        pattern_breaks = [
+            pb for pb in pattern_breaks
+            if not (pb.get("type") == "pattern_break" and float(pb.get("time", 0.0)) >= terminal_silence_start)
+        ]
+
     pattern_breaks.sort(key=lambda m: m["time"])
 
     # ===== ACTIVE-FRAME STATISTICS =====
@@ -1022,6 +1195,27 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         mean_attention_active = round(float(np.mean(attention)), 3)
         mean_pattern_active = round(1.0 - float(np.mean(disruption)), 3)
         attention_range_active = [round(float(np.min(attention)), 3), round(float(np.max(attention)), 3)]
+
+    stream_metric_fields = (
+        "groove_comfort",
+        "accent_phase_drift",
+        "expectation_debt",
+        "release_force",
+        "section_gravity",
+        "body_capture",
+        "body_comfort",
+        "surface_density",
+    )
+    stream_metric_means = {
+        f"mean_{field}": round(float(np.mean([float(e[field]) for e in stream])), 3)
+        for field in stream_metric_fields
+        if stream
+    }
+    stream_metric_peaks = {
+        f"peak_{field}": round(float(np.max([float(e[field]) for e in stream])), 3)
+        for field in stream_metric_fields
+        if stream
+    }
 
     # ===== PERCEPTION REPORT =====
     summary = {
@@ -1055,6 +1249,8 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             position: sum(1 for r in silence_reentries if r["boundary_position"] == position)
             for position in ("opening", "internal", "closing")
         },
+        **stream_metric_means,
+        **stream_metric_peaks,
     }
 
     # Count pattern_breaks by type
@@ -1069,6 +1265,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         "silences": silences,
         "silence_reentries": silence_reentries,
         "pattern_breaks": pattern_breaks,
+        "sustained_state_spans": sustained_state_spans,
         "summary": summary,
         "stream_hop_sec": round(float(hop_sec), 3),
         "stream_length": len(stream),
