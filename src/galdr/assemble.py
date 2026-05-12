@@ -32,6 +32,7 @@ from pathlib import Path
 from importlib import resources as pkg_resources
 
 from .metric_vocabulary import display_name, glossary_lines
+from .salience import synthesize_salience
 
 
 # ─── Mode definitions ─────────────────────────────────────────────────────────
@@ -357,6 +358,31 @@ def _build_metrics(analysis: dict) -> str:
                 "continuation, rupture, reset, or withdrawal, and boundary "
                 "silence as entry preparation or terminal decay"
             )
+
+    salience = synthesize_salience(analysis)
+    if salience.get("headline_forces") or salience.get("supporting_forces"):
+        lines.append("\nPerceptual salience guide (advisory, not a filter):")
+        lines.append(f"Listening contract: {salience.get('listening_contract', 'balanced_listener_state')}")
+        for label, key in (
+            ("Headline forces", "headline_forces"),
+            ("Supporting forces", "supporting_forces"),
+            ("Technical underlayer", "technical_underlayer"),
+            ("Low-confidence metrics", "low_confidence_metrics"),
+        ):
+            items = salience.get(key) or []
+            if items:
+                bits = [
+                    f"{item['name']} ({item.get('confidence', 'medium')}: {item.get('evidence', '')})"
+                    for item in items
+                ]
+                lines.append(f"{label}: " + "; ".join(bits))
+        notes = salience.get("conflict_notes") or []
+        if notes:
+            lines.append("Conflict notes: " + " ".join(notes))
+        lines.append(
+            "Use this guide to choose narrative emphasis, but keep the raw metrics available; "
+            "do not hide technically true secondary evidence."
+        )
 
     # Texture balance derived from report harmonic/percussive weight ratio
     if har_e or perc_e:
