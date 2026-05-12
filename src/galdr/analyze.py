@@ -381,7 +381,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         ),
         "onset_count": len(onset_times),
         "onsets_per_second": round(onsets_per_second, 2),
-        "texture": (
+        "texture_density": (
             "dense/busy" if onsets_per_second > 5
             else "moderate texture" if onsets_per_second > 2
             else "sparse/spacious" if onsets_per_second > 0.5
