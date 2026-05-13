@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Local stream listener-state metrics for body capture vs body comfort, groove comfort, accent phase drift, expectation debt, release force, section gravity, and surface density.
 - Metric tension reporting for stable pulses pressured by competing metric grids, with conservative low-confidence handling for weak pulse evidence.
-- Advisory perceptual salience guide in assembled prompts, ranking headline forces, supporting forces, technical underlayers, low-confidence metrics, and conflict notes without hiding raw evidence.
+- Advisory perceptual salience guide in assembled prompts, now factorized into primary/secondary contracts, primitive force axes, prose hints, headline forces, supporting forces, technical underlayers, low-confidence metrics, and conflict notes without hiding raw evidence. Weight-led lock language now prefers `mass lock` over blunt heavy-lock wording.
 - Documentation for stream-first listener-state interpretation, the new local metrics, and the salience guide.
 
 ### Changed

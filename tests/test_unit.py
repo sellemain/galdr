@@ -1060,6 +1060,85 @@ def test_salience_guide_is_advisory_and_preserves_metric_detail():
     assert "Metric tension: 0.360 (present)" in prompt
     assert "Local stream metrics:" in prompt
     assert "Perceptual salience guide (advisory, not a filter):" in prompt
-    assert "Listening contract: coercive_heavy_lock" in prompt
+    assert "Primary contract: lock" in prompt
+    assert "Secondary contracts: grid" in prompt
+    assert "Force axes:" in prompt
+    assert "body_relation=captured" in prompt
+    assert "comfort_relation=resisted" in prompt
     assert "Technical underlayer: metric tension" in prompt
     assert "do not hide technically true secondary evidence" in prompt
+
+
+def test_salience_factorizes_minimal_grid_from_mass_lock():
+    from galdr.salience import synthesize_salience
+
+    analysis = {
+        "report": {
+            "pulse_confidence": 0.86,
+            "pulse": 0.96,
+            "body": 0.68,
+            "weight": 0.24,
+            "metric_tension": 0.08,
+        },
+        "perception": {
+            "summary": {
+                "mean_attention": 0.94,
+                "mean_pattern": 0.95,
+                "pressure_building_pct": 2.0,
+                "pressure_releasing_pct": 6.0,
+                "pressure_sustaining_pct": 62.0,
+                "mean_body_capture": 0.78,
+                "mean_body_comfort": 0.42,
+                "mean_groove_comfort": 0.42,
+                "mean_surface_density": 0.31,
+                "mean_accent_phase_drift": 0.82,
+            }
+        },
+    }
+
+    salience = synthesize_salience(analysis)
+
+    assert salience["primary_contract"] == "grid"
+    assert salience["force_axes"]["body_relation"]["value"] == "captured"
+    assert salience["force_axes"]["comfort_relation"]["value"] == "resisted"
+    assert salience["force_axes"]["weight"]["value"] == "present"
+    assert "tight minimal grid" in salience["prose_hints"]
+    assert "heavy lock" not in salience["prose_hints"]
+
+
+def test_salience_factorizes_ambient_field_as_force_without_motor_lock():
+    from galdr.salience import synthesize_salience
+
+    analysis = {
+        "report": {
+            "pulse_confidence": 0.10,
+            "pulse": 0.0,
+            "body": 0.02,
+            "weight": 0.71,
+            "weight_state": "heavy",
+            "texture": 0.10,
+            "metric_tension": 0.0,
+        },
+        "perception": {
+            "summary": {
+                "mean_attention": 0.0,
+                "mean_pattern": 0.98,
+                "pressure_building_pct": 0.0,
+                "pressure_releasing_pct": 4.0,
+                "pressure_sustaining_pct": 55.0,
+                "mean_body_capture": 0.02,
+                "mean_body_comfort": 0.02,
+                "mean_groove_comfort": 0.02,
+                "mean_surface_density": 0.08,
+                "loudness_silence_pct": 12.0,
+            }
+        },
+    }
+
+    salience = synthesize_salience(analysis)
+
+    assert salience["primary_contract"] == "field"
+    assert salience["force_axes"]["body_relation"]["value"] == "absent"
+    assert salience["force_axes"]["weight"]["value"] == "heavy"
+    assert "held field" in salience["prose_hints"]
+    assert "force without motor lock" in salience["prose_hints"]

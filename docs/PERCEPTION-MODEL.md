@@ -268,16 +268,17 @@ Meaning lives in the relationships between metrics, not individual values.
 
 `galdr assemble` may include a **Perceptual salience guide**. This is not another analysis pass and it does not hide data. It is an advisory layer that asks: given all the measured evidence, which forces should probably lead the listening prose?
 
-The guide has four parts:
+The guide is factorized so the vocabulary does not flatten different musical situations into one compound label. It has these parts:
 
-- **Listening contract** — a compact description of the dominant listener state, such as `settled_pocket_or_groove`, `coercive_heavy_lock`, `suspended_texture_or_ambient_space`, `metric_grid_pressure`, `sparse_hook_or_minimal_grid`, or `sustained_pattern_hold`.
-- **Headline forces** — the forces most likely to deserve narrative emphasis.
-- **Supporting forces** — secondary evidence that shapes the read but may not be the first thing a listener feels.
-- **Technical underlayer / low-confidence metrics** — real measurements that should stay visible, but should not automatically dominate the prose.
+- **Primary contract** — a compact dominant listener state: `pocket`, `grid`, `lock`, `field`, `pattern_hold`, or `balanced_listener_state`. These are intentionally small words. They do not imply genre.
+- **Secondary contracts** — other contracts that are real but should not necessarily lead the prose. A mass lock can still have metric grid pressure underneath it.
+- **Force axes** — reusable primitive descriptors such as body relation, comfort relation, weight, surface, pressure, and grid relation. This is where modifiers like captured/resisted/heavy/sparse/drifting live.
+- **Prose hints** — downstream language suggestions such as "tight minimal grid", "mass lock", "braced mass lock", or "force without motor lock". These are not canonical metrics; they are vocabulary aids. `mass lock` means weight, gravity, or section pressure is doing the holding; it does not necessarily mean loudness, metal heaviness, or impact.
+- **Headline/supporting/technical/low-confidence forces** — ranked evidence that should stay visible without forcing the prose to headline every technically interesting reading.
 
-This matters because technically interesting structure is not always the felt face of the music. A track can contain metric tension while the dominant experience is heavy body capture. Ambient music can produce suspicious metric readings from weak pulse evidence; those readings should be named as low-confidence rather than turned into false claims. Conversely, groove music may be technically simple and still perceptually strong because the body is fully settled.
+This matters because technically interesting structure is not always the felt face of the music. A track can contain metric tension while the dominant experience is body capture by weight or pressure. Ambient music can produce suspicious metric readings from weak pulse evidence; those readings should be named as low-confidence rather than turned into false claims. Conversely, groove music may be technically simple and still perceptually strong because the body is fully settled.
 
-Use the salience guide to choose emphasis. Do not treat it as censorship. The raw metrics remain the evidence, and a downstream reader can disagree with the advisory ranking.
+The key rule: do not bake multiple forces into one category when the same axes can explain the track. `lock + mass + resisted` is not the same as `grid + dry + resisted`, even if both have high body capture and low comfort. Keep raw metrics visible, keep axes separable, and let prose choose the human phrase.
 
 ---
 
