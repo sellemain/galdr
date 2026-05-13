@@ -362,7 +362,20 @@ def _build_metrics(analysis: dict) -> str:
     salience = synthesize_salience(analysis)
     if salience.get("headline_forces") or salience.get("supporting_forces"):
         lines.append("\nPerceptual salience guide (advisory, not a filter):")
-        lines.append(f"Listening contract: {salience.get('listening_contract', 'balanced_listener_state')}")
+        lines.append(f"Primary contract: {salience.get('primary_contract', salience.get('listening_contract', 'balanced_listener_state'))}")
+        secondary_contracts = salience.get("secondary_contracts") or []
+        if secondary_contracts:
+            lines.append("Secondary contracts: " + ", ".join(secondary_contracts))
+        axes = salience.get("force_axes") or {}
+        if axes:
+            axis_bits = [
+                f"{axis}={item.get('value', 'unknown')} ({item.get('confidence', 'medium')}: {item.get('evidence', '')})"
+                for axis, item in axes.items()
+            ]
+            lines.append("Force axes: " + "; ".join(axis_bits))
+        prose_hints = salience.get("prose_hints") or []
+        if prose_hints:
+            lines.append("Prose hints: " + ", ".join(prose_hints))
         for label, key in (
             ("Headline forces", "headline_forces"),
             ("Supporting forces", "supporting_forces"),
@@ -381,7 +394,7 @@ def _build_metrics(analysis: dict) -> str:
             lines.append("Conflict notes: " + " ".join(notes))
         lines.append(
             "Use this guide to choose narrative emphasis, but keep the raw metrics available; "
-            "do not hide technically true secondary evidence."
+            "do not hide technically true secondary evidence or collapse the axes into compound labels."
         )
 
     # Texture balance derived from report harmonic/percussive weight ratio
