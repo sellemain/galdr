@@ -1142,3 +1142,164 @@ def test_salience_factorizes_ambient_field_as_force_without_motor_lock():
     assert salience["force_axes"]["weight"]["value"] == "heavy"
     assert "held field" in salience["prose_hints"]
     assert "force without motor lock" in salience["prose_hints"]
+
+
+def test_salience_distinguishes_braced_mass_from_impact_mass_lock():
+    from galdr.salience import synthesize_salience
+
+    base_analysis = {
+        "report": {
+            "pulse_confidence": 0.90,
+            "pulse": 0.98,
+            "body": 0.60,
+            "weight": 0.43,
+            "metric_tension": 0.11,
+        },
+        "perception": {
+            "summary": {
+                "mean_attention": 0.94,
+                "mean_pattern": 0.96,
+                "pressure_building_pct": 4.0,
+                "pressure_releasing_pct": 6.0,
+                "pressure_sustaining_pct": 89.0,
+                "mean_body_capture": 0.65,
+                "mean_body_comfort": 0.57,
+                "mean_groove_comfort": 0.57,
+                "mean_surface_density": 0.13,
+                "mean_accent_phase_drift": 0.28,
+            }
+        },
+    }
+
+    impact = synthesize_salience(base_analysis)
+
+    assert impact["primary_contract"] == "lock"
+    assert "mass lock" in impact["prose_hints"]
+    assert "impact mass lock" in impact["prose_hints"]
+    assert "braced mass lock" not in impact["prose_hints"]
+
+    braced_analysis = {
+        **base_analysis,
+        "report": {**base_analysis["report"], "body": 0.30},
+        "perception": {
+            "summary": {
+                **base_analysis["perception"]["summary"],
+                "pressure_building_pct": 42.0,
+                "pressure_sustaining_pct": 22.0,
+                "mean_body_comfort": 0.46,
+                "mean_groove_comfort": 0.46,
+            }
+        },
+    }
+
+    braced = synthesize_salience(braced_analysis)
+
+    assert braced["primary_contract"] == "lock"
+    assert "mass lock" in braced["prose_hints"]
+    assert "braced mass lock" in braced["prose_hints"]
+    assert "impact mass lock" not in braced["prose_hints"]
+
+
+def test_assemble_renders_salience_axes_without_headline_forces():
+    from galdr.assemble import assemble_prompt
+
+    analysis = {
+        "report": {
+            "pulse_confidence": 0.86,
+            "pulse": 0.97,
+            "body": 0.40,
+            "weight": 0.20,
+            "metric_tension": 0.16,
+        },
+        "perception": {
+            "summary": {
+                "mean_attention": 0.71,
+                "mean_pattern": 0.76,
+                "pressure_building_pct": 12.0,
+                "pressure_releasing_pct": 12.0,
+                "pressure_sustaining_pct": 76.0,
+                "mean_body_capture": 0.40,
+                "mean_body_comfort": 0.46,
+                "mean_groove_comfort": 0.46,
+                "mean_surface_density": 0.25,
+                "mean_accent_phase_drift": 0.39,
+            }
+        },
+    }
+
+    prompt = assemble_prompt(analysis, mode="blind")
+
+    assert "Perceptual salience guide (advisory, not a filter):" in prompt
+    assert "Primary contract: balanced_listener_state" in prompt
+    assert "Force axes:" in prompt
+    assert "body_relation=lightly_engaged" in prompt
+
+
+def test_salience_labels_plain_body_drive_pattern_hold():
+    from galdr.salience import synthesize_salience
+
+    analysis = {
+        "report": {
+            "pulse_confidence": 0.86,
+            "pulse": 0.97,
+            "body": 0.64,
+            "weight": 0.32,
+            "metric_tension": 0.16,
+        },
+        "perception": {
+            "summary": {
+                "mean_attention": 0.71,
+                "mean_pattern": 0.87,
+                "pressure_building_pct": 12.0,
+                "pressure_releasing_pct": 12.0,
+                "pressure_sustaining_pct": 76.0,
+                "mean_body_capture": 0.58,
+                "mean_body_comfort": 0.46,
+                "mean_groove_comfort": 0.46,
+                "mean_surface_density": 0.25,
+                "mean_accent_phase_drift": 0.39,
+            }
+        },
+    }
+
+    salience = synthesize_salience(analysis)
+
+    assert salience["primary_contract"] == "pattern_hold"
+    assert "plain body drive" in salience["prose_hints"]
+    assert salience["headline_forces"][0]["name"] == "pattern hold"
+
+
+def test_salience_labels_soft_mass_lock_without_promoting_to_new_contract():
+    from galdr.salience import synthesize_salience
+
+    analysis = {
+        "report": {
+            "pulse_confidence": 0.91,
+            "pulse": 0.98,
+            "body": 0.52,
+            "weight": 0.40,
+            "metric_tension": 0.14,
+        },
+        "perception": {
+            "summary": {
+                "mean_attention": 0.88,
+                "mean_pattern": 0.95,
+                "pressure_building_pct": 22.0,
+                "pressure_releasing_pct": 18.0,
+                "pressure_sustaining_pct": 58.0,
+                "mean_body_capture": 0.63,
+                "mean_body_comfort": 0.52,
+                "mean_groove_comfort": 0.52,
+                "mean_surface_density": 0.30,
+                "mean_accent_phase_drift": 0.56,
+            }
+        },
+    }
+
+    salience = synthesize_salience(analysis)
+
+    assert salience["primary_contract"] == "lock"
+    assert "mass lock" in salience["prose_hints"]
+    assert "soft mass lock" in salience["prose_hints"]
+    assert "braced mass lock" not in salience["prose_hints"]
+    assert "impact mass lock" not in salience["prose_hints"]

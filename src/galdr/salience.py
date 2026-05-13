@@ -76,6 +76,7 @@ def synthesize_salience(analysis: dict) -> dict:
     force_axes: dict[str, dict] = {}
 
     high_pattern = attention >= 0.82 and pattern >= 0.88
+    pattern_drive = pattern >= 0.82 and body_capture >= 0.55 and body >= 0.55 and 0.24 <= weight < 0.35
     captured = body_capture >= 0.58 or body >= 0.58
     comfortable = body_comfort >= 0.48 or groove_comfort >= 0.48
     settled_comfort = body_comfort >= 0.58 or groove_comfort >= 0.58
@@ -193,8 +194,18 @@ def synthesize_salience(analysis: dict) -> dict:
         )
         if weight >= 0.35:
             prose_hints.append("mass lock")
-            if surface_density <= 0.22 and accent_drift < 0.45:
+            braced_mass = (
+                surface_density <= 0.22
+                and accent_drift < 0.45
+                and (pressure_building >= 20 or body < 0.45 or body_comfort < 0.52)
+            )
+            soft_mass = surface_density >= 0.26 and body_comfort >= 0.48 and pressure_sustaining < 84
+            if braced_mass:
                 prose_hints.append("braced mass lock")
+            elif pressure_sustaining >= 84:
+                prose_hints.append("impact mass lock")
+            elif soft_mass:
+                prose_hints.append("soft mass lock")
         elif uncomfortable:
             prose_hints.append("tense lock")
         elif pressure_only_lock:
@@ -208,9 +219,16 @@ def synthesize_salience(analysis: dict) -> dict:
             confidence="medium",
         )
         prose_hints.append("minimal grid")
-    elif high_pattern:
+    elif high_pattern or pattern_drive:
         primary_contract = "pattern_hold"
-        _add_unique(headline, "pattern hold", f"attention {attention:.3f}, pattern {pattern:.3f}", confidence="medium")
+        _add_unique(
+            headline,
+            "pattern hold",
+            f"attention {attention:.3f}, pattern {pattern:.3f}, body_capture {body_capture:.3f}, weight {weight:.3f}",
+            confidence="medium",
+        )
+        if pattern_drive:
+            prose_hints.append("plain body drive")
 
     if primary_contract != "grid" and metric_tension >= 0.30:
         secondary_contracts.append("grid")

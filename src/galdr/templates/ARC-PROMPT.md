@@ -76,4 +76,6 @@ The track data gives you structure. Your job is to render it as sensation, not a
 
 11. **No section headers. No bullet points. No metric summary.** Do not quote raw metric values inline — translate them. Write what the number means in listener terms, not the number itself. Do not use exact measured durations such as `4.85-second`; round them into natural prose (`a several-second fade`, `a long hold`, `a quick break`).
 
-12. **~800 words.**
+12. **Length should scale with the track.** Use ~150 words per minute of music as the rough target, with a 600-word floor for real experience prose and a 1,500-word soft cap unless the track genuinely evolves enough to deserve more. Normal 3-5 minute songs usually land around 600-900 words; 6-9 minute tracks usually land around 900-1,300. Dense, eventful tracks may run 20-30% longer. Highly stable or repetitive tracks may stay shorter, but not by skipping the middle.
+
+   For any continuous span longer than about 60 seconds, describe how the listener-state persists, shifts, tightens, relaxes, strains, or changes under repetition. Stability is not stillness. Do not let beginnings and endings dominate just because they contain obvious event hooks. As a default, spend no more than about 25% of the prose on intro/outro unless the track itself is structurally dominated by them.

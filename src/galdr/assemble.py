@@ -360,9 +360,23 @@ def _build_metrics(analysis: dict) -> str:
             )
 
     salience = synthesize_salience(analysis)
-    if salience.get("headline_forces") or salience.get("supporting_forces"):
+    primary_contract = salience.get("primary_contract", salience.get("listening_contract", "balanced_listener_state"))
+    has_salience_context = any(
+        salience.get(key)
+        for key in (
+            "headline_forces",
+            "supporting_forces",
+            "force_axes",
+            "prose_hints",
+            "secondary_contracts",
+            "technical_underlayer",
+            "low_confidence_metrics",
+            "conflict_notes",
+        )
+    )
+    if has_salience_context:
         lines.append("\nPerceptual salience guide (advisory, not a filter):")
-        lines.append(f"Primary contract: {salience.get('primary_contract', salience.get('listening_contract', 'balanced_listener_state'))}")
+        lines.append(f"Primary contract: {primary_contract}")
         secondary_contracts = salience.get("secondary_contracts") or []
         if secondary_contracts:
             lines.append("Secondary contracts: " + ", ".join(secondary_contracts))
