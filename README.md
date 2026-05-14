@@ -22,14 +22,14 @@ Just what shaped the reasoning.
 
 **Listening examples:**
 
-- **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
-- **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
+- **[Aurora — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 - **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
+- **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
-- **[Wardruna — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)**
+- **[Jinjer — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
+- **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
-- **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
-- **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
+- **[Wardruna — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)**
 
 ---
 
