@@ -21,6 +21,7 @@ That is the origin story and product thesis, not a benchmark claim. What galdr c
 Just what shaped the reasoning.
 
 **Listening examples:**
+- **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
 - **[Wardruna & Aurora — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-aurora-helvegen.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
@@ -85,6 +86,7 @@ cat prompt.txt | claude       # Claude CLI
 ```
 
 That produces something like these:
+- **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
 - **[Wardruna & Aurora — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-aurora-helvegen.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**

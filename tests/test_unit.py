@@ -924,6 +924,49 @@ def test_compute_silence_reentries_marks_boundaries_separately():
     assert reentries[1]["reentry_shape"] == "terminal_decay"
 
 
+def test_assembled_prompt_omits_ordinary_closing_silence_from_prose_events():
+    from galdr.assemble import assemble_prompt
+
+    analysis = {
+        "report": {"duration_seconds": 120.0, "detected_pulse_bpm": 120.0, "pulse": 0.8},
+        "perception": {
+            "summary": {
+                "mean_attention": 0.8,
+                "mean_pattern": 0.9,
+                "pressure_building_pct": 10.0,
+                "pressure_releasing_pct": 10.0,
+                "pressure_sustaining_pct": 80.0,
+                "silence_reentry_count": 1,
+                "silence_reentry_shapes": {
+                    "entry_preparation": 0,
+                    "continuation": 0,
+                    "rupture": 0,
+                    "reset": 0,
+                    "withdrawal": 0,
+                    "terminal_decay": 1,
+                },
+                "silence_boundary_positions": {"opening": 0, "internal": 0, "closing": 1},
+            },
+            "pattern_breaks": [
+                {
+                    "time": 112.0,
+                    "type": "silence",
+                    "duration": 8.0,
+                    "depth_db": -80.0,
+                    "reentry_shape": "terminal_decay",
+                    "boundary_position": "closing",
+                }
+            ],
+        },
+    }
+
+    prompt = assemble_prompt(analysis, mode="blind")
+
+    assert "Silence returns" not in prompt
+    assert "terminal_decay" not in prompt
+    assert "silence 8.00s" not in prompt
+
+
 def test_assembled_structural_events_include_reentry_language():
     from galdr.assemble import assemble_prompt
 
