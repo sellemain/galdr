@@ -28,7 +28,7 @@ Just what shaped the reasoning.
 - **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
 - **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
-- **[GAEREA — Submerged](https://github.com/sellemain/galdr/blob/main/docs/gaerea-submerged.md)**
+- **[Gaerea — Submerged](https://github.com/sellemain/galdr/blob/main/docs/gaerea-submerged.md)**
 - **[Jinjer — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
 - **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
