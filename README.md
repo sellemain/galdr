@@ -21,6 +21,7 @@ That is the origin story and product thesis, not a benchmark claim. What galdr c
 Just what shaped the reasoning.
 
 **Listening examples:**
+- **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
 - **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
 - **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
@@ -87,6 +88,7 @@ cat prompt.txt | claude       # Claude CLI
 ```
 
 That produces something like these:
+- **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
 - **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
 - **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
