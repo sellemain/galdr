@@ -647,6 +647,44 @@ def test_fetch_analyze_passes_hop_sec_to_listen(monkeypatch, tmp_path):
     }
 
 
+def test_fetch_analyze_errors_when_audio_download_missing(monkeypatch, tmp_path, capsys):
+    """fetch --analyze must fail when music is unavailable; context alone is not galdr."""
+    from argparse import Namespace
+    from galdr import cli
+
+    def fake_fetch_track(**kwargs):
+        kwargs["audio_dir"].mkdir(parents=True, exist_ok=True)
+        kwargs["analysis_dir"].mkdir(parents=True, exist_ok=True)
+        (kwargs["analysis_dir"] / kwargs["slug"]).mkdir(parents=True, exist_ok=True)
+        (kwargs["analysis_dir"] / kwargs["slug"] / "context.json").write_text("{}")
+
+    monkeypatch.setattr("galdr.fetch.fetch_track", fake_fetch_track)
+    monkeypatch.setattr(cli, "cmd_listen", lambda _args: pytest.fail("cmd_listen should not run without audio"))
+
+    args = Namespace(
+        url="https://www.youtube.com/watch?v=X7drilHsM6c",
+        name="fetch-no-audio",
+        artist="Example Artist",
+        title="Example Track",
+        audio_dir=str(tmp_path / "audio"),
+        analysis_dir=str(tmp_path / "analysis"),
+        analyze=True,
+        no_download=False,
+        no_wikipedia=True,
+        no_lyrics=True,
+        wiki_artist=None,
+        wiki_song=None,
+        censor=False,
+        hop_sec=0.5,
+    )
+
+    with pytest.raises(SystemExit) as excinfo:
+        cli.cmd_fetch(args)
+
+    assert excinfo.value.code == 1
+    assert "cannot run galdr analysis" in capsys.readouterr().err
+
+
 def test_assemble_unknown_slug_raises(tmp_path):
     """assemble_prompt_from_disk should not fabricate zero metrics for missing slugs."""
     from galdr.assemble import assemble_prompt_from_disk
@@ -667,6 +705,22 @@ def test_assemble_context_only_reports_missing_structural_analysis(tmp_path):
         "artist": "Example Artist",
         "title": "Example Track",
     }))
+
+    prompt = assemble_prompt_from_disk(slug, tmp_path)
+
+    assert "No structural analysis files found" in prompt
+    assert "Duration: 0:00" not in prompt
+    assert "Tempo: 0.0 BPM" not in prompt
+
+
+def test_assemble_partial_report_without_duration_reports_missing_structural_analysis(tmp_path):
+    """Partial/legacy report files should not fabricate zero duration and pulse."""
+    from galdr.assemble import assemble_prompt_from_disk
+
+    slug = "partial-report"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_report.json").write_text(json.dumps({"track": slug}))
 
     prompt = assemble_prompt_from_disk(slug, tmp_path)
 
