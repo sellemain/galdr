@@ -355,7 +355,12 @@ def _build_metrics(analysis: dict) -> str:
         shapes = summary.get("silence_reentry_shapes") or {}
         boundaries = summary.get("silence_boundary_positions") or {}
         reentry_count = summary.get("silence_reentry_count", 0)
-        if reentry_count:
+        ordinary_closing_only = (
+            reentry_count > 0
+            and boundaries.get("closing", 0) == reentry_count
+            and shapes.get("terminal_decay", 0) == reentry_count
+        )
+        if reentry_count and not ordinary_closing_only:
             shape_bits = [f"{shape}:{count}" for shape, count in shapes.items() if count]
             boundary_bits = [f"{pos}:{count}" for pos, count in boundaries.items() if count]
             shape_text = ", ".join(shape_bits) if shape_bits else "none classified"
@@ -364,7 +369,7 @@ def _build_metrics(analysis: dict) -> str:
                 f"Silence returns: {reentry_count} silence outcomes "
                 f"({shape_text}{boundary_text}); describe internal returns as "
                 "continuation, rupture, reset, or withdrawal, and boundary "
-                "silence as entry preparation or terminal decay"
+                "silence as entry preparation only when it changes how the music begins"
             )
 
     salience = synthesize_salience(analysis)
@@ -523,6 +528,18 @@ def _build_metrics(analysis: dict) -> str:
             f"{_fmt_time(start)}–{_fmt_time(end)} — {desc}{details}",
         ))
 
+    ordinary_closing_only = False
+    if perception.get("summary"):
+        summary = perception.get("summary") or {}
+        shapes = summary.get("silence_reentry_shapes") or {}
+        boundaries = summary.get("silence_boundary_positions") or {}
+        reentry_count = summary.get("silence_reentry_count", 0)
+        ordinary_closing_only = (
+            reentry_count > 0
+            and boundaries.get("closing", 0) == reentry_count
+            and shapes.get("terminal_decay", 0) == reentry_count
+        )
+
     for b in event_source:
         # New schema uses "time"; old uses "start" or "time"
         t = float(b.get("time", b.get("start", 0)))
@@ -534,6 +551,8 @@ def _build_metrics(analysis: dict) -> str:
             db = b.get("depth_db", -80)
             shape = b.get("reentry_shape")
             boundary = b.get("boundary_position")
+            if ordinary_closing_only and (boundary == "closing" or shape == "terminal_decay"):
+                continue
             force = b.get("reentry_force")
             recovery = b.get("recovery_time_sec")
             if shape:
