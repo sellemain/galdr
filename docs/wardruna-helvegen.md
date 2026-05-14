@@ -1,3 +1,5 @@
+# Wardruna - Helvegen
+
 Source: https://www.youtube.com/watch?v=n90SVmnomdM
 
 The first sound is already low to the ground. Not dramatic. Not cinematic. A held body of tone comes forward out of the dark, and for a while it gives the listener almost no path except endurance. The pulse is present as contact more than beat: something repeated, something walked, something older than counting. The room does not open upward yet. It settles downward.

@@ -1,3 +1,5 @@
+# Queen - Bohemian Rhapsody
+
 Source: https://www.youtube.com/watch?v=fJ9rUzIMcZQ
 
 The first entrance does not arrive as a band. It arrives as a question held in several human mouths, close enough to feel private and arranged enough to feel impossible. The opening voices are soft, but not loose. They hang in clear harmony, each part placed with care, making the room widen before any weight appears underneath. There is a brief hush, then another vocal surface returns, and the stillness becomes part of the phrasing rather than a gap.
