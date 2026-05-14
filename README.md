@@ -21,11 +21,12 @@ That is the origin story and product thesis, not a benchmark claim. What galdr c
 Just what shaped the reasoning.
 
 **Listening examples:**
+
 - **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
 - **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
 - **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
-- **[Wardruna & Aurora — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-aurora-helvegen.md)**
+- **[Wardruna — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 - **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 - **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
@@ -88,6 +89,7 @@ cat prompt.txt | claude       # Claude CLI
 ```
 
 That produces something like these:
+
 - **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
 - **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
 - **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
@@ -165,16 +167,18 @@ If you are another AI — or you are prompting one — do **not** default to a w
 
 That misses the point of galdr.
 
-Galdr is strongest when read as a **time-ordered listener-state trace**. The stream is the primary evidence. The whole-track reading should come *after* walking the song through time.
+Galdr is strongest when read as a **time-ordered listener-state trace**. The stream is the primary evidence. The whole-track reading should come _after_ walking the song through time.
 
 #### Minimum inputs
 
 For a real time-resolved read, start with:
+
 - `analysis/<slug>/<slug>_stream.json`
 - `analysis/<slug>/<slug>_perception.json`
 - `docs/PERCEPTION-MODEL.md`
 
 Useful optional additions:
+
 - `analysis/<slug>/<slug>_harmony_stream.json`
 - `analysis/<slug>/<slug>_melody_stream.json`
 - `analysis/<slug>/<slug>_overtone_stream.json`
@@ -192,6 +196,7 @@ Useful optional additions:
 #### What not to do
 
 Do **not**:
+
 - flatten the song into one global mood immediately
 - treat summary metrics as more important than the stream
 - overclaim emotional certainty from structure alone
@@ -285,7 +290,6 @@ pattern_breaks = perception["pattern_breaks"]
 ```
 
 The assembled prompt includes: source URL, structural events, harmonic and melodic data, lyrics with timestamps if available, and video frame descriptions. Works with any model. Genius and autocaptions can miss lyrics; for release-quality prose, manually verify the words when they seem central or galdr reports no lyrics for an obviously vocal track. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
-
 
 → **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
 
