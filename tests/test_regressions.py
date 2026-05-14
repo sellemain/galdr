@@ -891,3 +891,30 @@ def test_compute_perception_callable_with_synthetic_audio():
     assert isinstance(result["stream"], list)
     assert "summary" in result
     assert "pattern_break_counts" in result["summary"]
+
+
+def test_assemble_uses_sibling_audio_vtt_when_context_lacks_lyrics(tmp_path):
+    from galdr.assemble import assemble_prompt_from_disk
+
+    slug = "caption-fallback-track"
+    analysis_dir = tmp_path / "analysis"
+    slug_dir = analysis_dir / slug
+    audio_dir = tmp_path / "audio"
+    slug_dir.mkdir(parents=True)
+    audio_dir.mkdir()
+
+    (slug_dir / f"{slug}_report.json").write_text(
+        '{"duration_seconds": 12.0, "detected_pulse_bpm": 80.0, "felt_pulse_bpm": 80.0}'
+    )
+    (slug_dir / "context.json").write_text('{"artist": "A", "title": "T"}')
+    (audio_dir / f"{slug}.en.vtt").write_text(
+        "WEBVTT\n\n00:00:01.000 --> 00:00:03.000\nfirst caption words here now\n\n"
+        "00:00:03.000 --> 00:00:05.000\nmore caption words arrive here\n",
+        encoding="utf-8",
+    )
+
+    result = assemble_prompt_from_disk(slug, analysis_dir, mode="lyrics", template="none")
+
+    assert "## Lyrics" in result
+    assert "Source: local VTT captions" in result
+    assert "first caption words" in result

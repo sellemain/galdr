@@ -33,6 +33,7 @@ from importlib import resources as pkg_resources
 
 from .metric_vocabulary import display_name, glossary_lines
 from .salience import synthesize_salience
+from .captions import dedup_captions_with_timestamps, parse_vtt
 
 
 # ─── Mode definitions ─────────────────────────────────────────────────────────
@@ -133,6 +134,82 @@ def load_context(slug: str, analysis_dir: Path) -> dict:
     """Load context.json for a slug. Returns empty dict if not found."""
     path = analysis_dir / slug / "context.json"
     return _load_json(path) or {}
+
+
+def _has_lyrics(context: dict) -> bool:
+    """Return True when context already contains usable lyric/caption text."""
+    lyrics = context.get("lyrics")
+    if not lyrics:
+        return False
+    if isinstance(lyrics, str):
+        return bool(lyrics.strip())
+    if lyrics.get("caption_lines"):
+        return True
+    if (lyrics.get("genius_text") or "").strip():
+        return True
+    if (lyrics.get("full_text") or "").strip():
+        return True
+    return False
+
+
+def _caption_candidates(slug: str, analysis_dir: Path, context: dict) -> list[Path]:
+    """Find raw VTT caption files associated with a slug."""
+    candidates: list[Path] = []
+    dl = context.get("download") if isinstance(context.get("download"), dict) else {}
+    captions_file = dl.get("captions_file") or context.get("captions_file")
+    if captions_file:
+        candidates.append(Path(captions_file))
+    audio_file = context.get("audio_file") or dl.get("audio_file")
+    if audio_file:
+        audio_dir = Path(audio_file).expanduser().parent
+        candidates.extend(sorted(audio_dir.glob(f"{slug}*.vtt")))
+    candidates.extend(sorted((analysis_dir.parent / "audio").glob(f"{slug}*.vtt")))
+    candidates.extend(sorted(Path("audio").glob(f"{slug}*.vtt")))
+    seen = set()
+    unique = []
+    for path in candidates:
+        resolved = path.expanduser()
+        key = str(resolved)
+        if key not in seen and resolved.exists():
+            seen.add(key)
+            unique.append(resolved)
+    return unique
+
+
+def _augment_context_with_caption_file(slug: str, analysis_dir: Path, context: dict) -> dict:
+    """Add lyrics from a raw VTT file when context.json lacks them."""
+    if _has_lyrics(context):
+        return context
+    for path in _caption_candidates(slug, analysis_dir, context):
+        segments = parse_vtt(path)
+        caption_lines = dedup_captions_with_timestamps(segments)
+        if caption_lines:
+            augmented = dict(context)
+            augmented["lyrics"] = {
+                "source": "local-vtt-captions",
+                "captions_file": str(path),
+                "caption_lines": caption_lines,
+                "full_text": "\n".join(line["text"] for line in caption_lines),
+                "genius_text": None,
+            }
+            return augmented
+    return context
+
+
+def _lyrics_source_label(lyrics: dict) -> str | None:
+    """Return a short human-readable source label for the Lyrics section."""
+    source = lyrics.get("source")
+    if source == "local-vtt-captions":
+        path = lyrics.get("captions_file")
+        return f"local VTT captions ({path})" if path else "local VTT captions"
+    if source == "youtube-auto-captions":
+        return "YouTube auto-captions"
+    if source == "genius+autocaptions":
+        return "Genius lyrics + YouTube auto-captions"
+    if source == "genius":
+        url = lyrics.get("genius_url")
+        return f"Genius ({url})" if url else "Genius"
+    return source if isinstance(source, str) and source.strip() and source != "none" else None
 
 
 # ─── Section builders ─────────────────────────────────────────────────────────
@@ -613,6 +690,8 @@ def _build_lyrics(context: dict) -> str | None:
         # Legacy plain-string format
         return f"## Lyrics\n\n{lyrics.strip()}" if lyrics.strip() else None
 
+    source_label = _lyrics_source_label(lyrics)
+    source_line = f"Source: {source_label}" if source_label else None
     lyrics_usable = lyrics.get("use_in_prompt", True)
     genius_text = (lyrics.get("genius_text") or "") if lyrics_usable else ""
     caption_lines = lyrics.get("caption_lines") or []
@@ -621,6 +700,8 @@ def _build_lyrics(context: dict) -> str | None:
 
     if caption_lines:
         cap_section = ["## Lyrics — autocaptions (timestamps accurate; text may contain mishears)\n"]
+        if source_line:
+            cap_section.append(source_line)
         for entry in caption_lines:
             ts = entry.get("ts", "?")
             text = entry.get("text", "")
@@ -629,6 +710,8 @@ def _build_lyrics(context: dict) -> str | None:
 
     if genius_text.strip():
         genius_section = ["## Lyrics — Genius (clean text, no timestamps)\n"]
+        if source_line:
+            genius_section.append(source_line)
         genius_section.append(genius_text.strip())
         sections.append("\n".join(genius_section))
 
@@ -636,7 +719,8 @@ def _build_lyrics(context: dict) -> str | None:
         # Fall back to full_text for old context.json files
         text = lyrics.get("full_text", "") if lyrics_usable else ""
         if text and text.strip():
-            return f"## Lyrics\n\n{text.strip()}"
+            prefix = f"{source_line}\n" if source_line else ""
+            return f"## Lyrics\n\n{prefix}{text.strip()}"
         return None
 
     return "\n\n".join(sections)
@@ -782,6 +866,8 @@ def assemble_prompt_from_disk(
     """
     analysis = load_analysis(slug, analysis_dir)
     context = load_context(slug, analysis_dir)
+    if mode in {"full", "lyrics"}:
+        context = _augment_context_with_caption_file(slug, analysis_dir, context)
     if not any(analysis.values()) and not context:
         raise ValueError(
             f"No analysis or context found for slug '{slug}' in {analysis_dir / slug}"

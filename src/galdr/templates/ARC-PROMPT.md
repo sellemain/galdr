@@ -102,7 +102,7 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
    Do the same for instruments and arrangement. Name specific instruments only when the galdr data, frame/context notes, or track metadata support them; otherwise describe roles: drone, low weight, pulse-carrier, bright surface, percussive edge, harmonic bed, noise, room, silence. The goal is to hear the arrangement as a set of forces, not a single ceremonial fog. If there are no vocals, name what carries the harmonic weight instead.
 
-11. **Don't name what the data doesn't give you.** Do not name specific instruments unless they appear in the galdr data or in the track notes. Do not assert recording context (live, studio, year) from memory. Do not argue that the song is *about* something — describe what the structure does and let the listener draw the meaning.
+11. **Don't name what the data doesn't give you.** Do not name specific instruments unless they appear in the galdr data or in the track notes. Do not assert recording context (live, studio, year) from memory. Do not argue that the song is *about* something — describe what the structure does and let the listener draw the meaning. Do not quote or paraphrase lyrics from memory; if no Lyrics section is present, treat the piece as instrumental or lyric-unavailable and write only from the supplied sound/context.
 
 12. **No section headers. No bullet points. No metric summary.** Do not quote raw metric values inline — translate them. Write what the number means in listener terms, not the number itself. Do not use exact measured durations such as `4.85-second`; round them into natural prose (`a several-second fade`, `a long hold`, `a quick break`).
 
