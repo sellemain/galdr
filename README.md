@@ -1,8 +1,10 @@
 # galdr
 
-galdr — AI-native music perception framework.
-Deterministic ears for AI agents: audio in, listener-state traces out.
+galdr — deterministic ears for AI agents.
+Audio in, listener-state traces out.
 Acoustic signal becomes structured evidence an LLM can encounter.
+
+galdr analyzes music from YouTube URLs or local audio files and turns the result into time-ordered listener-state traces: attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use it to explain what makes a track work structurally, generate listening experiences, compare recordings, or extract music-video frames at structural moments.
 
 galdr does not run an LLM during analysis. It is the ears: it tracks attention, predictability, pressure, harmonic pull, melodic contour, and overtone structure as they unfold through time, then packages that evidence for agents or humans to reason over. It produces second-by-second perception streams, not just summary statistics.
 
@@ -22,14 +24,14 @@ Just what shaped the reasoning.
 
 **Listening examples:**
 
-- **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
-- **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
+- **[Aurora — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 - **[Arvo Pärt — Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)**
+- **[Barren Rocks of Aden — Pipes & Drums](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md)**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
-- **[Wardruna — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)**
+- **[Jinjer — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
+- **[Johnny Cash — Hurt](https://github.com/sellemain/galdr/blob/main/docs/johnny-cash-hurt.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
-- **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
-- **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
+- **[Wardruna — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)**
 
 ---
 

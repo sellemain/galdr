@@ -90,4 +90,4 @@ def test_python_module_entrypoint_help():
     )
 
     assert result.returncode == 0
-    assert "AI-native music perception framework" in result.stdout
+    assert "Deterministic ears for AI agents" in result.stdout

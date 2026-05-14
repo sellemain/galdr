@@ -1,14 +1,14 @@
 ---
 name: galdr
-description: Music perception SDK for AI agents — turns tracks into listener-state traces: attention, pressure, silence, tempo confidence, harmony, melody, overtones.
-version: 0.2.2
+description: Use galdr to analyze music from YouTube URLs or local audio files and turn the result into time-ordered listener-state traces: attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
+version: 0.3.0
 author: Sellemain
 license: MIT
 platforms: [linux, macos]
 ---
 # galdr
 
-Music perception SDK for AI agents — turns tracks into listener-state traces: attention, pressure, silence, tempo confidence, harmony, melody, overtones.
+galdr is a music perception CLI for AI agents. It turns tracks into listener-state traces, then optionally assembles those traces into prompts for structural analysis or listening-experience prose.
 
 ## Install
 
@@ -85,7 +85,7 @@ Reading order:
 1. Read `PERCEPTION-MODEL.md` first.
 2. Treat `*_stream.json` as the main evidence surface.
 3. Walk the track in order.
-4. Mark transitions: silence, re-entry, pattern breaks, attention shifts, pressure/pressure changes, harmonic movement.
+4. Mark transitions: silence, re-entry, pattern breaks, attention shifts, pressure-state changes, harmonic movement.
 5. Translate pressure fields into listening language: comes forward, holds, releases, empties. Do not quote LUFS values in experience prose.
 6. Only then compress upward into a larger interpretation.
 
