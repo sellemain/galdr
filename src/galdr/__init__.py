@@ -1,6 +1,6 @@
-"""galdr — AI-native music perception framework.
+"""galdr — deterministic ears for AI agents.
 
-Deterministic ears for AI agents: listener-state traces, pattern analysis, harmonic decomposition.
+Audio in, listener-state traces out for music analysis and listening experiences.
 
 Quick start (Python API):
     from galdr import listen, assemble

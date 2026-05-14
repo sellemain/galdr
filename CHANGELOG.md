@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-14
+
 ### Added
 - Local stream listener-state metrics for body capture vs body comfort, groove comfort, accent phase drift, expectation debt, release force, section gravity, and surface density.
 - Metric tension reporting for stable pulses pressured by competing metric grids, with conservative low-confidence handling for weak pulse evidence.
