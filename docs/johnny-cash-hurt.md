@@ -1,3 +1,5 @@
+# Johnny Cash - Hurt
+
 Source: https://www.youtube.com/watch?v=8AHCfZTRGiI
 
 The song begins already close to the floor. There is no dramatic entrance, no clearing of space before the voice. The guitar and piano make a small, bare room, and Johnny Cash enters it without trying to fill it. His voice is low, dry, and exposed enough that every break in the surface feels like part of the instrument.

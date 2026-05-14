@@ -1,3 +1,5 @@
+# Arvo Pärt - Spiegel im Spiegel
+
 Source: https://www.youtube.com/watch?v=TJ6Mzvh3XCc
 
 The piece begins almost before it has made a claim. A quiet tone appears, then another, and the room has to lower itself to meet them. There is no beat to take the body. There is only placement: a line entering, a harmonic ground answering, each sound leaving enough space around itself that the next one arrives exposed.

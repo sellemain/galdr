@@ -1,3 +1,5 @@
+# Jinjer - Pisces
+
 Source: https://www.youtube.com/watch?v=SQNtGoM3FVU
 
 The song opens by offering the body a place to stand. The pulse is already there, firm but not blunt, a clean moving floor under a warm surface. Nothing feels casual, but nothing attacks yet. The clean voice enters close and controlled, bright enough to seem unguarded, steady enough to make that softness suspect. It is not fragile singing. It is a held posture.

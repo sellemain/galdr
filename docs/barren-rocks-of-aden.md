@@ -1,3 +1,5 @@
+# Barren Rocks of Aden - Pipes & Drums
+
 Source: https://www.youtube.com/watch?v=BUx8ntCzo-w
 
 The track waits in silence for almost five seconds, and the first thing that enters is not the full body of the tune. It is percussion. The drums come forward first, small and precise at the edge of audibility, like the frame of the march being measured before anyone steps into it.
