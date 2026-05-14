@@ -73,11 +73,13 @@ galdr update-deps
 
 `galdr doctor` shows the active Python environment, yt-dlp version, ffmpeg, JavaScript runtime, and impersonation support. `galdr update-deps` upgrades `yt-dlp[default,curl-cffi]` in that same Python environment.
 
-If captions fail but audio succeeds, analysis can still continue. If audio cannot be downloaded, galdr will still fetch lyrics and Wikipedia context and print the slug. You can proceed with `galdr assemble` — the prompt will have lyrics and background but no structural analysis. To skip audio entirely and fetch context only:
+If captions fail but audio succeeds, analysis can still continue. If audio cannot be downloaded, `galdr fetch --analyze` fails: the music is the analysis surface, while lyrics and Wikipedia context are optional context. To intentionally fetch context without audio analysis, use `--no-download`:
 
 ```bash
 galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --no-download --name queen-bohemian-rhapsody --artist "Queen" --title "Bohemian Rhapsody"
 ```
+
+Genius and YouTube autocaptions are useful but not exhaustive. For release-quality listening prose, manually verify lyrics when the words appear central or when galdr reports no lyrics for an obviously vocal track.
 
 ---
 

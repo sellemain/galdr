@@ -261,13 +261,21 @@ def _build_metrics(analysis: dict) -> str:
 
     lines = ["## Galdr Analysis\n"]
 
-    # Track identity — field names from report.json
-    duration = report.get("duration_seconds", 0)
+    # Track identity — field names from report.json. Avoid fabricating
+    # zero-valued metrics when only partial/legacy files are present.
+    has_duration = "duration_seconds" in report
+    if not has_duration and not any([perception, harmony, melody, overtone]):
+        return "## Galdr Analysis\n\nNo structural analysis files found for this track."
+
+    duration = report.get("duration_seconds")
     pulse = report.get("pulse", 0)
     har_e = report.get("harmonic_weight", 0)
     perc_e = report.get("percussive_weight", 0)
 
-    lines.append(f"Duration: {_fmt_time(duration)} ({duration:.1f}s)")
+    if has_duration:
+        lines.append(f"Duration: {_fmt_time(duration)} ({duration:.1f}s)")
+    else:
+        lines.append("Duration: unavailable")
     lines.append(_fmt_tempo(report))
     entrainment = report.get("body")
     entrainment_state = report.get("body_state")

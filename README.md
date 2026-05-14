@@ -22,7 +22,7 @@ Just what shaped the reasoning.
 
 **Listening examples:**
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
-- **[Helvegen — Wardruna and Aurora](https://github.com/sellemain/galdr/blob/main/docs/helvegen-wardruna-aurora.md)**
+- **[Wardruna & Aurora — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-aurora-helvegen.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 - **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 - **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
@@ -86,7 +86,7 @@ cat prompt.txt | claude       # Claude CLI
 
 That produces something like these:
 - **[Dvořák — Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)**
-- **[Helvegen — Wardruna and Aurora](https://github.com/sellemain/galdr/blob/main/docs/helvegen-wardruna-aurora.md)**
+- **[Wardruna & Aurora — Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-aurora-helvegen.md)**
 - **[Queen — Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)**
 - **[AURORA — Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)**
 - **[JINJER — Pisces](https://github.com/sellemain/galdr/blob/main/docs/jinjer-pisces.md)**
@@ -278,7 +278,7 @@ perception = json.loads(
 pattern_breaks = perception["pattern_breaks"]
 ```
 
-The assembled prompt includes: source URL, structural events, harmonic and melodic data, lyrics with timestamps if available, and video frame descriptions. Works with any model. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
+The assembled prompt includes: source URL, structural events, harmonic and melodic data, lyrics with timestamps if available, and video frame descriptions. Works with any model. Genius and autocaptions can miss lyrics; for release-quality prose, manually verify the words when they seem central or galdr reports no lyrics for an obviously vocal track. See [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md) for what the template asks of the model and why.
 
 
 → **[Full getting started guide](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md)** — includes local file workflow, ffmpeg setup, and going deeper.
@@ -290,7 +290,7 @@ galdr doctor       # show yt-dlp, ffmpeg, JS runtime, and impersonation diagnost
 galdr update-deps  # upgrade yt-dlp[default,curl-cffi] in the current Python environment
 ```
 
-`galdr fetch` downloads audio separately from captions. If captions fail but audio succeeds, analysis can still continue; if audio fails, run `galdr doctor` first, then `galdr update-deps`.
+`galdr fetch` downloads audio separately from captions. If captions fail but audio succeeds, analysis can still continue. If audio fails during `fetch --analyze`, galdr exits with an error: music is required for structural analysis. Run `galdr doctor` first, then `galdr update-deps`.
 
 ## What It Measures
 
@@ -400,7 +400,7 @@ galdr assemble my-track --template arc --mode full
 galdr assemble my-track --template arc | llm "Write a listening experience"
 ```
 
-The assembled prompt includes the source URL (so a reader can listen along), all structural events, harmonic and melodic data, lyrics if available, and video frame descriptions. The `arc` template instructs the model on voice and format.
+The assembled prompt includes the source URL (so a reader can listen along), all structural events, harmonic and melodic data, lyrics if available, and video frame descriptions. The `arc` template instructs the model on voice and format. For polished public examples, verify important lyrics manually; automated sources are context, not proof.
 
 ### Tool definitions
 

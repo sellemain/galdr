@@ -339,7 +339,8 @@ def cmd_fetch(args):
             })()
             cmd_listen(listen_args)
         else:
-            print(f"[fetch] Audio not found at {audio_path}, skipping analysis")
+            print(f"[fetch] Error: audio not found at {audio_path}; cannot run galdr analysis.", file=sys.stderr)
+            sys.exit(1)
 
     # Always print the slug at the end so users know what to pass to assemble
     print(f"\n{'─'*50}")
