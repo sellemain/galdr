@@ -15,6 +15,14 @@ import urllib.request
 import urllib.parse
 from pathlib import Path
 
+from .captions import (
+    dedup_captions_with_timestamps,
+    dedup_rolling_captions,
+    fmt_ts as _fmt_ts,
+    parse_ts as _parse_ts,
+    parse_vtt,
+)
+
 
 _CONTEXT_CONFIDENCE_MINIMUM = {"high": 3, "medium": 2, "low": 1, "rejected": 0}
 _CONTEXT_MATCH_WORD_STOP = {
@@ -288,146 +296,9 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
 
 # ─── VTT lyrics parsing ───────────────────────────────────────────────────────
 
-def _parse_ts(ts: str) -> float:
-    """Parse VTT timestamp (HH:MM:SS.mmm or MM:SS.mmm) to seconds."""
-    ts = ts.strip().replace(",", ".")
-    parts = ts.split(":")
-    try:
-        if len(parts) == 3:
-            return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
-        elif len(parts) == 2:
-            return int(parts[0]) * 60 + float(parts[1])
-        return float(parts[0])
-    except (ValueError, IndexError):
-        return 0.0
-
-
-def _fmt_ts(secs: float) -> str:
-    m = int(secs) // 60
-    s = secs % 60
-    return f"{m}:{s:05.2f}"
-
-
-def _dedup_captions_with_timestamps(segments: list[dict]) -> list[dict]:
-    """Produce timestamped lines from rolling YouTube auto-caption segments.
-
-    YouTube captions use a sliding window — each segment overlaps the previous
-    by 2–4 words. This function uses the same overlap logic as
-    _dedup_rolling_captions but returns one entry per novel chunk, timestamped
-    to the moment the new words first appear. Chunks are then merged into
-    natural lines (~8–12 words each).
-
-    Returns list of {"ts": str, "start": float, "text": str}.
-    """
-    # Phase 1: collect novel-word chunks with timestamps
-    chunks: list[dict] = []
-    seen_words: list[str] = []
-    for seg in segments:
-        new_words = seg["text"].split()
-        if not new_words:
-            continue
-        max_overlap = min(len(seen_words), len(new_words))
-        overlap_len = 0
-        for k in range(max_overlap, 0, -1):
-            if seen_words[-k:] == new_words[:k]:
-                overlap_len = k
-                break
-        novel = new_words[overlap_len:]
-        if novel:
-            chunks.append({"ts": seg["ts"], "start": seg["start"], "words": novel})
-            seen_words.extend(novel)
-
-    # Phase 2: merge chunks into ~8-word lines
-    lines: list[dict] = []
-    current_words: list[str] = []
-    current_ts = ""
-    current_start = 0.0
-    line_size = 8
-
-    for chunk in chunks:
-        if not current_ts:
-            current_ts = chunk["ts"]
-            current_start = chunk["start"]
-        current_words.extend(chunk["words"])
-        if len(current_words) >= line_size:
-            lines.append({"ts": current_ts, "start": current_start, "text": " ".join(current_words)})
-            current_words = []
-            current_ts = ""
-    if current_words:
-        lines.append({"ts": current_ts, "start": current_start, "text": " ".join(current_words)})
-
-    return lines
-
-
-def _dedup_rolling_captions(segments: list[dict]) -> str:
-    """Build clean full_text from rolling YouTube auto-caption segments.
-
-    YouTube auto-captions use a sliding window — each segment overlaps
-    heavily with the previous one. Naively joining all segments produces
-    text where each phrase appears 2-3x.
-
-    Strategy: for each segment, find the longest suffix of the
-    accumulated text that matches a prefix of the new segment, and only
-    append what's new past that overlap.
-    """
-    result_words: list[str] = []
-    for seg in segments:
-        new_words = seg["text"].split()
-        if not new_words:
-            continue
-        if not result_words:
-            result_words.extend(new_words)
-            continue
-        # Find the longest overlap: tail of result_words matches prefix of new_words
-        max_overlap = min(len(result_words), len(new_words))
-        overlap_len = 0
-        for k in range(max_overlap, 0, -1):
-            if result_words[-k:] == new_words[:k]:
-                overlap_len = k
-                break
-        result_words.extend(new_words[overlap_len:])
-    return " ".join(result_words)
-
-
-def parse_vtt(vtt_path: Path) -> list[dict]:
-    """Parse a VTT file into deduplicated timestamped segments.
-
-    YouTube auto-captions use a sliding window — consecutive cues overlap.
-    We deduplicate within a small rolling window to collapse these duplicates
-    while preserving genuine repetition (choruses, repeated lines).
-    """
-    lines = vtt_path.read_text(encoding="utf-8", errors="replace").splitlines()
-    segments = []
-    # Only deduplicate against the last N segments — enough to catch sliding
-    # window overlaps but not so large that chorus repetitions get stripped.
-    DEDUP_WINDOW = 5
-    recent_texts: list[str] = []
-    i = 0
-    while i < len(lines):
-        line = lines[i].strip()
-        if "-->" in line:
-            parts = line.split("-->")
-            start = _parse_ts(parts[0])
-            text_lines = []
-            i += 1
-            while i < len(lines) and lines[i].strip():
-                # Strip VTT inline tags like <c>, </c>, <00:00:01.000>
-                clean = re.sub(r"<[^>]+>", "", lines[i].strip())
-                if clean:
-                    text_lines.append(clean)
-                i += 1
-            text = " ".join(text_lines).strip()
-            if text and text not in recent_texts:
-                recent_texts.append(text)
-                if len(recent_texts) > DEDUP_WINDOW:
-                    recent_texts.pop(0)
-                segments.append({
-                    "start": round(start, 2),
-                    "ts": _fmt_ts(start),
-                    "text": text,
-                })
-        i += 1
-    return segments
+# Caption parsing lives in galdr.captions. Keep private aliases for compatibility.
+_dedup_captions_with_timestamps = dedup_captions_with_timestamps
+_dedup_rolling_captions = dedup_rolling_captions
 
 
 # ─── Genius lyrics ───────────────────────────────────────────────────────────
@@ -887,7 +758,7 @@ def fetch_track(
     if not skip_lyrics:
         caption_lines: list[dict] = []
         if caption_segments:
-            caption_lines = _dedup_captions_with_timestamps(caption_segments)
+            caption_lines = dedup_captions_with_timestamps(caption_segments)
             print(f"  Caption lines: {len(caption_lines)} (from {len(caption_segments)} segments)")
 
         print(f"\n[fetch] Genius: {artist} — {title}")
@@ -914,7 +785,7 @@ def fetch_track(
             }
 
         elif caption_lines:
-            full_text = _dedup_rolling_captions(caption_segments)
+            full_text = dedup_rolling_captions(caption_segments)
             if censor:
                 full_text = censor_lyrics(full_text)
                 caption_lines = [

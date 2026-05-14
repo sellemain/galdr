@@ -211,6 +211,33 @@ class TestAssemblePrompt:
         result = self.fn(analysis, context=context, mode="lyrics")
         assert "UNIQUE_LYRIC_STRING" in result
 
+    def test_lyrics_include_source_provenance(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "genius",
+                "genius_url": "https://genius.example/song",
+                "genius_text": "clean lyric text",
+                "full_text": "clean lyric text",
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "Source: Genius (https://genius.example/song)" in result
+        assert "clean lyric text" in result
+
+    def test_local_vtt_caption_source_provenance(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "local-vtt-captions",
+                "captions_file": "/tmp/song.en.vtt",
+                "caption_lines": [{"ts": "0:01", "text": "caption words"}],
+                "full_text": "caption words",
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "Source: local VTT captions (/tmp/song.en.vtt)" in result
+        assert "[0:01]  caption words" in result
 
     def test_low_confidence_context_excluded_from_prompt(self):
         analysis = self._minimal_analysis()
