@@ -1,6 +1,6 @@
 """galdr — deterministic ears for AI agents.
 
-Audio in, listener-state traces out for music analysis and listening experiences.
+Audio in, listener-state traces out. Acoustic signal becomes structured evidence an LLM can encounter.
 
 Quick start (Python API):
     from galdr import listen, assemble

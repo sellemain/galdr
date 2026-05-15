@@ -1,12 +1,22 @@
 # galdr
 
-galdr — deterministic ears for AI agents.
-Audio in, listener-state traces out.
-Acoustic signal becomes structured evidence an LLM can encounter.
+**Deterministic ears for AI agents. Audio in, listener-state traces out. Acoustic signal becomes structured evidence an LLM can encounter.**
 
-galdr analyzes music from YouTube URLs or local audio files and turns the result into time-ordered listener-state traces: attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use it to explain what makes a track work structurally, generate listening experiences, compare recordings, or extract music-video frames at structural moments.
+galdr analyzes music from YouTube URLs or local audio files and turns the result into time-ordered traces of attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Language models can then reason from the sound instead of guessing from metadata, lyrics, or memory.
 
-galdr does not run an LLM during analysis. It is the ears: it tracks attention, predictability, pressure, harmonic pull, melodic contour, and overtone structure as they unfold through time, then packages that evidence for agents or humans to reason over. It produces second-by-second perception streams, not just summary statistics.
+galdr does **not** run an LLM during analysis. It is the listening front-end: it tracks what the audio is doing second by second, then packages that evidence for agents, scripts, or humans to inspect.
+
+## What galdr gives you
+
+- **A time stream** — second-by-second listener-state samples, not just one global mood label.
+- **Structural events** — pattern breaks, silence/re-entry moments, pressure shifts, tempo confidence, harmonic movement, melodic contour, and overtone behavior.
+- **Prompt packets for AI agents** — assembled evidence that can be handed to Claude, `llm`, OpenClaw, or another runtime for structural analysis or listening-experience prose.
+- **Experience documents** — reproducible examples of how measured audio evidence can become a grounded written encounter with a track.
+- **Optional video-frame support** — pull frames around structural moments when the music video matters.
+
+A normal music-analysis tool says: _tempo, key, sections._
+
+galdr is trying to answer: _what is the music doing to attention over time, and where is the arc changing?_
 
 ---
 
@@ -67,7 +77,7 @@ Most people land in one of four modes:
 - **Compare tracks and build a corpus** — accumulate analyses and use the catalog / compare commands.
 - **Use galdr inside an agent or script** — let galdr produce the analysis and prompt packet, then hand off to your model/runtime.
 
-If you're unsure, start with the first path. It's the shortest end-to-end route to seeing what galdr is for.
+If you're unsure, start with the first path. It is the shortest route from “what is this?” to a concrete output you can read.
 
 ## Getting Started
 
