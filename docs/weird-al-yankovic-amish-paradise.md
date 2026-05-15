@@ -1,3 +1,4 @@
+Title: Weird Al Yankovic - Amish Paradise
 Source: https://www.youtube.com/watch?v=lOfZLb33uCg
 
 The opening gives itself the full serious shape before the joke has even cleared its throat. A solemn, hip-hop-weighted surface enters, the body catches the pulse almost at once, and attention locks by 0:04. The track borrows gravity first. That matters, because the first line immediately bends it: *"As I walk through the valley where I harvest my grain"* keeps the cadence of menace and replaces the threat with agriculture. The groove does not laugh. It holds the face straight.

@@ -1,3 +1,4 @@
+Title: Garmarna - Herr Mannelig
 Source: https://www.youtube.com/watch?v=X_BpmQqErks
 
 The opening waits just long enough for the room to become aware of itself, then the sound enters with a held, dark pull. It does not rush toward the listener. It establishes a current. By 0:10 the pulse has appeared under the weight, and attention settles into a pattern that will hold for almost the entire piece. The surface feels suspended: not heavy in a crushing way, but carried, swaying, bound to an old circular motion.

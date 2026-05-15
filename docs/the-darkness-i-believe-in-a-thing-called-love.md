@@ -1,3 +1,4 @@
+Title: The Darkness - I Believe in a Thing Called Love
 Source: https://www.youtube.com/watch?v=tKjZuykKY1I
 
 The first second is a clean intake of air, then the track snaps into brightness with no interest in restraint. The opening guitars do not merely announce the song; they grin at the room. Pressure begins building almost at once, and the early pattern break around 0:13 feels like a wink, a quick flex before the body is fully taken. By 0:16 the pulse has found its grip. The music is moving fast, but not anxiously. It knows exactly how ridiculous and exact it wants to be.

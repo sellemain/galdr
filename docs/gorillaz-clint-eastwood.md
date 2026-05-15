@@ -1,3 +1,4 @@
+Title: Gorillaz - Clint Eastwood
 Source: https://www.youtube.com/watch?v=1V_xRb0x9aw
 
 The track begins from a small pocket of quiet, then settles into a groove that feels already lived-in. The pulse is steady and comfortable, more sly than forceful, with enough weight underneath to keep the body near the floor. Nothing arrives as a grand entrance. The room opens sideways: a simple repeating figure, a loose rhythmic gait, and a surface with space around every event.

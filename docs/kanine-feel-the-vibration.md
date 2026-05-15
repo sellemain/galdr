@@ -1,3 +1,4 @@
+Title: Kanine - Feel the Vibration
 Source: https://www.youtube.com/watch?v=Hjw86NcG8Bo
 
 The track starts by seizing the body before it asks for thought. The pulse is fast, clean, and immediately usable, a bright runway of motion with very little weight holding it down. The opening words, *"This is my meditation,"* arrive over a grid that makes meditation sound less like stillness than like surrender to speed. The body is not invited gently. It is placed inside the current.

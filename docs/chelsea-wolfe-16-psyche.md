@@ -1,3 +1,4 @@
+Title: Chelsea Wolfe - 16 Psyche
 Source: https://www.youtube.com/watch?v=2sb5TszDqYE
 
 The song begins already under a spell of weight. The pulse is slow enough to feel dragged, but too regular to drift. A dark harmonic bed holds the room in place while the first voice enters close and low, not pleading for attention so much as assuming it has already been captured. The sound does not rush toward drama. It lets the floor tilt, then keeps walking.

@@ -1,3 +1,4 @@
+Title: Sabaton - Resist and Bite
 Source: https://www.youtube.com/watch?v=mzqwvYMXsQs
 
 The track opens already braced. There is no slow invitation, no mist to walk through; the pulse locks in quickly and the room narrows around it. By 0:04 the body has the beat, and two seconds later attention is pinned to the forward motion. The sound is bright-edged, light in actual weight but hard in behavior, pushing rather than dragging. It wants the listener upright.

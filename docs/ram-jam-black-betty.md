@@ -1,3 +1,4 @@
+Title: Ram Jam - Black Betty
 Source: https://www.youtube.com/watch?v=I_2D8Eo15wE
 
 The song comes in already grinning, already in motion. There is almost no threshold between silence and the pocket: a hard little engine catches, the chant snaps into place, and the body is pulled forward by a groove that feels lighter than its force suggests. Nothing here waits to become elaborate. It strikes, repeats, turns, and strikes again.
