@@ -9,6 +9,7 @@ then derives broad arc spans from local continuity rather than genre labels.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from statistics import median
 
 
 @dataclass(frozen=True)
@@ -177,3 +178,110 @@ def derive_arc_spans(stream: list[dict], *, min_span_frames: int = 2) -> list[di
 
     emit(len(frames) - 1)
     return spans
+
+
+def _span_delta(left: dict, right: dict) -> float:
+    """Estimate how strong the listener-state boundary is between two spans."""
+    keys = ["mean_attention", "mean_pattern", "mean_pressure", "mean_body", "mean_weight", "silence_ratio"]
+    return max(abs(float(left.get(key, 0.0)) - float(right.get(key, 0.0))) for key in keys)
+
+
+def _merged_span(spans: list[dict], label: str) -> dict:
+    frame_count = sum(span["frame_count"] for span in spans)
+    if frame_count <= 0:
+        frame_count = 1
+
+    merged = {
+        "label": label,
+        "start": spans[0]["start"],
+        "end": spans[-1]["end"],
+        "frame_count": frame_count,
+    }
+    for key in ["mean_attention", "mean_pattern", "mean_pressure", "mean_body", "mean_weight", "silence_ratio"]:
+        merged[key] = round(sum(span[key] * span["frame_count"] for span in spans) / frame_count, 3)
+    return merged
+
+
+def _dominant_label(spans: list[dict]) -> str:
+    counts: dict[str, int] = {}
+    for span in spans:
+        counts[span["label"]] = counts.get(span["label"], 0) + span["frame_count"]
+    return max(counts.items(), key=lambda item: item[1])[0]
+
+
+def coalesce_arc_spans(spans: list[dict], *, min_frames: int, weak_delta: float) -> list[dict]:
+    """Merge shallow or very short adjacent arc spans into a coarser pattern scale."""
+    if not spans:
+        return []
+
+    groups: list[list[dict]] = [[spans[0]]]
+    for span in spans[1:]:
+        previous = groups[-1][-1]
+        short_boundary = previous["frame_count"] < min_frames or span["frame_count"] < min_frames
+        shallow_boundary = _span_delta(previous, span) < weak_delta
+        if short_boundary or shallow_boundary:
+            groups[-1].append(span)
+        else:
+            groups.append([span])
+
+    changed = True
+    while changed and len(groups) > 1:
+        changed = False
+        next_groups: list[list[dict]] = []
+        i = 0
+        while i < len(groups):
+            group = groups[i]
+            frames = sum(span["frame_count"] for span in group)
+            if frames < min_frames and next_groups:
+                next_groups[-1].extend(group)
+                changed = True
+            elif frames < min_frames and i + 1 < len(groups):
+                groups[i + 1] = group + groups[i + 1]
+                changed = True
+            else:
+                next_groups.append(group)
+            i += 1
+        groups = next_groups
+
+    return [_merged_span(group, _dominant_label(group)) for group in groups]
+
+
+def derive_arc_scales(stream: list[dict]) -> dict[str, list[dict]]:
+    """Return detail, standard, and macro arc-pattern scales over the same stream."""
+    detail = derive_arc_spans(stream)
+    standard = coalesce_arc_spans(detail, min_frames=6, weak_delta=0.12)
+    macro = coalesce_arc_spans(standard, min_frames=18, weak_delta=0.20)
+    return {"detail": detail, "standard": standard, "macro": macro}
+
+
+def select_arc_scale(scales: dict[str, list[dict]]) -> tuple[str, str]:
+    """Choose the prompt-facing arc scale without discarding the other views."""
+    detail = scales.get("detail", [])
+    if not detail:
+        return "detail", "no arc spans were detected"
+
+    total = sum(span["frame_count"] for span in detail)
+    if total <= 0:
+        return "detail", "no usable arc frames were detected"
+
+    span_count = len(detail)
+    transition_density = max(0, span_count - 1) / total
+    median_span = median(span["frame_count"] for span in detail)
+    longest_ratio = max(span["frame_count"] for span in detail) / total
+    label_counts: dict[str, int] = {}
+    for span in detail:
+        label_counts[span["label"]] = label_counts.get(span["label"], 0) + span["frame_count"]
+    dominant_ratio = max(label_counts.values()) / total
+
+    boundary_deltas = [_span_delta(left, right) for left, right in zip(detail, detail[1:])]
+    median_delta = median(boundary_deltas) if boundary_deltas else 0.0
+
+    if transition_density >= 0.10 and median_span <= 5 and median_delta < 0.28:
+        return "macro", "frequent shallow label alternation suggests micro-chatter, not structural form"
+    if span_count >= 40 and median_span <= 8 and median_delta < 0.24:
+        return "macro", "many short shallow spans collapse better into whole-form movement"
+    if dominant_ratio >= 0.80 or longest_ratio >= 0.35:
+        return "macro", "one listener-state dominates the track; the macro view best preserves the form"
+    if transition_density >= 0.08 and median_delta >= 0.18:
+        return "detail", "frequent transitions have enough state contrast to matter as local pattern"
+    return "standard", "moderate movement: enough structure for sections without promoting every micro-shift"

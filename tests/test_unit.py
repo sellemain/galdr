@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pytest
 
-from galdr.arc import derive_arc_spans, normalize_stream
+from galdr.arc import derive_arc_scales, derive_arc_spans, normalize_stream, select_arc_scale
 
 
 # ── hz_to_note_name ──────────────────────────────────────────────────
@@ -241,6 +241,35 @@ def test_derive_arc_spans_collapses_contiguous_states():
     assert spans[-1]["silence_ratio"] == pytest.approx(1.0)
 
 
+
+def test_arc_scales_preserve_detail_but_coalesce_shallow_chatter():
+    stream = []
+    pressures = [0.23, 0.0, -0.23, 0.0] * 10
+    for i, pressure in enumerate(pressures):
+        stream.append({"t": float(i), "attention": 0.92, "pattern": 0.95, "pressure": pressure, "body": 0.58, "weight": 0.44})
+
+    scales = derive_arc_scales(stream)
+    selected, reason = select_arc_scale(scales)
+
+    assert len(scales["detail"]) > len(scales["macro"])
+    assert selected == "macro"
+    assert "chatter" in reason or "shallow" in reason or "whole-form" in reason
+
+
+def test_arc_scale_selector_keeps_real_high_contrast_detail():
+    stream = []
+    for i in range(20):
+        if i % 2 == 0:
+            stream.append({"t": float(i), "attention": 0.95, "pattern": 0.92, "pressure": 0.85, "body": 0.70})
+        else:
+            stream.append({"t": float(i), "attention": 0.30, "pattern": 0.40, "pressure": -0.85, "body": 0.20})
+
+    scales = derive_arc_scales(stream)
+    selected, reason = select_arc_scale(scales)
+
+    assert selected == "detail"
+    assert "contrast" in reason
+
 def test_arc_archetype_splits_plateau_subtypes():
     from galdr.assemble import _arc_archetype
 
@@ -440,7 +469,8 @@ class TestAssemblePrompt:
 
         assert "### Arc structure" in prompt
         assert "Felt mechanism:" in prompt
-        assert "Span count:" in prompt
+        assert "Pattern scale selected:" in prompt
+        assert "Selected span count:" in prompt
         assert "State distribution:" in prompt
         assert "Longest spans:" in prompt
         assert "Coarse timeline:" in prompt

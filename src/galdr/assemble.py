@@ -32,7 +32,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from importlib import resources as pkg_resources
 
-from .arc import derive_arc_spans
+from .arc import derive_arc_scales, select_arc_scale
 from .metric_vocabulary import display_name, glossary_lines
 from .salience import synthesize_salience
 from .captions import dedup_captions_with_timestamps, parse_vtt
@@ -334,9 +334,8 @@ def _event_rank(event: str, btype: str = "") -> int:
     return 70
 
 
-def _arc_summary(stream: list[dict]) -> dict | None:
-    """Summarize coarse arc spans for prompt assembly."""
-    spans = derive_arc_spans(stream)
+def _summarize_arc_spans(spans: list[dict]) -> dict | None:
+    """Summarize arc spans at one perceptual scale."""
     if not spans:
         return None
 
@@ -386,6 +385,23 @@ def _arc_summary(stream: list[dict]) -> dict | None:
         "timeline": timeline,
         "final_label": spans[-1]["label"],
     }
+
+
+def _arc_summary(stream: list[dict]) -> dict | None:
+    """Summarize arc-pattern scales for prompt assembly."""
+    scales = derive_arc_scales(stream)
+    selected_scale, reason = select_arc_scale(scales)
+    scale_summaries = {name: _summarize_arc_spans(spans) for name, spans in scales.items()}
+    selected = scale_summaries.get(selected_scale)
+    if not selected:
+        return None
+
+    selected = dict(selected)
+    selected["selected_scale"] = selected_scale
+    selected["selection_reason"] = reason
+    selected["scale_counts"] = {name: summary["span_count"] for name, summary in scale_summaries.items() if summary}
+    selected["scale_summaries"] = scale_summaries
+    return selected
 
 
 def _arc_archetype(summary: dict) -> tuple[str, str]:
@@ -454,9 +470,16 @@ def _build_arc_structure(stream: list[dict]) -> str | None:
     total = summary["total_frames"]
     weighted = summary["weighted"]
     lines = ["### Arc structure\n"]
+    scale_counts = summary.get("scale_counts", {})
+    if scale_counts:
+        rendered_counts = ", ".join(f"{name} {count}" for name, count in scale_counts.items())
+        lines.append(
+            f"Pattern scale selected: {summary.get('selected_scale', 'standard')} "
+            f"({summary.get('selection_reason', 'default readable scale')}); available scales: {rendered_counts}."
+        )
     lines.append(f"Felt mechanism: {archetype} — {guidance}")
     lines.append(
-        f"Span count: {summary['span_count']} spans across {total} frames; "
+        f"Selected span count: {summary['span_count']} spans across {total} frames; "
         f"means attention {weighted['mean_attention']:.3f}, pattern {weighted['mean_pattern']:.3f}, "
         f"pressure {weighted['mean_pressure']:.3f}, body {weighted['mean_body']:.3f}, "
         f"silence {weighted['silence_ratio']:.3f}"
