@@ -4,6 +4,8 @@ import math
 import numpy as np
 import pytest
 
+from galdr.arc import derive_arc_spans, normalize_stream
+
 
 # ── hz_to_note_name ──────────────────────────────────────────────────
 
@@ -155,6 +157,78 @@ class TestFlattenMetrics:
         data = {"harmony": {"mean_harmonic_pull": 0.3}}
         result = self.fn(data)
         assert result == {"mean_harmonic_pull": 0.3}
+
+
+# ── arc helpers ───────────────────────────────────────────────────────
+
+
+def test_normalize_stream_adapts_legacy_rows():
+    stream = [
+        {
+            "t": 0.0,
+            "momentum": 0.8,
+            "pattern_lock": 0.7,
+            "breath": 0.35,
+            "energy": 0.6,
+            "h_energy": 0.7,
+            "p_energy": 0.2,
+            "silence": 0.0,
+        }
+    ]
+
+    frames = normalize_stream(stream)
+
+    assert len(frames) == 1
+    assert frames[0].attention == pytest.approx(0.8)
+    assert frames[0].pattern == pytest.approx(0.7)
+    assert frames[0].pressure == pytest.approx(0.35)
+    assert frames[0].body == pytest.approx(0.76)
+    assert frames[0].weight == pytest.approx(0.69)
+    assert frames[0].silence == 0.0
+
+
+def test_normalize_stream_preserves_listener_state_rows():
+    stream = [
+        {
+            "time": 4.0,
+            "attention": 0.91,
+            "pattern": 0.88,
+            "pressure": -0.27,
+            "body": 0.73,
+            "weight": 0.31,
+            "silence": 0.0,
+        }
+    ]
+
+    frames = normalize_stream(stream)
+
+    assert frames[0].t == pytest.approx(4.0)
+    assert frames[0].attention == pytest.approx(0.91)
+    assert frames[0].pattern == pytest.approx(0.88)
+    assert frames[0].pressure == pytest.approx(-0.27)
+    assert frames[0].body == pytest.approx(0.73)
+    assert frames[0].weight == pytest.approx(0.31)
+
+
+def test_derive_arc_spans_collapses_contiguous_states():
+    stream = [
+        {"t": 0.0, "attention": 0.55, "pattern": 0.58, "pressure": 0.35, "body": 0.42, "weight": 0.28, "silence": 0.0},
+        {"t": 1.0, "attention": 0.60, "pattern": 0.62, "pressure": 0.30, "body": 0.50, "weight": 0.30, "silence": 0.0},
+        {"t": 2.0, "attention": 0.78, "pattern": 0.82, "pressure": 0.02, "body": 0.72, "weight": 0.34, "silence": 0.0},
+        {"t": 3.0, "attention": 0.80, "pattern": 0.84, "pressure": 0.00, "body": 0.75, "weight": 0.36, "silence": 0.0},
+        {"t": 4.0, "attention": 0.65, "pattern": 0.61, "pressure": -0.33, "body": 0.58, "weight": 0.39, "silence": 0.0},
+        {"t": 5.0, "attention": 0.59, "pattern": 0.55, "pressure": -0.28, "body": 0.54, "weight": 0.42, "silence": 0.0},
+        {"t": 6.0, "attention": 0.12, "pattern": 0.10, "pressure": 0.01, "body": 0.18, "weight": 0.22, "silence": 1.0},
+        {"t": 7.0, "attention": 0.10, "pattern": 0.08, "pressure": 0.00, "body": 0.16, "weight": 0.20, "silence": 1.0},
+    ]
+
+    spans = derive_arc_spans(stream)
+
+    assert [span["label"] for span in spans] == ["building", "held", "releasing", "emptying"]
+    assert spans[0]["start"] == pytest.approx(0.0)
+    assert spans[0]["end"] == pytest.approx(1.0)
+    assert spans[1]["mean_body"] == pytest.approx(0.735)
+    assert spans[-1]["silence_ratio"] == pytest.approx(1.0)
 
 
 # ── assemble_prompt (pipeline) ───────────────────────────────────────
