@@ -384,6 +384,7 @@ def _arc_summary(stream: list[dict]) -> dict | None:
         "transitions": transitions,
         "longest": sorted(spans, key=lambda span: span["frame_count"], reverse=True)[:8],
         "timeline": timeline,
+        "final_label": spans[-1]["label"],
     }
 
 
@@ -391,12 +392,16 @@ def _arc_archetype(summary: dict) -> tuple[str, str]:
     """Name the dominant felt mechanism implied by arc-span shape."""
     total = summary["total_frames"]
     frames = summary["frame_counts"]
+    weighted = summary["weighted"]
     held_pct = frames.get("held", 0) / total
     returning_pct = frames.get("returning", 0) / total
     emptying_pct = frames.get("emptying", 0) / total
     churn_pct = (frames.get("building", 0) + frames.get("releasing", 0)) / total
     transition_rate = sum(summary["transitions"].values()) / total
     longest = summary["longest"][0]["frame_count"] / total if summary["longest"] else 0.0
+    span_count = summary["span_count"]
+    mean_body = weighted.get("mean_body", 0.0)
+    final_label = summary.get("final_label", "")
 
     if emptying_pct >= 0.08 or returning_pct >= 0.28:
         return (
@@ -404,6 +409,16 @@ def _arc_archetype(summary: dict) -> tuple[str, str]:
             "withdrawal and re-entry matter; describe subtraction, recovery, and what remains after the hold loosens.",
         )
     if held_pct >= 0.60 and longest >= 0.08:
+        if held_pct >= 0.90 and span_count <= 8 and mean_body >= 0.62 and transition_rate <= 0.03:
+            return (
+                "martial/body lock",
+                "a stable pulse and body capture dominate; write sustained forward motion as the dramatic argument.",
+            )
+        if span_count <= 12 and final_label in {"emptying", "returning"}:
+            return (
+                "suspended narrative gravity",
+                "long holds carry the story; write suspension, plainness, and terminal draining rather than generic plateau.",
+            )
         return (
             "plateau track",
             "long held spans dominate; write stability as active sustained pressure rather than stillness.",
@@ -472,8 +487,9 @@ def _build_arc_structure(stream: list[dict]) -> str | None:
         lines.append(f"- {_fmt_time(start)}–{_fmt_time(end)}: {rendered}")
 
     lines.append(
-        "Use this section as a second sense for experience prose. Do not recite percentages; "
-        "translate them into stability, micro-correction, pressure, withdrawal, or re-entry."
+        "Use this section as a private second sense for experience prose. Never mention galdr, "
+        "detectors, metrics, percentages, frame counts, span counts, or state labels in the final prose. "
+        "Translate them into felt experience: stability, micro-correction, pressure, withdrawal, or re-entry."
     )
     return "\n".join(lines)
 
