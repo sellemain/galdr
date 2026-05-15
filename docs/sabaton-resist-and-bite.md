@@ -1,0 +1,20 @@
+Title: Sabaton - Resist and Bite
+Source: https://www.youtube.com/watch?v=mzqwvYMXsQs
+
+The track opens already braced. There is no slow invitation, no mist to walk through; the pulse locks in quickly and the room narrows around it. By 0:04 the body has the beat, and two seconds later attention is pinned to the forward motion. The sound is bright-edged, light in actual weight but hard in behavior, pushing rather than dragging. It wants the listener upright.
+
+The first vocal entrance rides that motion instead of floating above it. *"War is coming swiftly"* arrives as a report from inside the machinery, not as narration from a safe distance. The rhythm underneath is regular enough to feel drilled, and the arrangement keeps its surfaces firm: sharp attacks, compact phrases, little space for hesitation. Even when the harmonic color shifts, the song’s time-feel stays obedient to the line of advance.
+
+At 0:11 the surface tightens. The track has found its armor. From there it runs for nearly a minute on a stable, low-debt groove, the kind of pattern that makes change feel like deployment rather than surprise. *"All alone! / Stand alone!"* works because the music is anything but alone; it stacks force around the line, giving the words a collective back even when the lyric describes isolation. The chorus does not open into release so much as into a larger command posture. *"We, we will resist and bite!"* is built to be shouted by more throats than the recording contains.
+
+The song’s central grip comes from that contrast between lightness and discipline. It is not heavy in the slow, crushing sense. It stays mobile. The pulse is clean, the body follows easily, and the pressure tends to hold rather than swell. That gives the track a tactical feel: no wasted weight, no ornamental despair. The repeated calls, the hard consonants, the clipped melodic shapes all keep pointing forward.
+
+After 1:06 the phrase pulls back just enough to reset the stance, then the same reliable runway returns. The second verse does not ask for a new kind of listening. It asks whether the first one will hold under more detail. *"We're outgunned and few in numbers"* sits inside a groove that refuses to sound few. The arrangement answers numerical weakness with rhythmic certainty. The voice names doom, but the band keeps the floor intact.
+
+By 1:36 more weight gathers under the moving pulse, and the long final body of the track begins. This is where repetition becomes the main force. The chorus returns as a drilled reflex: *"Fight hard, resist and do what's right!"* The line is direct, almost blunt, and the music honors that bluntness by avoiding ambiguity. Harmonic motion keeps the color alive, but the listener-state remains unusually steady. The track is not trying to disorient. It is trying to hold a line.
+
+The Latin phrases sharpen the song’s ceremonial edge without slowing it down. *"Gloria fortis miles"* enters with a banner-like lift, and the surrounding sound becomes less like storytelling and more like inscription. The pulse does not loosen for the grandeur. It keeps its boots on. That matters: the elevated language is pulled back into the same forward drive as the plain chorus, so the track never floats into pageantry detached from motion.
+
+Around 2:46 a small rupture flashes through the pattern. It is not enough to break the machine, but it marks the last push as something closer to impact. The final chorus comes back with the body still captured, the surfaces still hard, the refrain now less an announcement than a repeated act. At 3:13 the pressure finally releases. The body lock recedes a few seconds later, and attention lets go only after the song has already spent its force.
+
+The ending leaves behind a clean, drilled afterimage. This is not a track that makes struggle feel complex in the moment; it makes it feel organized. It gives resistance a pulse, keeps it mobile, and refuses to let the listener slump under the weight of the words. The music’s answer to being surrounded is simple: hold tempo, hold formation, bite back.

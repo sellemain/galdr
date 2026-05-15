@@ -1,0 +1,20 @@
+Title: Ram Jam - Black Betty
+Source: https://www.youtube.com/watch?v=I_2D8Eo15wE
+
+The song comes in already grinning, already in motion. There is almost no threshold between silence and the pocket: a hard little engine catches, the chant snaps into place, and the body is pulled forward by a groove that feels lighter than its force suggests. Nothing here waits to become elaborate. It strikes, repeats, turns, and strikes again.
+
+The first *"Woah, Black Betty, bam-ba-lam"* is not a line so much as a hinge. The words make the groove visible. The call is rough, bright, and immediate, and the answer phrase clamps the rhythm shut behind it. The band does not lean on heaviness at first. The weight is light, the surface open, the motion elastic. That elasticity matters: the pulse is steady, but the attacks seem to jump around it, giving the track its cocked-shoulder swagger.
+
+For the opening half-minute, the song lives almost entirely on that chant-and-hit contract. It does not need harmonic depth to hold attention. It has a repeated figure, a voice with bite, and a pocket that keeps catching the listener just before it could become square. The groove is comfortable enough to inhabit, but not so smooth that it relaxes. It keeps a little grit in the joints.
+
+Around 0:33, the weight lifts and the song opens its stance. The chant gives way to verses that still behave like percussion. *"Black Betty had a child, bam-ba-lam"* lands as a rhythmic object first and a narrative fragment second. The little phrases after each line keep snapping the song back to its center, so the track can throw off images without ever losing the groove. Even when the words turn strange, the music refuses to brood over them. It grinds them into motion.
+
+The middle stretch works by tightening and releasing the same simple machine. The band gathers more low force under the moving pulse, then lets it jump back up. Guitar edges, vocal shouts, and drum pressure trade the foreground, but none of them disturb the main contract. Every detour is short because the pocket is the authority here. The song's confidence comes from knowing exactly how little it needs.
+
+By 1:11, the runway steadies again. The body locks harder than the surface admits. The track feels almost tossed off, but the repetition is doing precise work: each return to *"Woah, Black Betty"* re-centers the listener, while each small break keeps the center from becoming dull. There is no real cross-pressure in the meter, no hidden maze. The instability comes from attitude, attack, and the way the phrases skid across a stable floor.
+
+At *"She's so rock steady, bam-ba-lam"*, the song practically names its own behavior. The funny thing is that the steadiness does not feel fixed. It feels sprung. The pulse keeps offering the same place to land, and the performance keeps landing there with a shove. That is why the groove can stay almost primitive without going flat. It is not building toward complexity. It is renewing impact.
+
+The late section brings the weight back under the motion, then breaks it apart. The voice throws out *"She's from Birmingham, bam-ba-lam"* and *"Boy, she makes me sing, bam-ba-lam"* as if the words are fuel tossed into an already hot engine. The last returns feel more compressed, more eager to spend themselves. Around 2:16, the body hold loosens, attention starts to release, and the ending fractures into a quick run of breaks rather than a polished farewell.
+
+Those final stutters matter. The song does not glide out; it kicks at the frame until the frame gives. The pattern splinters, the pocket disappears, and then the silence is just the space left after a small, dirty machine has shut off. What remains is not depth in the explanatory sense. It is a bodily fact: the chant got in, the groove held, and for two and a half minutes the song made repetition feel like combustion.

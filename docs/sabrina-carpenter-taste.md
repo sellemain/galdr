@@ -1,0 +1,20 @@
+Title: Sabrina Carpenter - Taste
+Source: https://www.youtube.com/watch?v=KEG7b851Ric
+
+The opening makes a little theater out of waiting. The silence is long enough to sharpen the entrance, and when the song finally steps in, it does not arrive as a blast. It arrives polished, close, and already controlled. The pulse is clean, the surface warm, the space carefully lit. Then the early gaps and tiny withdrawals keep interrupting the ease, as if the track is letting you see the cuts between poses before it settles into its stride.
+
+Sabrina Carpenter's vocal comes in with a smile you can hear before the words finish forming. *"Oh, I leave quite an impression"* lands over a minimal grid that holds attention without crowding her. The arrangement is spare enough that every consonant has room to wink. The body finds the pulse, but the comfort is slightly withheld. The song is built for movement, yet it keeps a sly distance from full surrender.
+
+By 0:28, the surface firms up. The groove is still light on its feet, but the edges get brighter and more definite, and the hook logic locks into place. The line *"You'll just have to taste me when he's kissin' you"* is where the track's central trick becomes musical, not just lyrical. The phrase is sweetly delivered, almost airy, while the implication is territorial. The music lets both flavors sit on the tongue at once: glossy pop lift and a little acid underneath.
+
+The first chorus does not need to get huge. It gets precise. The pulse stays metronomic, the harmonic bed stays warm, and the vocal layers give the hook a clean reflective surface. The song carries the body in a controlled pocket, but the accenting keeps drifting just enough to make the groove feel teased rather than locked down. That tension suits the lyric. The singer is not chasing. She is arranging the room so the other person has to keep noticing her.
+
+In the second verse, the texture stays bright but the intimacy sharpens. *"Guess who he learned that from?"* lands with comic timing because the arrangement leaves a little air around the jab. The track does not darken to sell menace. It stays pretty, which is colder. A heavier production would make the claim obvious; this one makes it feel casual, almost conversational, and that casualness is where the bite lives.
+
+The middle of the song holds its shape through repetition rather than escalation. The grid remains tight, the pressure mostly sustained, and Carpenter keeps moving between softness and pointed attack. Each return to the hook feels less like a new argument than a repeated perfume in the room. You do not have to be told it is still there. The arrangement keeps placing it back in the air.
+
+When the bridge opens, the lyric turns more direct and the song lets the vocal become the main pressure point. *"Every time you close your eyes / And feel his lips, you're feelin' mine"* narrows the whole premise into sensation. The music underneath does not panic; it holds the clean frame while the words become more invasive. That restraint keeps the moment from tipping into melodrama. The track understands that a calm voice can be more possessive than a shouted one.
+
+Around 2:23, the pressure gathers again and the song starts steering back toward its final hook. A bright little flash in the phrase gives the return a renewed sparkle, then the pocket catches. The late chorus feels more complete because the song has spent the bridge tightening its claim. *"Just know you'll taste me too"* returns not as a punchline now, but as the established law of the little world the track has built.
+
+The ending does not dissolve the spell. Near 3:12, the surface hardens once more, attention stays caught for a few more bars, and then the pattern snaps off rather than lingering sentimentally. The final impression is clean, flavored, and faintly cruel. The song leaves behind a pop surface so polished it almost hides the teeth, except the bite is the point: sweetness used as leverage, rhythm used as poise, and a hook that keeps smiling after it has already won.
