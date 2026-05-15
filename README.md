@@ -32,10 +32,9 @@ That is the origin story and product thesis, not a benchmark claim. What galdr c
 
 Just what shaped the reasoning.
 
-**Listening examples:**
+**Experience Document Examples:**
 
 | | | |
-|---|---|---|
 | [Arvo Pärt - Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md) | [AURORA - Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md) | [The Wicked Tinkers - Barren Rocks of Aden](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md) |
 | [Beastie Boys - Intergalactic](https://github.com/sellemain/galdr/blob/main/docs/beastie-boys-intergalactic.md) | [Beck - Loser](https://github.com/sellemain/galdr/blob/main/docs/beck-loser.md) | [Queen - Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md) |
 | [Chelsea Wolfe - 16 Psyche](https://github.com/sellemain/galdr/blob/main/docs/chelsea-wolfe-16-psyche.md) | [Christopher Juul - Songleikr Ulvetime](https://github.com/sellemain/galdr/blob/main/docs/christopher-juul-songleikr-ulvetime.md) | [Dorothy - Black Sheep](https://github.com/sellemain/galdr/blob/main/docs/dorothy-black-sheep.md) |
@@ -46,6 +45,7 @@ Just what shaped the reasoning.
 | [Sabaton - Resist and Bite](https://github.com/sellemain/galdr/blob/main/docs/sabaton-resist-and-bite.md) | [Sabrina Carpenter - Taste](https://github.com/sellemain/galdr/blob/main/docs/sabrina-carpenter-taste.md) | [Shaboozey - Good News](https://github.com/sellemain/galdr/blob/main/docs/shaboozey-good-news.md) |
 | [Sierra Ferrell - Fox Hunt](https://github.com/sellemain/galdr/blob/main/docs/sierra-ferrell-fox-hunt-public.md) | [Sleep Token - The Summoning](https://github.com/sellemain/galdr/blob/main/docs/sleep-token-the-summoning.md) | [The Cranberries - Zombie](https://github.com/sellemain/galdr/blob/main/docs/the-cranberries-zombie.md) |
 | [The Darkness - I Believe in a Thing Called Love](https://github.com/sellemain/galdr/blob/main/docs/the-darkness-i-believe-in-a-thing-called-love.md) | [Wardruna - Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md) | [Weird Al Yankovic - Amish Paradise](https://github.com/sellemain/galdr/blob/main/docs/weird-al-yankovic-amish-paradise.md) |
+
 ---
 
 ## Install
