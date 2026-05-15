@@ -241,6 +241,31 @@ def test_derive_arc_spans_collapses_contiguous_states():
     assert spans[-1]["silence_ratio"] == pytest.approx(1.0)
 
 
+def test_arc_archetype_splits_plateau_subtypes():
+    from galdr.assemble import _arc_archetype
+
+    martial = {
+        "total_frames": 100,
+        "frame_counts": {"held": 94, "emptying": 6},
+        "weighted": {"mean_body": 0.70},
+        "transitions": {("held", "emptying"): 1},
+        "longest": [{"frame_count": 94, "label": "held"}],
+        "span_count": 3,
+        "final_label": "emptying",
+    }
+    narrative = {
+        "total_frames": 100,
+        "frame_counts": {"held": 88, "emptying": 7, "releasing": 5},
+        "weighted": {"mean_body": 0.45},
+        "transitions": {("held", "releasing"): 1, ("releasing", "emptying"): 1},
+        "longest": [{"frame_count": 88, "label": "held"}],
+        "span_count": 7,
+        "final_label": "emptying",
+    }
+
+    assert _arc_archetype(martial)[0] == "martial/body lock"
+    assert _arc_archetype(narrative)[0] == "suspended narrative gravity"
+
 # ── assemble_prompt (pipeline) ───────────────────────────────────────
 
 
@@ -419,7 +444,9 @@ class TestAssemblePrompt:
         assert "State distribution:" in prompt
         assert "Longest spans:" in prompt
         assert "Coarse timeline:" in prompt
-        assert "translate them into stability" in prompt
+        assert "Never mention galdr" in prompt
+        assert "metrics, percentages, frame counts, span counts" in prompt
+        assert "Translate them into felt experience" in prompt
 
 
 # ── SM-308 Perception surface demotion ───────────────────────────────────────
