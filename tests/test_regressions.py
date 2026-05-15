@@ -344,10 +344,16 @@ def test_generate_perception_stream_honors_custom_hop_sec(tmp_path):
         "test-hop",
         hop_sec=0.25,
     )
+    stream_payload = json.loads((tmp_path / "test-hop_stream.json").read_text())
 
     assert result["stream_hop_sec"] == 0.25
+    assert result["schema_version"] == "listener_state_v1"
     assert len(result["stream"]) == 12
     assert [entry["t"] for entry in result["stream"][:5]] == [0.0, 0.25, 0.5, 0.75, 1.0]
+    assert stream_payload["schema_version"] == "listener_state_v1"
+    assert stream_payload["stream_hop_sec"] == 0.25
+    assert stream_payload["stream_length"] == 12
+    assert isinstance(stream_payload["stream"], list)
 
 
 def test_compute_perception_rejects_non_positive_hop_sec():
@@ -918,3 +924,97 @@ def test_assemble_uses_sibling_audio_vtt_when_context_lacks_lyrics(tmp_path):
     assert "## Lyrics" in result
     assert "Source: local VTT captions" in result
     assert "first caption words" in result
+
+
+def test_load_analysis_unwraps_versioned_stream_payload(tmp_path):
+    from galdr.assemble import load_analysis
+
+    slug = "versioned-stream"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_perception.json").write_text(json.dumps({"track": slug}))
+    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
+        "schema_version": "listener_state_v1",
+        "galdr_version": "0.3.0",
+        "stream": [{"t": 0.0, "attention": 1.0}],
+    }))
+
+    analysis = load_analysis(slug, tmp_path)
+
+    assert analysis["perception"]["stream"] == [{"t": 0.0, "attention": 1.0}]
+    assert analysis["perception"]["stream_metadata"]["schema_version"] == "listener_state_v1"
+
+
+def test_stale_artifact_state_detects_raw_legacy_stream(tmp_path):
+    from galdr.stale import artifact_state
+
+    slug = "legacy-stream"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
+        "schema_version": "listener_state_v1",
+    }))
+    (track_dir / f"{slug}_stream.json").write_text(json.dumps([{"t": 0.0}]))
+
+    state = artifact_state(slug, tmp_path)
+
+    assert state["current"] is False
+    assert "stream is legacy raw list" in state["stale_reasons"]
+
+
+def test_stale_artifact_state_current_when_payloads_versioned(tmp_path):
+    from galdr.stale import artifact_state
+
+    slug = "current-stream"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
+        "schema_version": "listener_state_v1",
+    }))
+    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
+        "schema_version": "listener_state_v1",
+        "stream": [],
+    }))
+
+    state = artifact_state(slug, tmp_path)
+
+    assert state["current"] is True
+    assert state["stale_reasons"] == []
+
+
+def test_cache_reprocess_uses_current_python(monkeypatch, tmp_path):
+    from galdr.stale import regenerate_if_stale
+
+    slug = "needs-reprocess"
+    track_dir = tmp_path / "analysis" / slug
+    audio_dir = tmp_path / "audio"
+    track_dir.mkdir(parents=True)
+    audio_dir.mkdir()
+    audio_path = audio_dir / f"{slug}.mp3"
+    audio_path.write_bytes(b"fake mp3")
+    (track_dir / "context.json").write_text(json.dumps({"audio_file": str(audio_path)}))
+    (track_dir / f"{slug}_perception.json").write_text(json.dumps({}))
+    (track_dir / f"{slug}_stream.json").write_text(json.dumps([]))
+
+    captured = {}
+
+    def fake_run(cmd, check):
+        captured["cmd"] = cmd
+        captured["check"] = check
+        (track_dir / f"{slug}_perception.json").write_text(json.dumps({
+            "schema_version": "listener_state_v1",
+        }))
+        (track_dir / f"{slug}_stream.json").write_text(json.dumps({
+            "schema_version": "listener_state_v1",
+            "stream": [],
+        }))
+
+    monkeypatch.setattr("galdr.stale.subprocess.run", fake_run)
+
+    state = regenerate_if_stale(slug, tmp_path / "analysis", hop_sec=0.25)
+
+    assert captured["cmd"][:3] == [sys.executable, "-m", "galdr.cli"]
+    assert captured["cmd"][-2:] == ["--hop-sec", "0.25"]
+    assert captured["check"] is True
+    assert state["action"] == "reprocessed_local_audio"
+    assert state["current"] is True

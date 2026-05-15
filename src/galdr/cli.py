@@ -263,6 +263,23 @@ def cmd_listen(args):
         sys.exit(1)
 
 
+def cmd_cache(args):
+    """Inspect or repair galdr analysis cache state."""
+    import json
+    from .stale import artifact_state, regenerate_if_stale
+
+    if args.reprocess:
+        state = regenerate_if_stale(
+            _validate_slug(args.slug),
+            analysis_dir=args.analysis_dir,
+            hop_sec=args.hop_sec,
+            allow_download=not args.no_download,
+        )
+    else:
+        state = artifact_state(_validate_slug(args.slug), args.analysis_dir)
+    print(json.dumps(state, indent=2))
+
+
 def cmd_compare(args):
     """Compare two tracks."""
     from .compare import compare_tracks
@@ -638,6 +655,27 @@ def main():
         help="Perception stream sample interval in seconds (default: 0.5)",
     )
 
+    # cache
+    cache_parser = subparsers.add_parser("cache", help="Inspect or repair analysis cache state")
+    cache_parser.add_argument("slug", help="Track slug to inspect")
+    cache_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory root")
+    cache_parser.add_argument(
+        "--reprocess",
+        action="store_true",
+        help="Reprocess stale artifacts when local audio exists",
+    )
+    cache_parser.add_argument(
+        "--no-download",
+        action="store_true",
+        help="Do not suggest source redownload for stale artifacts",
+    )
+    cache_parser.add_argument(
+        "--hop-sec",
+        type=float,
+        default=None,
+        help="Perception stream sample interval when reprocessing",
+    )
+
     # fetch
     fetch_parser = subparsers.add_parser("fetch", help="Download audio + context for a track")
     fetch_parser.add_argument("url", nargs="?", help="YouTube URL (omit if audio already downloaded)")
@@ -761,6 +799,8 @@ Examples:
         cmd_listen(args)
     elif args.command == "fetch":
         cmd_fetch(args)
+    elif args.command == "cache":
+        cmd_cache(args)
     elif args.command == "assemble":
         cmd_assemble(args)
     elif args.command == "frames":

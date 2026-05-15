@@ -125,7 +125,13 @@ def load_analysis(slug: str, analysis_dir: Path) -> dict:
     # exposed alongside macro structural events.
     stream = _load_json(d / f"{slug}_stream.json")
     if stream and isinstance(analysis.get("perception"), dict):
-        analysis["perception"]["stream"] = stream
+        if isinstance(stream, dict) and isinstance(stream.get("stream"), list):
+            analysis["perception"].setdefault("stream_metadata", {
+                k: v for k, v in stream.items() if k != "stream"
+            })
+            analysis["perception"]["stream"] = stream["stream"]
+        else:
+            analysis["perception"]["stream"] = stream
 
     return analysis
 

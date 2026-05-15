@@ -22,6 +22,7 @@ from .captions import (
     parse_ts as _parse_ts,
     parse_vtt,
 )
+from .provenance import file_sha256, utc_now_iso
 
 
 _CONTEXT_CONFIDENCE_MINIMUM = {"high": 3, "medium": 2, "low": 1, "rejected": 0}
@@ -288,6 +289,8 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
         "audio_file": str(audio_file) if audio_file.exists() else None,
         "captions_file": str(vtt_file) if vtt_file.exists() else None,
         "download_ok": audio_file.exists(),
+        "downloaded_at": utc_now_iso() if audio_file.exists() else None,
+        "audio_sha256": file_sha256(audio_file) if audio_file.exists() else None,
         "stderr": audio_stderr or captions_stderr,
         "audio_stderr": audio_stderr,
         "captions_stderr": captions_stderr,
@@ -731,6 +734,12 @@ def fetch_track(
         "artist": artist,
         "title": title,
         "youtube_url": url,
+        "source": {
+            "kind": "youtube" if url else "local",
+            "url": url,
+            "source_id": slug,
+            "created_at": utc_now_iso(),
+        },
     }
 
     # 1. Download audio + captions
@@ -741,6 +750,11 @@ def fetch_track(
         context["download"] = dl
         if dl["audio_file"]:
             context["audio_file"] = dl["audio_file"]
+            context["source"].update({
+                "audio_path": dl["audio_file"],
+                "downloaded_at": dl.get("downloaded_at"),
+                "audio_sha256": dl.get("audio_sha256"),
+            })
             print(f"  Audio: {dl['audio_file']}")
         else:
             print("  Audio download failed")

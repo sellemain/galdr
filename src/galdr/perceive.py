@@ -24,6 +24,7 @@ from scipy.ndimage import uniform_filter1d
 
 from .analyze import compute_body, compute_weight
 from .audio_context import AudioContext, load_audio_context
+from .provenance import SCHEMA_VERSION, artifact_metadata
 from .constants import (
     ATTENTION_WINDOW_SEC, ATTENTION_HOP_SEC, ATTENTION_MIN_BEATS,
     DISRUPTION_WEIGHT_BEAT, DISRUPTION_WEIGHT_SPECTRAL, DISRUPTION_WEIGHT_ENERGY,
@@ -1286,8 +1287,14 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     pb_counts = {t: sum(1 for pb in pattern_breaks if pb["type"] == t) for t in pb_types}
     summary["pattern_break_counts"] = pb_counts
 
+    metadata = artifact_metadata(module="perception", stream_schema=SCHEMA_VERSION, audio_path=None)
+
     report = {
         "track": track_name,
+        "galdr_version": metadata["galdr_version"],
+        "schema_version": metadata["schema_version"],
+        "created_at": metadata["created_at"],
+        "module": metadata["module"],
         "duration": round(duration, 1),
         "tempo": round(tempo, 1),
         "silences": silences,
@@ -1343,6 +1350,8 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
     print("  Computing harmonic/percussive balance...")
 
     report = compute_perception(y, sr, track_name, hop_sec=hop_sec)
+    metadata = artifact_metadata(module="perception", stream_schema=SCHEMA_VERSION, audio_path=audio_path)
+    report.update(metadata)
     stream = report.get("stream", [])
     silences = report.get("silences", [])
     duration = report.get("duration", librosa.get_duration(y=y, sr=sr))
@@ -1364,8 +1373,18 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
 
     # Save stream (separate file — it's large)
     stream_path = out / f"{track_name}_stream.json"
+    stream_payload = {
+        "galdr_version": report.get("galdr_version"),
+        "schema_version": report.get("schema_version"),
+        "created_at": report.get("created_at"),
+        "module": "perception_stream",
+        "source": report.get("source"),
+        "stream_hop_sec": report.get("stream_hop_sec"),
+        "stream_length": len(stream),
+        "stream": stream,
+    }
     with open(stream_path, "w") as f:
-        json.dump(stream, f)
+        json.dump(stream_payload, f)
     print(f"  Stream saved: {stream_path} ({len(stream)} entries)")
 
     # Save report (without stream or internal viz arrays)
