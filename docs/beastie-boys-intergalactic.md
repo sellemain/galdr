@@ -1,4 +1,3 @@
-Title: Beastie Boys - Intergalactic
 # Beastie Boys - Intergalactic
 
 Source: https://www.youtube.com/watch?v=qORYO0atB6g

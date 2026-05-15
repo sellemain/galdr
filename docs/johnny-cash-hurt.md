@@ -1,4 +1,3 @@
-Title: Johnny Cash - Hurt
 # Johnny Cash - Hurt
 
 Source: https://www.youtube.com/watch?v=8AHCfZTRGiI

@@ -1,4 +1,3 @@
-Title: Sierra Ferrell - Fox Hunt
 # Sierra Ferrell - Fox Hunt
 
 Source: https://www.youtube.com/watch?v=4tk5dyg4YNc

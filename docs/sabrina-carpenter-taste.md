@@ -1,4 +1,4 @@
-Title: Sabrina Carpenter - Taste
+# Sabrina Carpenter - Taste
 Source: https://www.youtube.com/watch?v=KEG7b851Ric
 
 The opening makes a little theater out of waiting. The silence is long enough to sharpen the entrance, and when the song finally steps in, it does not arrive as a blast. It arrives polished, close, and already controlled. The pulse is clean, the surface warm, the space carefully lit. Then the early gaps and tiny withdrawals keep interrupting the ease, as if the track is letting you see the cuts between poses before it settles into its stride.

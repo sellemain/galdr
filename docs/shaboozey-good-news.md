@@ -1,4 +1,4 @@
-Title: Shaboozey - Good News
+# Shaboozey - Good News
 Source: https://www.youtube.com/watch?v=WBDpb7SwSgU
 
 The song begins with a pulse that feels worn rather than weak. It catches early, slow enough to carry weight, steady enough to keep the room from collapsing into confession. The surface is warm and fairly dense, but not crowded. Everything sits close to the voice, as if the arrangement is making a small place for someone to tell the truth without having to look up from the table.

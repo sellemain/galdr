@@ -1,4 +1,4 @@
-Title: Beck - Loser
+# Beck - Loser
 Source: https://www.youtube.com/watch?v=YgSPaXgAdzE
 
 The song steps in with almost no ceremony: a thin opening gap, then a groove that catches the body before the surface has explained itself. The pulse is steady, but the feel is crooked. It is not unstable exactly. It is more like walking on a sidewalk where every slab is slightly misaligned, and somehow that misalignment becomes the path. By the first few seconds, attention has locked and the body is already caught.
