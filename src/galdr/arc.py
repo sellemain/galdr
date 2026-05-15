@@ -276,9 +276,13 @@ def select_arc_scale(scales: dict[str, list[dict]]) -> tuple[str, str]:
     boundary_deltas = [_span_delta(left, right) for left, right in zip(detail, detail[1:])]
     median_delta = median(boundary_deltas) if boundary_deltas else 0.0
 
-    if transition_density >= 0.10 and median_span <= 5 and median_delta < 0.28:
+    if transition_density >= 0.35 and median_span <= 2 and longest_ratio <= 0.08:
+        return "macro", "very dense two-frame alternation suggests classifier chatter, not structural form"
+    if transition_density >= 0.10 and median_span <= 5 and median_delta < 0.18:
         return "macro", "frequent shallow label alternation suggests micro-chatter, not structural form"
-    if span_count >= 40 and median_span <= 8 and median_delta < 0.24:
+    if span_count >= 80 and transition_density < 0.22 and median_span >= 4 and longest_ratio < 0.10:
+        return "macro", "diffuse micro-variation is spread across the whole form; the macro view preserves the real arc"
+    if span_count >= 40 and median_span <= 8 and median_delta < 0.20:
         return "macro", "many short shallow spans collapse better into whole-form movement"
     if dominant_ratio >= 0.80 or longest_ratio >= 0.35:
         return "macro", "one listener-state dominates the track; the macro view best preserves the form"
