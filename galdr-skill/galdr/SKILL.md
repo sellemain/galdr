@@ -1,6 +1,6 @@
 ---
 name: galdr
-description: Use galdr to analyze music from YouTube URLs or local audio files and turn the result into time-ordered listener-state traces: attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
+description: Use galdr's default ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
 version: 0.3.0
 author: Sellemain
 license: MIT
@@ -10,7 +10,7 @@ platforms: [linux, macos]
 
 Deterministic ears for AI agents. Audio in, listener-state traces out. Acoustic signal becomes structured evidence an LLM can encounter.
 
-galdr is a music perception CLI for AI agents. It analyzes tracks into time-ordered traces of attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure, then optionally assembles those traces into prompts for structural analysis or listening-experience prose.
+galdr is a music perception CLI for AI agents. Its default experience is **ARC**: analyze a track into time-ordered listener-state traces, then assemble those traces into a grounded listening-experience prompt. The metrics are evidence. The ARC prompt is the main user-facing output.
 
 ## Install
 
@@ -31,7 +31,17 @@ This skill teaches an agent how to use galdr; it does not install the `galdr` co
 
 ## Core Workflows
 
-### YouTube URL → Analysis + prompt (most common)
+### Default: ARC listening experience
+
+Use this path unless the user explicitly asks for raw metrics, comparison, debugging, or agent-internal traces. ARC turns galdr's evidence into a prose prompt for a grounded, time-ordered listening experience.
+
+The shape is:
+1. Fetch or listen to the track.
+2. Analyze it into listener-state traces.
+3. Assemble the ARC prompt with `--template arc --mode full`.
+4. Review the prompt, then write or send it to the requested model.
+
+### YouTube URL → ARC prompt (most common)
 
 ```bash
 # Step 1: fetch audio + context (slug auto-derived from title)
@@ -58,16 +68,16 @@ galdr update-deps
 
 `galdr doctor` reports the active Python executable, yt-dlp command/version, ffmpeg/ffprobe, JavaScript runtimes, and impersonation support. `galdr update-deps` upgrades `yt-dlp[default,curl-cffi]` in the same Python environment galdr is using.
 
-### Local file → Analysis only
+### Local file → ARC prompt
 
 > The analysis command is `galdr listen`, not `galdr analyze`.
 
 ```bash
 galdr listen track.wav --name my-track
-galdr assemble my-track --template arc
+galdr assemble my-track --template arc --mode full > prompt.txt
 ```
 
-### Second-by-second analysis (for another AI)
+### Raw second-by-second analysis (advanced)
 
 Galdr is strongest when read as a **time-ordered listener-state trace**. The stream is the primary evidence. Whole-track interpretation comes after walking the track through time.
 
@@ -106,9 +116,9 @@ jq '.summary' analysis/my-track/my-track_perception.json
 galdr assemble my-track --mode blind > prompt.txt
 ```
 
-### Optional: send an assembled prompt to another model
+### Send the ARC prompt to another model
 
-Only do this if the operator explicitly wants model-written prose. Review the assembled prompt before piping it to `claude`, `llm`, or any other external model endpoint.
+Only do this if the operator explicitly wants model-written prose. Review the assembled ARC prompt before piping it to `claude`, `llm`, or any other external model endpoint.
 
 ```bash
 galdr assemble my-track --template arc --mode full | claude
@@ -143,9 +153,11 @@ prompt = subprocess.run(
 | `context` | metrics + background |
 | `blind` | metrics only (structural, no cultural context) |
 
-`--template arc` prepends the listening experience rules (tone, format, interpretation bounds). Omit for raw data block.
+`--template arc` prepends the default listening-experience rules: tone, format, interpretation bounds, and the instruction to walk the track through time. Omit it only when you want a raw data block.
 
 ## Interpreting galdr Output
+
+ARC is the default output path. The metrics exist to keep that prose grounded: use them as evidence for what changes, returns, releases, locks, or breaks over time.
 
 See [references/metrics.md](references/metrics.md) for full metric reference.
 
@@ -156,9 +168,9 @@ See [references/metrics.md](references/metrics.md) for full metric reference.
 - Clustered `pattern_breaks` at the end → planned release; distributed → varied structure
 - `silence` depth below -60dB with re-lock above 0.93 attention → structured withdrawal/return
 
-## Writing Experience Prose (without piping)
+## Writing ARC Experience Prose (without piping)
 
-When writing experience prose yourself from `galdr assemble` output (no `--template`):
+When writing experience prose yourself from galdr evidence, prefer `galdr assemble <slug> --template arc --mode full`. If you are writing from raw assembled output without the template:
 - First-person listener perspective, present tense
 - Timestamps only at structural pivots (silences, pattern breaks, major energy shifts)
 - Translate metrics — describe what they mean, don't quote numbers
