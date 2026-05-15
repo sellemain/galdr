@@ -172,7 +172,6 @@ def test_normalize_stream_adapts_legacy_rows():
             "energy": 0.6,
             "h_energy": 0.7,
             "p_energy": 0.2,
-            "silence": 0.0,
         }
     ]
 
@@ -185,6 +184,17 @@ def test_normalize_stream_adapts_legacy_rows():
     assert frames[0].body == pytest.approx(0.76)
     assert frames[0].weight == pytest.approx(0.69)
     assert frames[0].silence == 0.0
+
+
+def test_normalize_stream_preserves_explicit_legacy_silence_bool():
+    stream = [
+        {"t": 0.0, "momentum": 0.0, "pattern_lock": 1.0, "silence": True},
+        {"t": 0.5, "momentum": 0.5, "pattern_lock": 1.0, "silence": False},
+    ]
+
+    frames = normalize_stream(stream)
+
+    assert [frame.silence for frame in frames] == [1.0, 0.0]
 
 
 def test_normalize_stream_preserves_listener_state_rows():
