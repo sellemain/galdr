@@ -610,7 +610,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="galdr",
-        description="Deterministic ears for AI agents: audio in, listener-state traces out for music analysis and listening experiences.",
+        description="Deterministic ears for AI agents. Audio in, listener-state traces out.",
     )
     parser.add_argument("--version", "-V", action="version", version=f"%(prog)s {_version}")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

@@ -5,14 +5,25 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "galdr"
 version = "0.3.0"
-description = "Deterministic ears for AI agents: audio in, listener-state traces out for music analysis and listening experiences."
+description = "Deterministic ears for AI agents. Audio in, listener-state traces out."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
     { name = "Sellemain", email = "galdr@sellemain.com" },
 ]
-keywords = ["music", "audio", "analysis", "perception", "harmonics", "AI"]
+keywords = [
+    "music",
+    "audio",
+    "analysis",
+    "perception",
+    "harmonics",
+    "AI",
+    "ai-agents",
+    "music-information-retrieval",
+    "music-structure",
+    "listener-state",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

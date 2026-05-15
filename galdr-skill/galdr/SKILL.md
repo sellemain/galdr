@@ -8,7 +8,9 @@ platforms: [linux, macos]
 ---
 # galdr
 
-galdr is a music perception CLI for AI agents. It turns tracks into listener-state traces, then optionally assembles those traces into prompts for structural analysis or listening-experience prose.
+Deterministic ears for AI agents. Audio in, listener-state traces out. Acoustic signal becomes structured evidence an LLM can encounter.
+
+galdr is a music perception CLI for AI agents. It analyzes tracks into time-ordered traces of attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure, then optionally assembles those traces into prompts for structural analysis or listening-experience prose.
 
 ## Install
 
