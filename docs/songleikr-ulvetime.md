@@ -1,4 +1,4 @@
-# Christopher Juul - Songleikr Ulvetime
+# Songleikr - Ulvetime
 Source: https://www.youtube.com/watch?v=FF9mtpw365c
 
 Silence holds for a few seconds before the track lets itself be seen. The opening is not empty in a casual way; it feels like a door left closed long enough for the room behind it to gather weight. Then the pulse arrives with a low, steady insistence, and attention settles almost immediately. The first sensation is of being carried by something old-fashioned and bodily, a repeating step that does not rush to explain itself.
