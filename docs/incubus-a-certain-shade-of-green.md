@@ -1,4 +1,4 @@
-Title: Incubus - A Certain Shade of Green
+# Incubus - A Certain Shade of Green
 Source: https://www.youtube.com/watch?v=HCml8Th66mM
 
 The song enters with a tight, agitated grid. The first vocal bursts do not introduce a scene so much as shove the door open: *"What?! What?! What?! What?!"* The rhythm catches quickly, but it never feels completely relaxed. The pulse is available, the body can follow it, yet the accents keep leaning against the floor. Everything sounds impatient before the argument has even been named.

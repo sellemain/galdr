@@ -1,4 +1,4 @@
-Title: Byzantine Music - Psalm 135
+# Byzantine Music - Psalm 135
 Source: https://www.youtube.com/watch?v=xVvGkcScfs0
 
 The opening silence is brief, but it behaves like a threshold. Then the chant enters and immediately gives the room a floor. The pulse is present almost at once, not as a drumbeat or a visible mechanism, but as a regular bodily current inside the voices. Attention settles into that current by the first few seconds. The sound does not ask to be followed through a sequence of surprises. It asks to be inhabited.

@@ -1,4 +1,4 @@
-Title: The Cranberries - Zombie
+# The Cranberries - Zombie
 Source: https://www.youtube.com/watch?v=95HqlWRFrAk
 
 The first impact is not theatrical. It is already moving, already carrying weight, a hard pulse under a warm, dark surface. The room does not have to be persuaded into the song; the grid is there almost immediately, and the body finds it before the mind has time to negotiate. What makes the opening feel severe is not chaos. It is the opposite. The motion is steady, locked enough to become unavoidable, while the harmonic color keeps shifting underneath it with a restless ache.

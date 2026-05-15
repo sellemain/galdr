@@ -1,4 +1,4 @@
-Title: Monty Python - Always Look on the Bright Side of Life
+# Monty Python - Always Look on the Bright Side of Life
 Source: https://www.youtube.com/watch?v=uAzwji5Cfmk
 
 The first joke is that the song wastes no time pretending this is comfort. A spoken voice leans in with casual cheer, and then the tune starts stepping lightly through misery as if misery had agreed to keep time. The pulse is easy to find almost immediately: not a march, not a dance floor, but a swinging music-hall sway that gives the body somewhere safe to put the absurdity. The surface is bright, almost too polite, and that politeness is the trap. The voice says *"Some things in life are bad"* with the plainness of someone setting a table, while the accompaniment keeps grinning.

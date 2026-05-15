@@ -1,4 +1,3 @@
-Title: Arvo Pärt - Spiegel im Spiegel
 # Arvo Pärt - Spiegel im Spiegel
 
 Source: https://www.youtube.com/watch?v=TJ6Mzvh3XCc
