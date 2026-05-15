@@ -49,6 +49,34 @@ def _legacy_weight(frame: dict) -> float:
     return _clamp(0.5 * harmonic + 0.3 * energy + 0.2 * (1.0 - percussive))
 
 
+def _infer_silence(frame: dict, attention: float | int | None, pattern: float | int | None) -> float:
+    """Infer silence without treating old streams as silent by default."""
+    silence = frame.get("silence")
+    if isinstance(silence, bool):
+        return 1.0 if silence else 0.0
+    if silence is not None:
+        return _clamp(silence)
+
+    loudness_silence = frame.get("loudness_silence")
+    if isinstance(loudness_silence, bool):
+        return 1.0 if loudness_silence else 0.0
+
+    loudness = frame.get("loudness_lufs")
+    if loudness is not None:
+        try:
+            return 1.0 if float(loudness) <= -70.0 else 0.0
+        except (TypeError, ValueError):
+            return 0.0
+
+    energy = _clamp(frame.get("rms_energy", frame.get("energy")))
+    harmonic = _clamp(frame.get("h_energy"))
+    percussive = _clamp(frame.get("p_energy"))
+    if energy <= 0.00001 and harmonic <= 0.00001 and percussive <= 0.00001:
+        if _clamp(attention) < 0.1 and _clamp(pattern) < 0.2:
+            return 1.0
+    return 0.0
+
+
 def normalize_stream(stream: list[dict]) -> list[ArcFrame]:
     """Project mixed galdr stream rows into one coarse internal shape."""
     normalized: list[ArcFrame] = []
@@ -82,10 +110,7 @@ def normalize_stream(stream: list[dict]) -> list[ArcFrame]:
         if weight is None:
             weight = _legacy_weight(frame)
 
-        silence = frame.get("silence")
-        if silence is None:
-            loudness = frame.get("loudness_lufs")
-            silence = 1.0 if loudness is None else 0.0
+        silence = _infer_silence(frame, attention, pattern)
 
         normalized.append(
             ArcFrame(
