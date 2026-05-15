@@ -926,6 +926,34 @@ def test_assemble_uses_sibling_audio_vtt_when_context_lacks_lyrics(tmp_path):
     assert "first caption words" in result
 
 
+def test_compare_tracks_includes_arc_spans(tmp_path, capsys):
+    from galdr.compare import compare_tracks
+
+    analysis_dir = tmp_path / "analysis"
+    for slug, stream in {
+        "track-a": [
+            {"t": 0.0, "attention": 0.8, "pattern": 0.9, "pressure": 0.0, "body": 0.8, "silence": False},
+            {"t": 1.0, "attention": 0.8, "pattern": 0.9, "pressure": 0.0, "body": 0.8, "silence": False},
+        ],
+        "track-b": [
+            {"t": 0.0, "attention": 0.8, "pattern": 0.9, "pressure": 0.5, "body": 0.8, "silence": False},
+            {"t": 1.0, "attention": 0.8, "pattern": 0.9, "pressure": 0.5, "body": 0.8, "silence": False},
+        ],
+    }.items():
+        track_dir = analysis_dir / slug
+        track_dir.mkdir(parents=True)
+        (track_dir / f"{slug}_stream.json").write_text(json.dumps({"stream": stream}))
+
+    compare_tracks("track-a", "track-b", analysis_dir)
+
+    output = capsys.readouterr().out
+    assert "ARC SPANS" in output
+    assert "track-a: 1 arc spans" in output
+    assert "track-b: 1 arc spans" in output
+    assert "held" in output
+    assert "building" in output
+
+
 def test_load_analysis_unwraps_versioned_stream_payload(tmp_path):
     from galdr.assemble import load_analysis
 
