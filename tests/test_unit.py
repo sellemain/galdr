@@ -1541,3 +1541,72 @@ def test_salience_labels_soft_mass_lock_without_promoting_to_new_contract():
     assert "soft mass lock" in salience["prose_hints"]
     assert "braced mass lock" not in salience["prose_hints"]
     assert "impact mass lock" not in salience["prose_hints"]
+
+
+# ── Boundary Candidates ──────────────────────────────────────────────────────
+
+
+def _boundary_frame(
+    t, *, silence=False, attention=0.8, pattern=0.9, pressure=0.0,
+    body=0.5, weight=0.4, density=0.5, rms=0.08, lufs=-24.0
+):
+    return {
+        "t": t,
+        "silence": silence,
+        "attention": attention,
+        "pattern": pattern,
+        "pressure": pressure,
+        "body": body,
+        "weight": weight,
+        "surface_density": density,
+        "rms_energy": rms,
+        "loudness_lufs": lufs,
+        "silence_depth_db": -70.0 if silence else -10.0,
+    }
+
+
+def test_boundary_candidates_are_separate_from_arc_transitions():
+    from galdr.boundary import derive_boundary_candidates
+
+    stream = []
+    for t in range(0, 6):
+        stream.append(_boundary_frame(t, pressure=0.05, density=0.7))
+    for t in range(6, 12):
+        stream.append(
+            _boundary_frame(
+                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
+                density=0.0, rms=0.001, lufs=-68.0
+            )
+        )
+    for t in range(12, 20):
+        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+
+    candidates = derive_boundary_candidates(stream, min_gap_sec=3.0, context_sec=4.0)
+
+    assert len(candidates) == 1
+    candidate = candidates[0]
+    assert candidate["start"] == 6.0
+    assert candidate["end"] == 12.0
+    assert candidate["kind"] == "probable_boundary"
+    assert candidate["reset_strength"] >= 0.28
+    assert candidate["confidence"] >= 0.6
+
+
+def test_boundary_candidates_mark_opening_and_closing_gaps():
+    from galdr.boundary import derive_boundary_candidates
+
+    stream = []
+    for t in range(0, 4):
+        stream.append(
+            _boundary_frame(t, silence=True, attention=0.0, pattern=0.0, density=0.0, rms=0.0005, lufs=-70.0)
+        )
+    for t in range(4, 10):
+        stream.append(_boundary_frame(t))
+    for t in range(10, 14):
+        stream.append(
+            _boundary_frame(t, silence=True, attention=0.0, pattern=0.0, density=0.0, rms=0.0005, lufs=-70.0)
+        )
+
+    candidates = derive_boundary_candidates(stream, min_gap_sec=3.0)
+
+    assert [candidate["kind"] for candidate in candidates] == ["opening_gap", "ending_gap"]

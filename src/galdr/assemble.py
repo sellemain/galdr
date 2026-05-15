@@ -33,6 +33,7 @@ from pathlib import Path
 from importlib import resources as pkg_resources
 
 from .arc import derive_arc_scales, select_arc_scale
+from .boundary import derive_boundary_candidates
 from .metric_vocabulary import display_name, glossary_lines
 from .salience import synthesize_salience
 from .captions import dedup_captions_with_timestamps, parse_vtt
@@ -404,6 +405,32 @@ def _arc_summary(stream: list[dict]) -> dict | None:
     return selected
 
 
+
+def _build_boundary_candidates(stream: list[dict]) -> str | None:
+    """Build a prompt-facing section for possible song/interlude boundaries."""
+    candidates = derive_boundary_candidates(stream)
+    if not candidates:
+        return None
+
+    lines = ["### Boundary candidates\n"]
+    lines.append(
+        "These are possible song, interlude, or large-section boundaries. "
+        "They are separate from arc transitions: a boundary candidate marks a low-energy gap "
+        "plus reset/re-entry evidence, not merely a listener-state change."
+    )
+    for candidate in candidates[:12]:
+        lines.append(
+            f"- {_fmt_time(candidate['start'])}–{_fmt_time(candidate['end'])} "
+            f"{candidate['kind']} (confidence {candidate['confidence']:.2f}; "
+            f"gap {candidate['duration']:.1f}s; reset {candidate['reset_strength']:.2f}; "
+            f"re-entry {candidate['reentry_strength']:.2f})"
+        )
+    lines.append(
+        "Use these as terrain markers for long uploads and albums. Confirm boundaries from context "
+        "when available, and do not treat ambient continuity as a track cut unless the post-gap state resets."
+    )
+    return "\n".join(lines)
+
 def _arc_archetype(summary: dict) -> tuple[str, str]:
     """Name the dominant felt mechanism implied by arc-span shape."""
     total = summary["total_frames"]
@@ -692,6 +719,10 @@ def _build_metrics(analysis: dict) -> str:
             "Use this guide to choose narrative emphasis, but keep the raw metrics available; "
             "do not hide technically true secondary evidence or collapse the axes into compound labels."
         )
+
+    boundary_candidates = _build_boundary_candidates(perception.get("stream", []))
+    if boundary_candidates:
+        lines.append("\n" + boundary_candidates)
 
     arc_structure = _build_arc_structure(perception.get("stream", []))
     if arc_structure:
