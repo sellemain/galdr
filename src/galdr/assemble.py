@@ -28,9 +28,11 @@ Default template is none.
 """
 
 import json
+from collections import Counter, defaultdict
 from pathlib import Path
 from importlib import resources as pkg_resources
 
+from .arc import derive_arc_spans
 from .metric_vocabulary import display_name, glossary_lines
 from .salience import synthesize_salience
 from .captions import dedup_captions_with_timestamps, parse_vtt
@@ -331,6 +333,151 @@ def _event_rank(event: str, btype: str = "") -> int:
         return 50
     return 70
 
+
+def _arc_summary(stream: list[dict]) -> dict | None:
+    """Summarize coarse arc spans for prompt assembly."""
+    spans = derive_arc_spans(stream)
+    if not spans:
+        return None
+
+    total_frames = sum(span["frame_count"] for span in spans)
+    if total_frames <= 0:
+        return None
+
+    frame_counts = Counter()
+    run_counts = Counter()
+    transitions = Counter()
+    weighted = defaultdict(float)
+    previous = None
+    for span in spans:
+        label = span["label"]
+        frame_count = span["frame_count"]
+        frame_counts[label] += frame_count
+        run_counts[label] += 1
+        for key in ["mean_attention", "mean_pattern", "mean_pressure", "mean_body", "mean_weight", "silence_ratio"]:
+            weighted[key] += span[key] * frame_count
+        if previous:
+            transitions[(previous, label)] += 1
+        previous = label
+
+    timeline = []
+    last_t = spans[-1]["end"]
+    window_size = 30.0
+    start = 0.0
+    while start <= last_t:
+        end = start + window_size
+        counts = Counter()
+        for span in spans:
+            overlap = max(0.0, min(float(span["end"]), end) - max(float(span["start"]), start))
+            if overlap > 0:
+                counts[span["label"]] += overlap
+        if counts:
+            timeline.append((start, end, counts.most_common(3)))
+        start = end
+
+    return {
+        "span_count": len(spans),
+        "total_frames": total_frames,
+        "frame_counts": frame_counts,
+        "run_counts": run_counts,
+        "weighted": {key: value / total_frames for key, value in weighted.items()},
+        "transitions": transitions,
+        "longest": sorted(spans, key=lambda span: span["frame_count"], reverse=True)[:8],
+        "timeline": timeline,
+    }
+
+
+def _arc_archetype(summary: dict) -> tuple[str, str]:
+    """Name the dominant felt mechanism implied by arc-span shape."""
+    total = summary["total_frames"]
+    frames = summary["frame_counts"]
+    held_pct = frames.get("held", 0) / total
+    returning_pct = frames.get("returning", 0) / total
+    emptying_pct = frames.get("emptying", 0) / total
+    churn_pct = (frames.get("building", 0) + frames.get("releasing", 0)) / total
+    transition_rate = sum(summary["transitions"].values()) / total
+    longest = summary["longest"][0]["frame_count"] / total if summary["longest"] else 0.0
+
+    if emptying_pct >= 0.08 or returning_pct >= 0.28:
+        return (
+            "collapse-return",
+            "withdrawal and re-entry matter; describe subtraction, recovery, and what remains after the hold loosens.",
+        )
+    if held_pct >= 0.60 and longest >= 0.08:
+        return (
+            "plateau track",
+            "long held spans dominate; write stability as active sustained pressure rather than stillness.",
+        )
+    if held_pct >= 0.45 and churn_pct >= 0.25 and transition_rate >= 0.18:
+        return (
+            "twitch-loop under calm surface",
+            "the track may sound static, but the listener-state keeps micro-correcting through build/release flips.",
+        )
+    if frames.get("building", 0) > frames.get("releasing", 0) * 1.4 and churn_pct >= 0.20:
+        return (
+            "pressure ratchet",
+            "repeated building outweighs clean release; write accumulation before relief.",
+        )
+    if held_pct >= 0.55:
+        return (
+            "ritual lock",
+            "high hold and pattern dominate; write repetition as embodied commitment, not lack of change.",
+        )
+    return (
+        "mixed arc",
+        "no single state dominates; move through local shifts proportionally and avoid flattening the song into one mood.",
+    )
+
+
+def _build_arc_structure(stream: list[dict]) -> str | None:
+    """Build a prompt-facing arc-span section from local stream data."""
+    summary = _arc_summary(stream)
+    if not summary:
+        return None
+
+    archetype, guidance = _arc_archetype(summary)
+    total = summary["total_frames"]
+    weighted = summary["weighted"]
+    lines = ["### Arc structure\n"]
+    lines.append(f"Felt mechanism: {archetype} — {guidance}")
+    lines.append(
+        f"Span count: {summary['span_count']} spans across {total} frames; "
+        f"means attention {weighted['mean_attention']:.3f}, pattern {weighted['mean_pattern']:.3f}, "
+        f"pressure {weighted['mean_pressure']:.3f}, body {weighted['mean_body']:.3f}, "
+        f"silence {weighted['silence_ratio']:.3f}"
+    )
+    lines.append("State distribution:")
+    for label, frames in summary["frame_counts"].most_common():
+        pct = frames / total * 100
+        runs = summary["run_counts"][label]
+        lines.append(f"- {label}: {pct:.1f}% of frames across {runs} runs")
+
+    transitions = summary["transitions"].most_common(5)
+    if transitions:
+        rendered = ", ".join(f"{a}→{b} x{count}" for (a, b), count in transitions)
+        lines.append(f"Top transitions: {rendered}")
+
+    lines.append("Longest spans:")
+    for span in summary["longest"][:5]:
+        lines.append(
+            f"- {_fmt_time(span['start'])}–{_fmt_time(span['end'])} {span['label']} "
+            f"({span['frame_count']} frames; attention {span['mean_attention']:.3f}, "
+            f"pattern {span['mean_pattern']:.3f}, pressure {span['mean_pressure']:.3f}, "
+            f"body {span['mean_body']:.3f})"
+        )
+
+    lines.append("Coarse timeline:")
+    for start, end, counts in summary["timeline"]:
+        rendered = ", ".join(f"{label} {amount:.1f}s" for label, amount in counts)
+        lines.append(f"- {_fmt_time(start)}–{_fmt_time(end)}: {rendered}")
+
+    lines.append(
+        "Use this section as a second sense for experience prose. Do not recite percentages; "
+        "translate them into stability, micro-correction, pressure, withdrawal, or re-entry."
+    )
+    return "\n".join(lines)
+
+
 def _build_metrics(analysis: dict) -> str:
     """Build core galdr metrics section."""
     report = analysis.get("report") or {}
@@ -506,6 +653,10 @@ def _build_metrics(analysis: dict) -> str:
             "Use this guide to choose narrative emphasis, but keep the raw metrics available; "
             "do not hide technically true secondary evidence or collapse the axes into compound labels."
         )
+
+    arc_structure = _build_arc_structure(perception.get("stream", []))
+    if arc_structure:
+        lines.append("\n" + arc_structure)
 
     # Texture balance derived from report harmonic/percussive weight ratio
     if har_e or perc_e:

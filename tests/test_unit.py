@@ -394,6 +394,33 @@ class TestAssemblePrompt:
         assert "detected pulse 92.3 BPM" in result
         assert "ambiguous/suspect" in result
 
+    def test_stream_arc_structure_is_included_for_experience_prompt(self):
+        stream = []
+        for i in range(12):
+            stream.append({"t": i * 1.0, "attention": 0.90, "pattern": 0.95, "pressure": 0.50, "body": 0.70})
+        for i in range(12, 16):
+            stream.append({"t": i * 1.0, "attention": 0.82, "pattern": 0.88, "pressure": 0.72, "body": 0.68})
+        for i in range(16, 20):
+            stream.append({"t": i * 1.0, "attention": 0.70, "pattern": 0.72, "pressure": 0.22, "body": 0.50})
+
+        analysis = {
+            "report": {"duration_seconds": 20.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse": 0.8},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": stream,
+            },
+        }
+
+        prompt = self.fn(analysis, mode="blind")
+
+        assert "### Arc structure" in prompt
+        assert "Felt mechanism:" in prompt
+        assert "Span count:" in prompt
+        assert "State distribution:" in prompt
+        assert "Longest spans:" in prompt
+        assert "Coarse timeline:" in prompt
+        assert "translate them into stability" in prompt
+
 
 # ── SM-308 Perception surface demotion ───────────────────────────────────────
 
