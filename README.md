@@ -34,7 +34,7 @@ Just what shaped the reasoning.
 
 **Experience Document Examples:**
 
-| | | |
+|---|---|---|
 | [Arvo Pärt - Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md) | [AURORA - Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md) | [The Wicked Tinkers - Barren Rocks of Aden](https://github.com/sellemain/galdr/blob/main/docs/barren-rocks-of-aden.md) |
 | [Beastie Boys - Intergalactic](https://github.com/sellemain/galdr/blob/main/docs/beastie-boys-intergalactic.md) | [Beck - Loser](https://github.com/sellemain/galdr/blob/main/docs/beck-loser.md) | [Queen - Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md) |
 | [Chelsea Wolfe - 16 Psyche](https://github.com/sellemain/galdr/blob/main/docs/chelsea-wolfe-16-psyche.md) | [Christopher Juul - Songleikr Ulvetime](https://github.com/sellemain/galdr/blob/main/docs/christopher-juul-songleikr-ulvetime.md) | [Dorothy - Black Sheep](https://github.com/sellemain/galdr/blob/main/docs/dorothy-black-sheep.md) |
