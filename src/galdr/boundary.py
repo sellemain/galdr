@@ -157,5 +157,68 @@ def derive_boundary_candidates(
             "mean_surface_density": round(_mean(run, "surface_density"), 3),
             "min_loudness_lufs": round(min(_num(row.get("loudness_lufs"), 0.0) for row in run), 1),
         })
-
     return candidates
+
+
+def align_candidates_to_sections(
+    candidates: list[dict],
+    sections: list[dict],
+    *,
+    tolerance_sec: float = 12.0,
+) -> dict:
+    """Compare acoustic boundary candidates with known section starts.
+
+    Sections usually come from YouTube chapters or timestamped descriptions.
+    Candidate starts and ends are both considered because a chapter marker can
+    sit anywhere inside the low-energy gap that separates two sections.
+    """
+    matches: list[dict] = []
+    missed_sections: list[dict] = []
+    used_candidates: set[int] = set()
+
+    for section in sections:
+        section_start = _num(section.get("start", section.get("start_time")), 0.0)
+        best: tuple[float, int, dict] | None = None
+        for idx, candidate in enumerate(candidates):
+            start_delta = abs(_num(candidate.get("start")) - section_start)
+            end_delta = abs(_num(candidate.get("end")) - section_start)
+            delta = min(start_delta, end_delta)
+            if best is None or delta < best[0]:
+                best = (delta, idx, candidate)
+        if best is None or best[0] > tolerance_sec:
+            missed_sections.append({
+                "section": section.get("title") or section.get("name") or "untitled",
+                "start": round(section_start, 2),
+            })
+            continue
+
+        delta, idx, candidate = best
+        used_candidates.add(idx)
+        matches.append({
+            "section": section.get("title") or section.get("name") or "untitled",
+            "section_start": round(section_start, 2),
+            "candidate_start": candidate.get("start"),
+            "candidate_end": candidate.get("end"),
+            "candidate_kind": candidate.get("kind"),
+            "delta": round(delta, 2),
+            "confidence": candidate.get("confidence"),
+            "reset_strength": candidate.get("reset_strength"),
+        })
+
+    extra_candidates = [
+        candidate for idx, candidate in enumerate(candidates)
+        if idx not in used_candidates
+    ]
+    deltas = [match["delta"] for match in matches]
+    return {
+        "section_count": len(sections),
+        "candidate_count": len(candidates),
+        "match_count": len(matches),
+        "missed_count": len(missed_sections),
+        "extra_count": len(extra_candidates),
+        "mean_abs_delta": round(sum(deltas) / len(deltas), 2) if deltas else None,
+        "max_abs_delta": round(max(deltas), 2) if deltas else None,
+        "matches": matches,
+        "missed_sections": missed_sections,
+        "extra_candidates": extra_candidates,
+    }

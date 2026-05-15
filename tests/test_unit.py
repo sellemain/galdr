@@ -1610,3 +1610,32 @@ def test_boundary_candidates_mark_opening_and_closing_gaps():
     candidates = derive_boundary_candidates(stream, min_gap_sec=3.0)
 
     assert [candidate["kind"] for candidate in candidates] == ["opening_gap", "ending_gap"]
+
+
+def test_boundary_alignment_scores_known_section_starts_and_extras():
+    from galdr.boundary import align_candidates_to_sections
+
+    candidates = [
+        {"start": 0.0, "end": 5.0, "kind": "opening_gap", "confidence": 0.7, "reset_strength": 0.0},
+        {"start": 317.5, "end": 322.0, "kind": "probable_boundary", "confidence": 0.93, "reset_strength": 0.89},
+        {"start": 610.0, "end": 635.0, "kind": "probable_boundary", "confidence": 0.95, "reset_strength": 0.78},
+        {"start": 700.0, "end": 705.0, "kind": "interlude_gap", "confidence": 0.5, "reset_strength": 0.0},
+    ]
+    sections = [
+        {"start": 0.0, "title": "Asja"},
+        {"start": 318.0, "title": "Anoana"},
+        {"start": 617.0, "title": "Tenet"},
+        {"start": 900.0, "title": "Missing"},
+    ]
+
+    alignment = align_candidates_to_sections(candidates, sections, tolerance_sec=12.0)
+
+    assert alignment["section_count"] == 4
+    assert alignment["candidate_count"] == 4
+    assert alignment["match_count"] == 3
+    assert alignment["missed_count"] == 1
+    assert alignment["extra_count"] == 1
+    assert alignment["matches"][1]["section"] == "Anoana"
+    assert alignment["matches"][1]["delta"] == pytest.approx(0.5)
+    assert alignment["missed_sections"] == [{"section": "Missing", "start": 900.0}]
+    assert alignment["extra_candidates"][0]["start"] == 700.0
