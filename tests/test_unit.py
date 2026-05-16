@@ -1612,6 +1612,28 @@ def test_boundary_candidates_mark_opening_and_closing_gaps():
     assert [candidate["kind"] for candidate in candidates] == ["opening_gap", "ending_gap"]
 
 
+
+def test_boundary_candidates_can_include_non_silent_reset_points():
+    from galdr.boundary import derive_boundary_candidates
+
+    stream = []
+    for t in range(0, 8):
+        stream.append(_boundary_frame(t, attention=0.9, pattern=0.96, pressure=-0.08, body=0.43, weight=0.88, density=0.06, rms=0.07, lufs=-24.0))
+    for t in range(8, 16):
+        stream.append(_boundary_frame(t, attention=0.97, pattern=0.99, pressure=0.08, body=0.72, weight=0.55, density=0.31, rms=0.16, lufs=-19.0))
+
+    gap_only = derive_boundary_candidates(stream, min_gap_sec=3.0)
+    with_resets = derive_boundary_candidates(stream, min_gap_sec=3.0, include_reset_points=True, reset_window_sec=4.0)
+
+    assert gap_only == []
+    assert len(with_resets) == 1
+    candidate = with_resets[0]
+    assert candidate["kind"] == "reset_point"
+    assert candidate["duration"] == 0.0
+    assert candidate["state_reset"] >= 0.11
+    assert candidate["acoustic_reset"] >= 0.12
+
+
 def test_boundary_alignment_scores_known_section_starts_and_extras():
     from galdr.boundary import align_candidates_to_sections
 

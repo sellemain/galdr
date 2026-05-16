@@ -29,6 +29,20 @@ def _max_delta(before: dict[str, float], after: dict[str, float]) -> float:
     return min(1.0, max(abs(after.get(key, 0.0) - before.get(key, 0.0)) for key in keys))
 
 
+def _state_delta(before: dict[str, float], after: dict[str, float]) -> float:
+    """Strongest normalized listener-state change, excluding raw loudness scale."""
+    keys = ("attention", "pattern", "pressure", "body", "weight", "surface_density")
+    return min(1.0, max(abs(after.get(key, 0.0) - before.get(key, 0.0)) for key in keys))
+
+
+def _acoustic_delta(before: dict[str, float], after: dict[str, float]) -> float:
+    """Normalized supporting change from energy/loudness surface."""
+    rms_delta = abs(after.get("rms_energy", 0.0) - before.get("rms_energy", 0.0)) * 2.0
+    density_delta = abs(after.get("surface_density", 0.0) - before.get("surface_density", 0.0))
+    loudness_delta = abs(after.get("loudness_lufs", 0.0) - before.get("loudness_lufs", 0.0)) / 20.0
+    return min(1.0, max(rms_delta, density_delta, loudness_delta))
+
+
 def _is_gap_frame(frame: dict) -> bool:
     """Return true for frames that can plausibly separate songs/sections."""
     if not bool(frame.get("silence")):
@@ -53,6 +67,8 @@ def _summarize_window(rows: list[dict]) -> dict[str, float]:
         "body": _mean(rows, "body"),
         "weight": _mean(rows, "weight"),
         "surface_density": _mean(rows, "surface_density"),
+        "rms_energy": _mean(rows, "rms_energy"),
+        "loudness_lufs": _mean([row for row in rows if row.get("loudness_lufs") is not None], "loudness_lufs"),
     }
 
 
@@ -63,6 +79,8 @@ def derive_boundary_candidates(
     min_gap_sec: float = 3.0,
     context_sec: float = 4.0,
     merge_gap_sec: float = 2.0,
+    include_reset_points: bool = False,
+    reset_window_sec: float = 4.0,
 ) -> list[dict]:
     """Find possible song/interlude boundaries from silence plus reset evidence.
 
@@ -157,7 +175,57 @@ def derive_boundary_candidates(
             "mean_surface_density": round(_mean(run, "surface_density"), 3),
             "min_loudness_lufs": round(min(_num(row.get("loudness_lufs"), 0.0) for row in run), 1),
         })
-    return candidates
+    if include_reset_points:
+        window_frames = max(4, int(round(reset_window_sec / hop_sec)))
+        stride = max(1, window_frames // 3)
+        blocked_ranges = [(candidate["start"] - merge_gap_sec, candidate["end"] + merge_gap_sec) for candidate in candidates]
+        existing_times = [candidate["start"] for candidate in candidates] + [candidate["end"] for candidate in candidates]
+
+        for midpoint in range(window_frames, len(rows) - window_frames, stride):
+            t = rows[midpoint]["_boundary_t"]
+            if any(start <= t <= end for start, end in blocked_ranges):
+                continue
+            if any(abs(t - existing) <= reset_window_sec for existing in existing_times):
+                continue
+
+            before_rows = rows[midpoint - window_frames:midpoint]
+            after_rows = rows[midpoint:midpoint + window_frames]
+            if any(_is_gap_frame(row) for row in before_rows + after_rows):
+                continue
+
+            before = _summarize_window(before_rows)
+            after = _summarize_window(after_rows)
+            state_reset = _state_delta(before, after)
+            acoustic_reset = _acoustic_delta(before, after)
+            pressure_turn = after["pressure"] - before["pressure"]
+            weight_release = before["weight"] - after["weight"]
+            strongest_turn = max(abs(pressure_turn), abs(weight_release), acoustic_reset)
+
+            if state_reset < 0.11 or acoustic_reset < 0.09 or strongest_turn < 0.11:
+                continue
+
+            confidence = 0.28 + min(state_reset, 0.24) + min(acoustic_reset, 0.22)
+            confidence += min(max(0.0, strongest_turn - 0.12), 0.12)
+            confidence = max(0.0, min(0.78, confidence))
+            candidates.append({
+                "start": round(t, 2),
+                "end": round(t, 2),
+                "duration": 0.0,
+                "kind": "reset_point",
+                "confidence": round(confidence, 3),
+                "reset_strength": round(state_reset, 3),
+                "reentry_strength": round(max(0.0, after["attention"] - before["attention"]), 3),
+                "state_reset": round(state_reset, 3),
+                "acoustic_reset": round(acoustic_reset, 3),
+                "pressure_turn": round(pressure_turn, 3),
+                "weight_release": round(weight_release, 3),
+                "mean_rms_energy": round((before["rms_energy"] + after["rms_energy"]) / 2.0, 5),
+                "mean_surface_density": round((before["surface_density"] + after["surface_density"]) / 2.0, 3),
+                "min_loudness_lufs": round(min(before["loudness_lufs"], after["loudness_lufs"]), 1),
+            })
+            existing_times.append(t)
+
+    return sorted(candidates, key=lambda candidate: (candidate["start"], candidate["end"]))
 
 
 def align_candidates_to_sections(
