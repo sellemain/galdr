@@ -963,7 +963,7 @@ def test_load_analysis_unwraps_versioned_stream_payload(tmp_path):
     (track_dir / f"{slug}_perception.json").write_text(json.dumps({"track": slug}))
     (track_dir / f"{slug}_stream.json").write_text(json.dumps({
         "schema_version": "listener_state_v1",
-        "galdr_version": "0.3.0",
+        "galdr_version": "0.4.0",
         "stream": [{"t": 0.0, "attention": 1.0}],
     }))
 

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-16
+
+### Added
+- ARC stream helpers, assembled ARC structure summaries, prose archetypes, and `galdr compare` ARC span output for listener-state comparisons.
+- Multiscale ARC pattern selection so over-segmented traces can be read at detail, standard, or macro scale instead of treating every micro-turn as a structural boundary.
+- Boundary candidate detection for long-form uploads, including chapter-alignment helpers and optional non-silent reset-point detection for regime changes without gaps.
+- Versioned provenance metadata for generated stream artifacts, plus cache/stale-artifact helpers and CLI diagnostics for checking catalog state.
+- Public listening example/discovery links and OpenClaw/ClawHub install documentation.
+
+### Changed
+- ARC is now the default agent-facing galdr workflow in the bundled skill documentation.
+- Wikipedia context fetching now prefers music-qualified artist pages and scores multiple search candidates before using context in prompts.
+- Genius lyric extraction now removes scraper CTA/UI residue and records match-confidence metadata in fetched context.
+
+### Fixed
+- Legacy ARC stream adaptation no longer treats missing silence fields as fully silent, restoring span detection for older analysis artifacts.
+- Songleikr/Ulvetime public documentation attribution and filename normalization.
+
 ## [0.3.0] - 2026-05-14
 
 ### Added
