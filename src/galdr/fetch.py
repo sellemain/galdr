@@ -393,7 +393,35 @@ def _parse_genius_html(html_text: str) -> tuple[list[str], list[str]]:
         else:
             lyric_lines.append(line)
 
-    return lyric_lines, sections
+    return _sanitize_lyric_lines(lyric_lines), sections
+
+
+_GENIUS_NOISE_PATTERNS = (
+    re.compile(r"^See .{1,80}? LiveGet tickets as low as \$?\d+", re.IGNORECASE),
+    re.compile(r"^You might also like$", re.IGNORECASE),
+    re.compile(r"^Embed$", re.IGNORECASE),
+    re.compile(r"^\d*Embed$", re.IGNORECASE),
+)
+
+
+def _sanitize_lyric_lines(lines: list[str]) -> list[str]:
+    """Remove scraper UI/CTA residue from extracted lyric lines."""
+    cleaned: list[str] = []
+    seen: set[str] = set()
+    for raw in lines:
+        line = re.sub(r"\s+", " ", raw).strip()
+        if not line:
+            continue
+        if any(pattern.search(line) for pattern in _GENIUS_NOISE_PATTERNS):
+            continue
+        if "LiveGet tickets" in line or "Get tickets as low as" in line:
+            continue
+        key = line.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(line)
+    return cleaned
 
 
 def _genius_search(artist: str, title: str) -> dict | None:
@@ -545,19 +573,19 @@ def _wiki_request(params: dict) -> dict:
         return json.loads(r.read())
 
 
-def wikipedia_search(query: str) -> str | None:
-    """Return the best-matching Wikipedia article title for a query."""
+def wikipedia_search(query: str, limit: int = 5) -> list[str]:
+    """Return candidate Wikipedia article titles for a query."""
     try:
         data = _wiki_request({
             "action": "query",
             "list": "search",
             "srsearch": query,
-            "srlimit": "1",
+            "srlimit": str(limit),
         })
         results = data.get("query", {}).get("search", [])
-        return results[0]["title"] if results else None
+        return [result["title"] for result in results if result.get("title")]
     except Exception:
-        return None
+        return []
 
 
 def fetch_wikipedia_intro(title: str, max_chars: int = 2000) -> dict:
@@ -590,12 +618,19 @@ def fetch_wikipedia_intro(title: str, max_chars: int = 2000) -> dict:
 
 
 def _looks_like_disambiguation_stub(result: dict) -> bool:
-    """Return True when a Wikipedia intro is only a disambiguation stub."""
+    """Return True when a Wikipedia intro is a disambiguation/list page."""
     extract = str(result.get("extract", "")).strip().lower()
+    title = str(result.get("title", "")).strip().lower()
+    if "disambiguation" in title:
+        return True
     if not extract:
         return False
-    title = str(result.get("title", "")).strip().lower()
-    return extract in {f"{title} may refer to:", f"{title} or {title}s may refer to:"} or extract.endswith(" may refer to:")
+    first_line = extract.splitlines()[0].strip() if extract.splitlines() else extract
+    return (
+        first_line in {f"{title} may refer to:", f"{title} or {title}s may refer to:"}
+        or first_line.endswith(" may refer to:")
+        or first_line.endswith(" may also refer to:")
+    )
 
 
 def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) -> dict:
@@ -664,9 +699,10 @@ def fetch_wikipedia_context(
             }
         return result
 
-    # Try candidates in order
+    # Try candidates in order. For artists, prefer music-qualified pages before
+    # bare titles; bare titles are often disambiguation or non-music concepts.
     if entity_type == "artist":
-        candidates = [name, f"{name} (band)", f"{name} (musician)", f"{name} (singer)"]
+        candidates = [f"{name} (band)", f"{name} (musician)", f"{name} (singer)", name]
         search_query = f"{name} band musician"
     else:
         candidates = [name, f"{name} (song)", f"{name} (composition)"]
@@ -677,12 +713,23 @@ def fetch_wikipedia_context(
         if result.get("found") and not _looks_like_wrong_article(result, name):
             return _with_wikipedia_confidence(result, name, entity_type)
 
-    # Search fallback
-    found_title = wikipedia_search(search_query)
-    if found_title:
+    # Search fallback: inspect several candidates and choose the highest-scoring
+    # prompt-usable result instead of blindly accepting the first hit.
+    best_result = None
+    best_score = -1.0
+    for found_title in wikipedia_search(search_query):
         result = fetch_wikipedia_intro(found_title)
-        if result.get("found"):
-            return _with_wikipedia_confidence(result, name, entity_type)
+        if not result.get("found"):
+            continue
+        scored = _with_wikipedia_confidence(result, name, entity_type)
+        if not scored.get("use_in_prompt"):
+            continue
+        score = float(scored.get("match_score", 0.0))
+        if score > best_score:
+            best_result = scored
+            best_score = score
+    if best_result:
+        return best_result
 
     return {"found": False, "queried": name}
 
@@ -793,6 +840,12 @@ def fetch_track(
             context["lyrics"] = {
                 "source": source,
                 "genius_url": genius.get("url"),
+                "confidence": genius.get("confidence"),
+                "match_score": genius.get("match_score"),
+                "match_reasons": genius.get("match_reasons", []),
+                "use_in_prompt": genius.get("use_in_prompt", True),
+                "candidate_title": genius.get("candidate_title"),
+                "candidate_artist": genius.get("candidate_artist"),
                 "genius_text": genius_text,
                 "caption_lines": caption_lines,          # timestamped, may have ASR errors
                 "full_text": genius_text,                # backward compat for assemble.py
