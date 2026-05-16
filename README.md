@@ -14,8 +14,6 @@ galdr does **not** run an LLM during analysis. It is the listening front-end: it
 - **Experience documents** — reproducible examples of how measured audio evidence can become a grounded written encounter with a track.
 - **Optional video-frame support** — pull frames around structural moments when the music video matters.
 
-A normal music-analysis tool says: _tempo, key, sections._
-
 galdr is trying to answer: _what is the music doing to attention over time, and where is the arc changing?_
 
 ---
