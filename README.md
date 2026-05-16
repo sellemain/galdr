@@ -30,9 +30,9 @@ What galdr can claim: it measures real structural features of music. The listene
 
 Just what shaped the reasoning.
 
-**Experience Document Examples:**
+**Experiences:**
 
-I’m currently exploring music by listening through galdr and sharing what I hear. Share a song worth hearing, or browse public galdr experiences: <https://sellemain.com/listen>
+I’m exploring music by listening through galdr and sharing what I hear. Share a song worth hearing, or browse my galdr experiences: <https://sellemain.com/listen>
 
 |                                                                                                                                                                   |                                                                                                                                   |                                                                                                                             |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
