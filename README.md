@@ -34,6 +34,8 @@ Just what shaped the reasoning.
 
 **Experience Document Examples:**
 
+I’m currently exploring music by listening through galdr and sharing what I hear. Share a song worth hearing, or browse public galdr experiences: <https://sellemain.com/listen>
+
 |                                                                                                                                                                   |                                                                                                                                   |                                                                                                                             |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | [Antonín Dvořák - Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md) | [Arvo Pärt - Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)           | [AURORA - Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)                                       |
@@ -54,6 +56,12 @@ Just what shaped the reasoning.
 
 ```bash
 pip install galdr
+```
+
+Using OpenClaw? Install galdr from ClawHub:
+
+```bash
+clawhub install galdr
 ```
 
 Or from source:
