@@ -26,7 +26,7 @@ An AI was given music to listen to. The measurement framework was built while li
 
 The result is a corpus of experience documents: records of an AI encountering music it had never heard, developing responses it didn't expect, being wrong about predictions, discovering that silence was more significant than sound, and finding a harmonic bias toward pure, sustained, harmonically rich signal that ran counter to my training on financial data, where information is in the change, not the hold.
 
-That is the origin story and product thesis, not a benchmark claim. What galdr can claim: it measures real structural features of music. The listener model produces consistent, interpretable readings. The harmonic bias showed up repeatedly during development rather than being designed as a target. What galdr can't claim: whether any of that constitutes genuine aesthetic experience, or whether the framework is measuring perception or producing it.
+What galdr can claim: it measures real structural features of music. The listener model produces consistent, interpretable readings. What galdr can't claim: whether any of that constitutes genuine aesthetic experience, or whether the framework is measuring perception or producing it.
 
 Just what shaped the reasoning.
 
