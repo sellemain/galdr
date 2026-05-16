@@ -1255,6 +1255,35 @@ class TestContextConfidenceScoring:
         assert result["use_in_prompt"] is False
 
 
+    def test_wikipedia_artist_prefers_music_qualified_page_over_disambiguation(self, monkeypatch):
+        import galdr.fetch as fetch
+
+        def fake_intro(title):
+            if title == "Machine Head (band)":
+                return {"found": True, "title": "Machine Head (band)", "extract": "Machine Head is an American heavy metal band from Oakland, California."}
+            if title == "Machine Head":
+                return {"found": True, "title": "Machine head", "extract": "Machine head may refer to:"}
+            return {"found": False}
+
+        monkeypatch.setattr(fetch, "fetch_wikipedia_intro", fake_intro)
+
+        result = fetch.fetch_wikipedia_context("Machine Head", entity_type="artist")
+
+        assert result["title"] == "Machine Head (band)"
+        assert result["use_in_prompt"] is True
+
+    def test_genius_sanitizer_removes_live_ticket_cta(self):
+        from galdr.fetch import _sanitize_lyric_lines
+
+        lines = _sanitize_lyric_lines([
+            "See Machine Head LiveGet tickets as low as $67",
+            "This is real lyric text",
+            "Embed",
+        ])
+
+        assert lines == ["This is real lyric text"]
+
+
 def test_salience_guide_is_advisory_and_preserves_metric_detail():
     from galdr.assemble import assemble_prompt
 
