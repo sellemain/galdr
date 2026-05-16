@@ -26,6 +26,12 @@ The second use is deeper: return to a track with a specific question. Focus on t
 pip install galdr
 ```
 
+Using OpenClaw? Install the galdr skill from ClawHub:
+
+```bash
+clawhub install galdr
+```
+
 Galdr requires `ffmpeg` for audio decoding:
 
 ```bash
