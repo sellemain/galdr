@@ -1690,3 +1690,45 @@ def test_boundary_alignment_scores_known_section_starts_and_extras():
     assert alignment["matches"][1]["delta"] == pytest.approx(0.5)
     assert alignment["missed_sections"] == [{"section": "Missing", "start": 900.0}]
     assert alignment["extra_candidates"][0]["start"] == 700.0
+
+
+def test_section_boundary_report_keeps_chapters_and_acoustic_evidence_separate():
+    from galdr.boundary import build_section_boundary_report
+
+    candidates = [
+        {"start": 0.0, "end": 4.0, "kind": "opening_gap", "confidence": 0.7, "reset_strength": 0.0},
+        {"start": 100.0, "end": 110.0, "kind": "probable_boundary", "confidence": 0.88, "reset_strength": 0.5},
+        {"start": 210.0, "end": 214.0, "kind": "possible_boundary", "confidence": 0.62, "reset_strength": 0.22},
+        {"start": 400.0, "end": 408.0, "kind": "interlude_gap", "confidence": 0.42, "reset_strength": 0.0},
+    ]
+    sections = [
+        {"start": 0.0, "title": "Opening"},
+        {"start": 106.0, "title": "Matched"},
+        {"start": 185.0, "title": "Near miss"},
+        {"start": 900.0, "title": "Declared only"},
+    ]
+
+    report = build_section_boundary_report(candidates, sections, tolerance_sec=8.0, near_miss_sec=30.0)
+
+    assert report["summary"] == {
+        "declared_section_count": 4,
+        "acoustic_candidate_count": 4,
+        "matched_count": 2,
+        "near_miss_count": 1,
+        "section_without_acoustic_boundary_count": 1,
+        "acoustic_without_declared_section_count": 2,
+        "tolerance_sec": 8.0,
+        "near_miss_sec": 30.0,
+    }
+    assert [match["section"] for match in report["matched_declared_sections"]] == ["Opening", "Matched"]
+    assert report["near_misses"] == [{
+        "section": "Near miss",
+        "section_start": 185.0,
+        "nearest_candidate_start": 210.0,
+        "nearest_candidate_end": 214.0,
+        "nearest_candidate_kind": "possible_boundary",
+        "delta": 25.0,
+        "confidence": 0.62,
+    }]
+    assert report["sections_without_acoustic_boundary"] == [{"section": "Declared only", "start": 900.0}]
+    assert [candidate["start"] for candidate in report["acoustic_boundaries_without_declared_section"]] == [210.0, 400.0]

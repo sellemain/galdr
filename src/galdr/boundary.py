@@ -290,3 +290,78 @@ def align_candidates_to_sections(
         "missed_sections": missed_sections,
         "extra_candidates": extra_candidates,
     }
+
+
+def build_section_boundary_report(
+    candidates: list[dict],
+    sections: list[dict],
+    *,
+    tolerance_sec: float = 12.0,
+    near_miss_sec: float = 30.0,
+) -> dict:
+    """Format chapter/acoustic-boundary agreement without merging evidence types.
+
+    ``align_candidates_to_sections`` gives a compact scorecard.  This helper is
+    intentionally a private reporting contract for experiments: declared
+    sections stay declared sections, acoustic boundary candidates stay acoustic
+    evidence, and near misses remain weaker than matches.
+    """
+    alignment = align_candidates_to_sections(candidates, sections, tolerance_sec=tolerance_sec)
+    matched_starts = {match["section_start"] for match in alignment["matches"]}
+    matched_candidate_keys = {
+        (match["candidate_start"], match["candidate_end"])
+        for match in alignment["matches"]
+    }
+
+    near_misses: list[dict] = []
+    sections_without_acoustic_boundary: list[dict] = []
+    for section in sections:
+        section_name = section.get("title") or section.get("name") or "untitled"
+        section_start = round(_num(section.get("start", section.get("start_time")), 0.0), 2)
+        if section_start in matched_starts:
+            continue
+
+        best: tuple[float, dict] | None = None
+        for candidate in candidates:
+            start_delta = abs(_num(candidate.get("start")) - section_start)
+            end_delta = abs(_num(candidate.get("end")) - section_start)
+            delta = min(start_delta, end_delta)
+            if best is None or delta < best[0]:
+                best = (delta, candidate)
+
+        if best is not None and best[0] <= near_miss_sec:
+            delta, candidate = best
+            near_misses.append({
+                "section": section_name,
+                "section_start": section_start,
+                "nearest_candidate_start": candidate.get("start"),
+                "nearest_candidate_end": candidate.get("end"),
+                "nearest_candidate_kind": candidate.get("kind"),
+                "delta": round(delta, 2),
+                "confidence": candidate.get("confidence"),
+            })
+            continue
+
+        sections_without_acoustic_boundary.append({"section": section_name, "start": section_start})
+
+    acoustic_boundaries_without_declared_section = [
+        candidate for candidate in candidates
+        if (candidate.get("start"), candidate.get("end")) not in matched_candidate_keys
+    ]
+
+    return {
+        "summary": {
+            "declared_section_count": len(sections),
+            "acoustic_candidate_count": len(candidates),
+            "matched_count": len(alignment["matches"]),
+            "near_miss_count": len(near_misses),
+            "section_without_acoustic_boundary_count": len(sections_without_acoustic_boundary),
+            "acoustic_without_declared_section_count": len(acoustic_boundaries_without_declared_section),
+            "tolerance_sec": tolerance_sec,
+            "near_miss_sec": near_miss_sec,
+        },
+        "matched_declared_sections": alignment["matches"],
+        "near_misses": near_misses,
+        "sections_without_acoustic_boundary": sections_without_acoustic_boundary,
+        "acoustic_boundaries_without_declared_section": acoustic_boundaries_without_declared_section,
+    }
