@@ -1621,6 +1621,30 @@ def test_boundary_candidates_are_separate_from_arc_transitions():
     assert candidate["confidence"] >= 0.6
 
 
+def test_boundary_candidates_accept_wrapped_stream_payload_and_hop():
+    from galdr.boundary import derive_boundary_candidates
+
+    stream = []
+    for t in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5]:
+        stream.append(_boundary_frame(t, pressure=0.05, density=0.7))
+    for t in [3.0, 3.5, 4.0, 4.5, 5.0, 5.5]:
+        stream.append(
+            _boundary_frame(
+                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
+                density=0.0, rms=0.001, lufs=-68.0
+            )
+        )
+    for t in [6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5]:
+        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+
+    candidates = derive_boundary_candidates({"stream_hop_sec": 0.5, "stream": stream}, min_gap_sec=3.0, context_sec=2.0)
+
+    assert len(candidates) == 1
+    assert candidates[0]["start"] == 3.0
+    assert candidates[0]["end"] == 6.0
+    assert candidates[0]["kind"] == "probable_boundary"
+
+
 def test_boundary_candidates_mark_opening_and_closing_gaps():
     from galdr.boundary import derive_boundary_candidates
 

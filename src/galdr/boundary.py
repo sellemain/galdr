@@ -59,6 +59,20 @@ def _row_t(row: dict, index: int, hop_sec: float) -> float:
     return _num(row.get("t", row.get("time")), index * hop_sec)
 
 
+def _unwrap_stream_payload(stream: list[dict] | dict) -> tuple[list[dict], float | None]:
+    """Accept either raw stream rows or the wrapped ``*_stream.json`` payload."""
+    if isinstance(stream, dict):
+        wrapped = stream.get("stream")
+        if isinstance(wrapped, list):
+            hop = stream.get("stream_hop_sec")
+            try:
+                return wrapped, float(hop) if hop is not None else None
+            except (TypeError, ValueError):
+                return wrapped, None
+        return [], None
+    return stream, None
+
+
 def _summarize_window(rows: list[dict]) -> dict[str, float]:
     return {
         "attention": _mean(rows, "attention"),
@@ -73,7 +87,7 @@ def _summarize_window(rows: list[dict]) -> dict[str, float]:
 
 
 def derive_boundary_candidates(
-    stream: list[dict],
+    stream: list[dict] | dict,
     *,
     hop_sec: float | None = None,
     min_gap_sec: float = 3.0,
@@ -88,6 +102,10 @@ def derive_boundary_candidates(
     gap and estimates whether the material after it feels like continuation,
     reset, withdrawal, or terminal decay.
     """
+    stream, payload_hop_sec = _unwrap_stream_payload(stream)
+    if hop_sec is None:
+        hop_sec = payload_hop_sec
+
     if not stream:
         return []
 
