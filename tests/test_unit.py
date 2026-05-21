@@ -1687,6 +1687,81 @@ def test_boundary_candidates_can_include_non_silent_reset_points():
     assert candidate["acoustic_reset"] >= 0.12
 
 
+def test_rank_reset_candidates_keeps_reset_points_separate_and_spaced():
+    from galdr.boundary import rank_reset_candidates
+
+    candidates = [
+        {"start": 10.0, "end": 12.0, "kind": "probable_boundary", "confidence": 0.9},
+        {
+            "start": 20.0,
+            "end": 20.0,
+            "kind": "reset_point",
+            "confidence": 0.55,
+            "state_reset": 0.32,
+            "acoustic_reset": 0.18,
+            "pressure_turn": 0.05,
+            "weight_release": 0.35,
+        },
+        {
+            "start": 31.0,
+            "end": 31.0,
+            "kind": "reset_point",
+            "confidence": 0.70,
+            "state_reset": 0.35,
+            "acoustic_reset": 0.21,
+            "pressure_turn": 0.22,
+            "weight_release": -0.20,
+        },
+        {
+            "start": 80.0,
+            "end": 80.0,
+            "kind": "reset_point",
+            "confidence": 0.40,
+            "state_reset": 0.11,
+            "acoustic_reset": 0.10,
+            "pressure_turn": 0.08,
+            "weight_release": 0.02,
+        },
+    ]
+
+    ranked = rank_reset_candidates(candidates, top_n=2, min_spacing_sec=18.0)
+
+    assert [candidate["start"] for candidate in ranked] == [31.0, 80.0]
+    assert all(candidate["kind"] == "reset_point" for candidate in ranked)
+    assert all("rank_score" in candidate for candidate in ranked)
+
+
+def test_rank_reset_candidates_can_apply_score_floor():
+    from galdr.boundary import rank_reset_candidates
+
+    candidates = [
+        {
+            "start": 20.0,
+            "end": 20.0,
+            "kind": "reset_point",
+            "confidence": 0.30,
+            "state_reset": 0.10,
+            "acoustic_reset": 0.09,
+            "pressure_turn": 0.01,
+            "weight_release": 0.0,
+        },
+        {
+            "start": 50.0,
+            "end": 50.0,
+            "kind": "reset_point",
+            "confidence": 0.70,
+            "state_reset": 0.40,
+            "acoustic_reset": 0.25,
+            "pressure_turn": 0.20,
+            "weight_release": 0.20,
+        },
+    ]
+
+    ranked = rank_reset_candidates(candidates, min_rank_score=0.35)
+
+    assert [candidate["start"] for candidate in ranked] == [50.0]
+
+
 def test_boundary_alignment_scores_known_section_starts_and_extras():
     from galdr.boundary import align_candidates_to_sections
 

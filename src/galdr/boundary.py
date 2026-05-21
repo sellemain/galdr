@@ -246,6 +246,57 @@ def derive_boundary_candidates(
     return sorted(candidates, key=lambda candidate: (candidate["start"], candidate["end"]))
 
 
+def _reset_rank_score(candidate: dict) -> float:
+    """Rank a reset point as a possible structural turn, not a gap boundary."""
+    confidence = _num(candidate.get("confidence"), 0.0)
+    state_reset = _num(candidate.get("state_reset", candidate.get("reset_strength")), 0.0)
+    acoustic_reset = _num(candidate.get("acoustic_reset"), 0.0)
+    pressure_turn = abs(_num(candidate.get("pressure_turn"), 0.0))
+    weight_release = max(0.0, _num(candidate.get("weight_release"), 0.0))
+    return (
+        confidence * 0.35
+        + state_reset * 0.25
+        + acoustic_reset * 0.20
+        + pressure_turn * 0.12
+        + weight_release * 0.08
+    )
+
+
+def rank_reset_candidates(
+    candidates: list[dict],
+    *,
+    top_n: int = 8,
+    min_spacing_sec: float = 18.0,
+    min_rank_score: float = 0.0,
+) -> list[dict]:
+    """Return a small ranked set of reset-point candidates.
+
+    Reset points are structural-turn evidence, not acoustic boundary evidence.
+    This helper deliberately keeps them separate from silence/gap candidates so
+    callers cannot accidentally inflate them into confident section cuts.
+    """
+    reset_points = [candidate for candidate in candidates if candidate.get("kind") == "reset_point"]
+    ranked: list[dict] = []
+    for candidate in reset_points:
+        score = _reset_rank_score(candidate)
+        if score < min_rank_score:
+            continue
+        ranked.append({**candidate, "rank_score": round(score, 3)})
+
+    ranked.sort(key=lambda candidate: (-candidate["rank_score"], _num(candidate.get("start"))))
+
+    selected: list[dict] = []
+    for candidate in ranked:
+        start = _num(candidate.get("start"))
+        if any(abs(start - _num(existing.get("start"))) < min_spacing_sec for existing in selected):
+            continue
+        selected.append(candidate)
+        if len(selected) >= top_n:
+            break
+
+    return sorted(selected, key=lambda candidate: _num(candidate.get("start")))
+
+
 def align_candidates_to_sections(
     candidates: list[dict],
     sections: list[dict],
