@@ -59,6 +59,20 @@ def _row_t(row: dict, index: int, hop_sec: float) -> float:
     return _num(row.get("t", row.get("time")), index * hop_sec)
 
 
+def _unwrap_stream_payload(stream: list[dict] | dict) -> tuple[list[dict], float | None]:
+    """Accept either raw stream rows or the wrapped ``*_stream.json`` payload."""
+    if isinstance(stream, dict):
+        wrapped = stream.get("stream")
+        if isinstance(wrapped, list):
+            hop = stream.get("stream_hop_sec")
+            try:
+                return wrapped, float(hop) if hop is not None else None
+            except (TypeError, ValueError):
+                return wrapped, None
+        return [], None
+    return stream, None
+
+
 def _summarize_window(rows: list[dict]) -> dict[str, float]:
     return {
         "attention": _mean(rows, "attention"),
@@ -73,7 +87,7 @@ def _summarize_window(rows: list[dict]) -> dict[str, float]:
 
 
 def derive_boundary_candidates(
-    stream: list[dict],
+    stream: list[dict] | dict,
     *,
     hop_sec: float | None = None,
     min_gap_sec: float = 3.0,
@@ -88,6 +102,10 @@ def derive_boundary_candidates(
     gap and estimates whether the material after it feels like continuation,
     reset, withdrawal, or terminal decay.
     """
+    stream, payload_hop_sec = _unwrap_stream_payload(stream)
+    if hop_sec is None:
+        hop_sec = payload_hop_sec
+
     if not stream:
         return []
 
@@ -228,6 +246,57 @@ def derive_boundary_candidates(
     return sorted(candidates, key=lambda candidate: (candidate["start"], candidate["end"]))
 
 
+def _reset_rank_score(candidate: dict) -> float:
+    """Rank a reset point as a possible structural turn, not a gap boundary."""
+    confidence = _num(candidate.get("confidence"), 0.0)
+    state_reset = _num(candidate.get("state_reset", candidate.get("reset_strength")), 0.0)
+    acoustic_reset = _num(candidate.get("acoustic_reset"), 0.0)
+    pressure_turn = abs(_num(candidate.get("pressure_turn"), 0.0))
+    weight_release = max(0.0, _num(candidate.get("weight_release"), 0.0))
+    return (
+        confidence * 0.35
+        + state_reset * 0.25
+        + acoustic_reset * 0.20
+        + pressure_turn * 0.12
+        + weight_release * 0.08
+    )
+
+
+def rank_reset_candidates(
+    candidates: list[dict],
+    *,
+    top_n: int = 8,
+    min_spacing_sec: float = 18.0,
+    min_rank_score: float = 0.0,
+) -> list[dict]:
+    """Return a small ranked set of reset-point candidates.
+
+    Reset points are structural-turn evidence, not acoustic boundary evidence.
+    This helper deliberately keeps them separate from silence/gap candidates so
+    callers cannot accidentally inflate them into confident section cuts.
+    """
+    reset_points = [candidate for candidate in candidates if candidate.get("kind") == "reset_point"]
+    ranked: list[dict] = []
+    for candidate in reset_points:
+        score = _reset_rank_score(candidate)
+        if score < min_rank_score:
+            continue
+        ranked.append({**candidate, "rank_score": round(score, 3)})
+
+    ranked.sort(key=lambda candidate: (-candidate["rank_score"], _num(candidate.get("start"))))
+
+    selected: list[dict] = []
+    for candidate in ranked:
+        start = _num(candidate.get("start"))
+        if any(abs(start - _num(existing.get("start"))) < min_spacing_sec for existing in selected):
+            continue
+        selected.append(candidate)
+        if len(selected) >= top_n:
+            break
+
+    return sorted(selected, key=lambda candidate: _num(candidate.get("start")))
+
+
 def align_candidates_to_sections(
     candidates: list[dict],
     sections: list[dict],
@@ -289,4 +358,79 @@ def align_candidates_to_sections(
         "matches": matches,
         "missed_sections": missed_sections,
         "extra_candidates": extra_candidates,
+    }
+
+
+def build_section_boundary_report(
+    candidates: list[dict],
+    sections: list[dict],
+    *,
+    tolerance_sec: float = 12.0,
+    near_miss_sec: float = 30.0,
+) -> dict:
+    """Format chapter/acoustic-boundary agreement without merging evidence types.
+
+    ``align_candidates_to_sections`` gives a compact scorecard.  This helper is
+    intentionally a private reporting contract for experiments: declared
+    sections stay declared sections, acoustic boundary candidates stay acoustic
+    evidence, and near misses remain weaker than matches.
+    """
+    alignment = align_candidates_to_sections(candidates, sections, tolerance_sec=tolerance_sec)
+    matched_starts = {match["section_start"] for match in alignment["matches"]}
+    matched_candidate_keys = {
+        (match["candidate_start"], match["candidate_end"])
+        for match in alignment["matches"]
+    }
+
+    near_misses: list[dict] = []
+    sections_without_acoustic_boundary: list[dict] = []
+    for section in sections:
+        section_name = section.get("title") or section.get("name") or "untitled"
+        section_start = round(_num(section.get("start", section.get("start_time")), 0.0), 2)
+        if section_start in matched_starts:
+            continue
+
+        best: tuple[float, dict] | None = None
+        for candidate in candidates:
+            start_delta = abs(_num(candidate.get("start")) - section_start)
+            end_delta = abs(_num(candidate.get("end")) - section_start)
+            delta = min(start_delta, end_delta)
+            if best is None or delta < best[0]:
+                best = (delta, candidate)
+
+        if best is not None and best[0] <= near_miss_sec:
+            delta, candidate = best
+            near_misses.append({
+                "section": section_name,
+                "section_start": section_start,
+                "nearest_candidate_start": candidate.get("start"),
+                "nearest_candidate_end": candidate.get("end"),
+                "nearest_candidate_kind": candidate.get("kind"),
+                "delta": round(delta, 2),
+                "confidence": candidate.get("confidence"),
+            })
+            continue
+
+        sections_without_acoustic_boundary.append({"section": section_name, "start": section_start})
+
+    acoustic_boundaries_without_declared_section = [
+        candidate for candidate in candidates
+        if (candidate.get("start"), candidate.get("end")) not in matched_candidate_keys
+    ]
+
+    return {
+        "summary": {
+            "declared_section_count": len(sections),
+            "acoustic_candidate_count": len(candidates),
+            "matched_count": len(alignment["matches"]),
+            "near_miss_count": len(near_misses),
+            "section_without_acoustic_boundary_count": len(sections_without_acoustic_boundary),
+            "acoustic_without_declared_section_count": len(acoustic_boundaries_without_declared_section),
+            "tolerance_sec": tolerance_sec,
+            "near_miss_sec": near_miss_sec,
+        },
+        "matched_declared_sections": alignment["matches"],
+        "near_misses": near_misses,
+        "sections_without_acoustic_boundary": sections_without_acoustic_boundary,
+        "acoustic_boundaries_without_declared_section": acoustic_boundaries_without_declared_section,
     }

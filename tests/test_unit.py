@@ -1621,6 +1621,30 @@ def test_boundary_candidates_are_separate_from_arc_transitions():
     assert candidate["confidence"] >= 0.6
 
 
+def test_boundary_candidates_accept_wrapped_stream_payload_and_hop():
+    from galdr.boundary import derive_boundary_candidates
+
+    stream = []
+    for t in [0.0, 0.5, 1.0, 1.5, 2.0, 2.5]:
+        stream.append(_boundary_frame(t, pressure=0.05, density=0.7))
+    for t in [3.0, 3.5, 4.0, 4.5, 5.0, 5.5]:
+        stream.append(
+            _boundary_frame(
+                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
+                density=0.0, rms=0.001, lufs=-68.0
+            )
+        )
+    for t in [6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5]:
+        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+
+    candidates = derive_boundary_candidates({"stream_hop_sec": 0.5, "stream": stream}, min_gap_sec=3.0, context_sec=2.0)
+
+    assert len(candidates) == 1
+    assert candidates[0]["start"] == 3.0
+    assert candidates[0]["end"] == 6.0
+    assert candidates[0]["kind"] == "probable_boundary"
+
+
 def test_boundary_candidates_mark_opening_and_closing_gaps():
     from galdr.boundary import derive_boundary_candidates
 
@@ -1663,6 +1687,81 @@ def test_boundary_candidates_can_include_non_silent_reset_points():
     assert candidate["acoustic_reset"] >= 0.12
 
 
+def test_rank_reset_candidates_keeps_reset_points_separate_and_spaced():
+    from galdr.boundary import rank_reset_candidates
+
+    candidates = [
+        {"start": 10.0, "end": 12.0, "kind": "probable_boundary", "confidence": 0.9},
+        {
+            "start": 20.0,
+            "end": 20.0,
+            "kind": "reset_point",
+            "confidence": 0.55,
+            "state_reset": 0.32,
+            "acoustic_reset": 0.18,
+            "pressure_turn": 0.05,
+            "weight_release": 0.35,
+        },
+        {
+            "start": 31.0,
+            "end": 31.0,
+            "kind": "reset_point",
+            "confidence": 0.70,
+            "state_reset": 0.35,
+            "acoustic_reset": 0.21,
+            "pressure_turn": 0.22,
+            "weight_release": -0.20,
+        },
+        {
+            "start": 80.0,
+            "end": 80.0,
+            "kind": "reset_point",
+            "confidence": 0.40,
+            "state_reset": 0.11,
+            "acoustic_reset": 0.10,
+            "pressure_turn": 0.08,
+            "weight_release": 0.02,
+        },
+    ]
+
+    ranked = rank_reset_candidates(candidates, top_n=2, min_spacing_sec=18.0)
+
+    assert [candidate["start"] for candidate in ranked] == [31.0, 80.0]
+    assert all(candidate["kind"] == "reset_point" for candidate in ranked)
+    assert all("rank_score" in candidate for candidate in ranked)
+
+
+def test_rank_reset_candidates_can_apply_score_floor():
+    from galdr.boundary import rank_reset_candidates
+
+    candidates = [
+        {
+            "start": 20.0,
+            "end": 20.0,
+            "kind": "reset_point",
+            "confidence": 0.30,
+            "state_reset": 0.10,
+            "acoustic_reset": 0.09,
+            "pressure_turn": 0.01,
+            "weight_release": 0.0,
+        },
+        {
+            "start": 50.0,
+            "end": 50.0,
+            "kind": "reset_point",
+            "confidence": 0.70,
+            "state_reset": 0.40,
+            "acoustic_reset": 0.25,
+            "pressure_turn": 0.20,
+            "weight_release": 0.20,
+        },
+    ]
+
+    ranked = rank_reset_candidates(candidates, min_rank_score=0.35)
+
+    assert [candidate["start"] for candidate in ranked] == [50.0]
+
+
 def test_boundary_alignment_scores_known_section_starts_and_extras():
     from galdr.boundary import align_candidates_to_sections
 
@@ -1690,3 +1789,45 @@ def test_boundary_alignment_scores_known_section_starts_and_extras():
     assert alignment["matches"][1]["delta"] == pytest.approx(0.5)
     assert alignment["missed_sections"] == [{"section": "Missing", "start": 900.0}]
     assert alignment["extra_candidates"][0]["start"] == 700.0
+
+
+def test_section_boundary_report_keeps_chapters_and_acoustic_evidence_separate():
+    from galdr.boundary import build_section_boundary_report
+
+    candidates = [
+        {"start": 0.0, "end": 4.0, "kind": "opening_gap", "confidence": 0.7, "reset_strength": 0.0},
+        {"start": 100.0, "end": 110.0, "kind": "probable_boundary", "confidence": 0.88, "reset_strength": 0.5},
+        {"start": 210.0, "end": 214.0, "kind": "possible_boundary", "confidence": 0.62, "reset_strength": 0.22},
+        {"start": 400.0, "end": 408.0, "kind": "interlude_gap", "confidence": 0.42, "reset_strength": 0.0},
+    ]
+    sections = [
+        {"start": 0.0, "title": "Opening"},
+        {"start": 106.0, "title": "Matched"},
+        {"start": 185.0, "title": "Near miss"},
+        {"start": 900.0, "title": "Declared only"},
+    ]
+
+    report = build_section_boundary_report(candidates, sections, tolerance_sec=8.0, near_miss_sec=30.0)
+
+    assert report["summary"] == {
+        "declared_section_count": 4,
+        "acoustic_candidate_count": 4,
+        "matched_count": 2,
+        "near_miss_count": 1,
+        "section_without_acoustic_boundary_count": 1,
+        "acoustic_without_declared_section_count": 2,
+        "tolerance_sec": 8.0,
+        "near_miss_sec": 30.0,
+    }
+    assert [match["section"] for match in report["matched_declared_sections"]] == ["Opening", "Matched"]
+    assert report["near_misses"] == [{
+        "section": "Near miss",
+        "section_start": 185.0,
+        "nearest_candidate_start": 210.0,
+        "nearest_candidate_end": 214.0,
+        "nearest_candidate_kind": "possible_boundary",
+        "delta": 25.0,
+        "confidence": 0.62,
+    }]
+    assert report["sections_without_acoustic_boundary"] == [{"section": "Declared only", "start": 900.0}]
+    assert [candidate["start"] for candidate in report["acoustic_boundaries_without_declared_section"]] == [210.0, 400.0]
