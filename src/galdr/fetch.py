@@ -633,8 +633,19 @@ def _looks_like_disambiguation_stub(result: dict) -> bool:
     )
 
 
-def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) -> dict:
-    """Attach confidence metadata to a Wikipedia intro result."""
+def _score_wikipedia_result(
+    result: dict,
+    expected_name: str,
+    entity_type: str,
+    expected_artist: str | None = None,
+) -> dict:
+    """Attach confidence metadata to a Wikipedia intro result.
+
+    Song titles are often ambiguous (``Dreams``, ``Alright``, translated
+    titles, etc.). Title overlap alone is not enough for a prompt-safe song
+    context when we know the artist, so require artist evidence for song pages
+    before allowing them into prompts.
+    """
     if not result.get("found"):
         return {"confidence": "rejected", "match_score": 0.0, "match_reasons": ["not found"], "use_in_prompt": False}
     if _looks_like_disambiguation_stub(result):
@@ -650,6 +661,25 @@ def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) 
     score = round(max(title_score, min(1.0, title_score + (extract_score * 0.25))), 3)
     confidence = _confidence_from_score(score)
 
+    match_reasons = [
+        f"title {title_score:.2f}: {'; '.join(title_reasons)}",
+        f"extract {extract_score:.2f}: {'; '.join(extract_reasons)}",
+    ]
+
+    if entity_type == "song" and expected_artist:
+        artist_score, artist_reasons = _identity_match_score(
+            expected_artist,
+            f"{result.get('title', '')} {result.get('extract', '')}",
+        )
+        match_reasons.append(f"artist {artist_score:.2f}: {'; '.join(artist_reasons)}")
+        if artist_score <= 0:
+            return {
+                "confidence": "rejected",
+                "match_score": score,
+                "match_reasons": match_reasons + ["song context lacks expected artist evidence"],
+                "use_in_prompt": False,
+            }
+
     # Song/composition pages can be valid with partial title matches, especially
     # traditional titles that pick up a related article. Artist pages should be
     # stricter; wrong artist context is usually worse than no context.
@@ -657,10 +687,7 @@ def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) 
     return {
         "confidence": confidence,
         "match_score": score,
-        "match_reasons": [
-            f"title {title_score:.2f}: {'; '.join(title_reasons)}",
-            f"extract {extract_score:.2f}: {'; '.join(extract_reasons)}",
-        ],
+        "match_reasons": match_reasons,
         "use_in_prompt": use_in_prompt,
     }
 
@@ -671,31 +698,49 @@ def _looks_like_wrong_article(result: dict, expected_name: str) -> bool:
     return scored["confidence"] == "rejected"
 
 
-def _with_wikipedia_confidence(result: dict, expected_name: str, entity_type: str) -> dict:
+def _with_wikipedia_confidence(
+    result: dict,
+    expected_name: str,
+    entity_type: str,
+    expected_artist: str | None = None,
+) -> dict:
     if not result.get("found"):
         return result
-    return {**result, **_score_wikipedia_result(result, expected_name, entity_type)}
+    return {
+        **result,
+        **_score_wikipedia_result(
+            result,
+            expected_name,
+            entity_type,
+            expected_artist=expected_artist,
+        ),
+    }
 
 
 def fetch_wikipedia_context(
     name: str,
     entity_type: str = "artist",
     exact_title: str | None = None,
+    expected_artist: str | None = None,
 ) -> dict:
     """Fetch Wikipedia intro with smart disambiguation and fallbacks.
 
     entity_type: "artist" or "song"
     exact_title: override — use this Wikipedia title directly (skip all fallbacks)
+    expected_artist: for song contexts, require artist evidence before prompt use
     """
     if exact_title:
         result = fetch_wikipedia_intro(exact_title)
         if result.get("found"):
+            scored = _score_wikipedia_result(
+                result,
+                name,
+                entity_type,
+                expected_artist=expected_artist,
+            )
             return {
                 **result,
-                "confidence": "high",
-                "match_score": 1.0,
-                "match_reasons": ["explicit Wikipedia override"],
-                "use_in_prompt": True,
+                **scored,
             }
         return result
 
@@ -706,12 +751,27 @@ def fetch_wikipedia_context(
         search_query = f"{name} band musician"
     else:
         candidates = [name, f"{name} (song)", f"{name} (composition)"]
-        search_query = f"{name} song music"
+        if expected_artist:
+            candidates = [
+                f"{name} ({expected_artist} song)",
+                f"{name} ({expected_artist})",
+                *candidates,
+            ]
+            search_query = f"{name} {expected_artist} song music"
+        else:
+            search_query = f"{name} song music"
 
     for candidate in candidates:
         result = fetch_wikipedia_intro(candidate)
         if result.get("found") and not _looks_like_wrong_article(result, name):
-            return _with_wikipedia_confidence(result, name, entity_type)
+            scored = _with_wikipedia_confidence(
+                result,
+                name,
+                entity_type,
+                expected_artist=expected_artist,
+            )
+            if scored.get("use_in_prompt"):
+                return scored
 
     # Search fallback: inspect several candidates and choose the highest-scoring
     # prompt-usable result instead of blindly accepting the first hit.
@@ -721,7 +781,12 @@ def fetch_wikipedia_context(
         result = fetch_wikipedia_intro(found_title)
         if not result.get("found"):
             continue
-        scored = _with_wikipedia_confidence(result, name, entity_type)
+        scored = _with_wikipedia_confidence(
+            result,
+            name,
+            entity_type,
+            expected_artist=expected_artist,
+        )
         if not scored.get("use_in_prompt"):
             continue
         score = float(scored.get("match_score", 0.0))
@@ -886,7 +951,7 @@ def fetch_track(
 
         print(f"[fetch] Wikipedia: {title}")
         song_wiki = fetch_wikipedia_context(
-            title, entity_type="song", exact_title=wiki_song
+            title, entity_type="song", exact_title=wiki_song, expected_artist=artist
         )
         context["song_context"] = song_wiki
         if song_wiki["found"]:

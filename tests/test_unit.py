@@ -1,5 +1,6 @@
 """Unit tests for galdr — pure functions and pipeline logic. No audio required."""
 
+import json
 import math
 import numpy as np
 import pytest
@@ -1239,6 +1240,41 @@ class TestContextConfidenceScoring:
         assert result["confidence"] in {"medium", "high"}
         assert result["use_in_prompt"] is True
 
+    def test_wikipedia_song_rejects_title_match_without_expected_artist(self):
+        from galdr.fetch import _score_wikipedia_result
+
+        result = _score_wikipedia_result(
+            {
+                "found": True,
+                "title": "Alright (Supergrass song)",
+                "extract": "\"Alright\" is a song by English alternative rock band Supergrass.",
+            },
+            expected_name="Alright",
+            entity_type="song",
+            expected_artist="Kendrick Lamar",
+        )
+
+        assert result["confidence"] == "rejected"
+        assert result["use_in_prompt"] is False
+        assert "song context lacks expected artist evidence" in result["match_reasons"]
+
+    def test_wikipedia_song_accepts_title_match_with_expected_artist(self):
+        from galdr.fetch import _score_wikipedia_result
+
+        result = _score_wikipedia_result(
+            {
+                "found": True,
+                "title": "Alright (Kendrick Lamar song)",
+                "extract": "\"Alright\" is a song by American rapper Kendrick Lamar.",
+            },
+            expected_name="Alright",
+            entity_type="song",
+            expected_artist="Kendrick Lamar",
+        )
+
+        assert result["confidence"] in {"medium", "high"}
+        assert result["use_in_prompt"] is True
+
     def test_wikipedia_disambiguation_stub_rejected_even_with_title_match(self):
         from galdr.fetch import _score_wikipedia_result
 
@@ -1831,3 +1867,94 @@ def test_section_boundary_report_keeps_chapters_and_acoustic_evidence_separate()
     }]
     assert report["sections_without_acoustic_boundary"] == [{"section": "Declared only", "start": 900.0}]
     assert [candidate["start"] for candidate in report["acoustic_boundaries_without_declared_section"]] == [210.0, 400.0]
+
+
+def test_packet_builds_generic_evidence_container(tmp_path):
+    from galdr.packet import build_packet_from_disk
+
+    slug = "packet-track"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_report.json").write_text(json.dumps({
+        "track": slug,
+        "duration_seconds": 8.0,
+        "felt_pulse_bpm": 96.0,
+    }))
+    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
+        "track": slug,
+        "summary": {"mean_attention": 0.72, "mean_pattern": 0.81},
+    }))
+    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
+        "schema_version": "listener_state_v1",
+        "stream": [
+            {"t": 0.0, "attention": 0.7, "pattern": 0.8, "pressure": 0.0, "body": 0.7, "weight": 0.4},
+            {"t": 0.5, "attention": 0.7, "pattern": 0.8, "pressure": 0.0, "body": 0.7, "weight": 0.4},
+            {"t": 1.0, "attention": 0.8, "pattern": 0.9, "pressure": 0.4, "body": 0.8, "weight": 0.5},
+            {"t": 1.5, "attention": 0.8, "pattern": 0.9, "pressure": 0.4, "body": 0.8, "weight": 0.5},
+        ],
+    }))
+    (track_dir / "context.json").write_text(json.dumps({
+        "slug": slug,
+        "artist": "Packet Artist",
+        "title": "Packet Title",
+        "youtube_url": "https://www.youtube.com/watch?v=packet",
+        "lyrics": {
+            "source": "genius",
+            "confidence": "high",
+            "genius_url": "https://genius.example/packet",
+            "genius_text": "first line\nsecond line",
+        },
+        "artist_context": {
+            "found": True,
+            "confidence": "medium",
+            "use_in_prompt": True,
+            "extract": "Packet Artist is a test fixture.",
+        },
+    }))
+
+    packet = build_packet_from_disk(slug, tmp_path)
+
+    assert packet["metadata"]["schema_version"] == "evidence_packet_v0"
+    assert packet["subject"] == {
+        "kind": "track",
+        "id": slug,
+        "slug": slug,
+        "title": "Packet Title",
+        "artist": "Packet Artist",
+        "source_refs": [{"kind": "youtube", "url": "https://www.youtube.com/watch?v=packet"}],
+    }
+    assert set(packet) == {
+        "metadata",
+        "subject",
+        "artifacts",
+        "observations",
+        "timeline",
+        "sources",
+        "claims",
+        "collections",
+        "views",
+        "warnings",
+    }
+    assert any(item["role"] == "listener_state_stream" for item in packet["artifacts"])
+    assert any(item["kind"] == "arc_span" for item in packet["timeline"])
+    assert packet["collections"]["lyrics"]["status"] == "verified"
+    assert packet["collections"]["lyrics"]["items"][0]["line_count"] == 2
+    assert packet["collections"]["background"]["items"][0]["source_ref"] == "artist_context"
+    assert packet["views"] == {}
+
+
+def test_packet_cli_writes_json_file(tmp_path):
+    from galdr import cli
+
+    slug = "packet-cli-track"
+    track_dir = tmp_path / "analysis" / slug
+    track_dir.mkdir(parents=True)
+    (track_dir / f"{slug}_report.json").write_text(json.dumps({"track": slug, "duration_seconds": 1.0}))
+    output = tmp_path / "packet.json"
+    args = type("args", (), {"slug": slug, "analysis_dir": tmp_path / "analysis", "output": output})()
+
+    cli.cmd_packet(args)
+
+    data = json.loads(output.read_text())
+    assert data["subject"]["slug"] == slug
+    assert data["metadata"]["generator"] == "galdr.packet"

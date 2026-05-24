@@ -392,6 +392,21 @@ def cmd_assemble(args):
         sys.exit(1)
 
 
+def cmd_packet(args):
+    """Build a generic evidence packet from analysis + context data."""
+    import json
+    from pathlib import Path
+    from .packet import build_packet_from_disk
+
+    packet = build_packet_from_disk(_validate_slug(args.slug), args.analysis_dir)
+    rendered = json.dumps(packet, indent=2, ensure_ascii=False)
+    if args.output:
+        Path(args.output).write_text(rendered + "\n", encoding="utf-8")
+        print(f"[packet] Evidence packet written to {args.output}", file=sys.stderr)
+    else:
+        print(rendered)
+
+
 def cmd_frames(args):
     """Extract and describe video frames (target count, event-anchored + coverage)."""
     from pathlib import Path
@@ -732,6 +747,25 @@ Examples:
                                   help="Instructions to prepend: none, arc, first, or a file path (default: none)")
     assemble_parser.add_argument("--output", "-o", help="Write prompt to file instead of stdout")
 
+    # packet
+    packet_parser = subparsers.add_parser(
+        "packet",
+        help="Export a generic evidence packet for a track",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
+Export a generic evidence packet for a track.  Packets collect artifacts,
+observations, timeline events, sources, claims, and collections without deciding
+how a downstream consumer should write about the music.
+
+Examples:
+  galdr packet 7-helvegen
+  galdr packet 7-helvegen --output packet.json
+""",
+    )
+    packet_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
+    packet_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory (default: analysis)")
+    packet_parser.add_argument("--output", "-o", help="Write packet JSON to file instead of stdout")
+
     # frames
     frames_parser = subparsers.add_parser(
         "frames",
@@ -803,6 +837,8 @@ Examples:
         cmd_cache(args)
     elif args.command == "assemble":
         cmd_assemble(args)
+    elif args.command == "packet":
+        cmd_packet(args)
     elif args.command == "frames":
         cmd_frames(args)
     elif args.command == "compare":
