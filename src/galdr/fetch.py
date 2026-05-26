@@ -31,6 +31,29 @@ _CONTEXT_MATCH_WORD_STOP = {
     "lyrics", "lyric", "live", "remastered", "remaster", "hd", "hq", "music",
     "band", "song", "composition", "musician", "singer",
 }
+_GENIUS_TRANSLATION_MARKERS = (
+    "translation",
+    "translations",
+    "translated",
+    "deutsche übersetzung",
+    "deutsche ubersetzung",
+    "übersetzung",
+    "ubersetzung",
+    "traducción",
+    "traduccion",
+    "tradução",
+    "traducao",
+    "traduzione",
+    "traduction",
+    "romanization",
+    "romanized",
+)
+_GENIUS_TRANSLATION_ARTISTS = (
+    "genius english translations",
+    "genius deutsche übersetzungen",
+    "genius deutsche ubersetzungen",
+    "genius translations",
+)
 
 
 def _match_tokens(text: str) -> set[str]:
@@ -65,6 +88,34 @@ def _confidence_from_score(score: float) -> str:
     if score > 0:
         return "low"
     return "rejected"
+
+
+def _is_genius_translation_hit(hit: dict) -> tuple[bool, str | None]:
+    """Return whether a Genius search result is a translation/romanization page.
+
+    These pages can score as perfect identity matches because Genius often puts
+    the original artist and title inside the translated page title while the
+    primary artist is a generic translation account.
+    """
+    title = str(hit.get("title") or "")
+    artist = str(hit.get("artist") or "")
+    full_title = str(hit.get("full_title") or "")
+    url = str(hit.get("url") or "")
+    haystack = " ".join([title, artist, full_title, url]).lower()
+    artist_l = artist.lower()
+    bracketed_title = re.search(
+        r"[\[(][^\])]*(translation|übersetzung|ubersetzung|traducción|traduccion|tradução|traducao|traduzione|traduction|romanized|romanization)[^\])]*[\])]",
+        title.lower(),
+    )
+    if bracketed_title:
+        return True, f"translation marker in title: {bracketed_title.group(0)}"
+    for marker in _GENIUS_TRANSLATION_ARTISTS:
+        if marker in artist_l:
+            return True, f"translation artist: {artist}"
+    for marker in _GENIUS_TRANSLATION_MARKERS:
+        if marker in haystack:
+            return True, f"translation marker: {marker}"
+    return False, None
 
 
 _EJS_FAILURE_MARKERS = (
@@ -425,22 +476,29 @@ def _sanitize_lyric_lines(lines: list[str]) -> list[str]:
 
 
 def _genius_search(artist: str, title: str) -> dict | None:
-    """Search Genius and return the best hit metadata, or None."""
+    """Search Genius and return the best non-translation hit metadata, or None."""
     query = urllib.parse.quote(f"{artist} {title}")
     url = f"https://genius.com/api/search?q={query}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "galdr/0.1 (music-perception)"})
         data = json.loads(urllib.request.urlopen(req, timeout=10).read())
         hits = data.get("response", {}).get("hits", [])
-        if hits:
-            result = hits[0]["result"]
+        rejected: list[dict] = []
+        for raw_hit in hits:
+            result = raw_hit["result"]
             path = result.get("path")
-            return {
+            hit = {
                 "url": f"https://genius.com{path}" if path else None,
                 "title": result.get("title") or result.get("full_title") or "",
                 "artist": (result.get("primary_artist") or {}).get("name", ""),
                 "full_title": result.get("full_title", ""),
             }
+            is_translation, reason = _is_genius_translation_hit(hit)
+            if is_translation:
+                rejected.append({**hit, "reason": reason})
+                continue
+            hit["rejected_translation_hits"] = rejected
+            return hit
     except Exception:
         pass
     return None
@@ -470,7 +528,7 @@ def fetch_genius_lyrics(artist: str, title: str) -> dict:
     """Fetch clean lyrics from Genius with identity confidence metadata."""
     genius_hit = _genius_search(artist, title)
     if not genius_hit or not genius_hit.get("url"):
-        return {"found": False}
+        return {"found": False, "reason": "no non-translation Genius match"}
     genius_url = genius_hit["url"]
     confidence = _score_genius_hit(genius_hit, artist, title)
     if not confidence["use_in_prompt"]:
@@ -481,6 +539,7 @@ def fetch_genius_lyrics(artist: str, title: str) -> dict:
             **confidence,
             "candidate_title": genius_hit.get("title", ""),
             "candidate_artist": genius_hit.get("artist", ""),
+            "rejected_translation_hits": genius_hit.get("rejected_translation_hits", []),
         }
     try:
         req = urllib.request.Request(
@@ -499,6 +558,7 @@ def fetch_genius_lyrics(artist: str, title: str) -> dict:
             **confidence,
             "candidate_title": genius_hit.get("title", ""),
             "candidate_artist": genius_hit.get("artist", ""),
+            "rejected_translation_hits": genius_hit.get("rejected_translation_hits", []),
         }
     except Exception as e:
         return {"found": False, "url": genius_url, "error": str(e), **confidence}

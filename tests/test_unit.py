@@ -1319,6 +1319,86 @@ class TestContextConfidenceScoring:
 
         assert lines == ["This is real lyric text"]
 
+    def test_genius_translation_hit_rejected_by_title_bracket(self):
+        from galdr.fetch import _is_genius_translation_hit
+
+        hit = {
+            "title": "Wardruna - Helvegen (English Translation)",
+            "artist": "Genius English Translations",
+            "full_title": "Wardruna - Helvegen (English Translation) by Genius English Translations",
+            "url": "https://genius.com/Genius-english-translations-wardruna-helvegen-english-translation-lyrics",
+        }
+        is_trans, reason = _is_genius_translation_hit(hit)
+        assert is_trans is True
+        assert "translation marker in title" in reason
+
+    def test_genius_translation_hit_rejected_by_artist_name(self):
+        from galdr.fetch import _is_genius_translation_hit
+
+        hit = {
+            "title": "Helvegen",
+            "artist": "Genius English Translations",
+            "full_title": "Wardruna - Helvegen (English Translation) by Genius English Translations",
+            "url": "https://genius.com/Genius-english-translations-wardruna-helvegen-english-translation-lyrics",
+        }
+        is_trans, reason = _is_genius_translation_hit(hit)
+        assert is_trans is True
+        assert "translation artist" in reason
+
+    def test_genius_translation_hit_accepted_when_clean(self):
+        from galdr.fetch import _is_genius_translation_hit
+
+        hit = {
+            "title": "Helvegen",
+            "artist": "Wardruna",
+            "full_title": "Wardruna - Helvegen",
+            "url": "https://genius.com/Wardruna-helvegen-lyrics",
+        }
+        is_trans, reason = _is_genius_translation_hit(hit)
+        assert is_trans is False
+        assert reason is None
+
+    def test_genius_search_prefers_non_translation_hit(self):
+        from galdr.fetch import _genius_search
+        import galdr.fetch as fetch
+
+        original_urlopen = fetch.urllib.request.urlopen
+
+        def fake_urlopen(req, *args, **kwargs):
+            return __import__('io').BytesIO(__import__('json').dumps({
+                "response": {
+                    "hits": [
+                        {
+                            "result": {
+                                "path": "/Genius-english-translations-wardruna-helvegen-english-translation-lyrics",
+                                "title": "Wardruna - Helvegen (English Translation)",
+                                "full_title": "Wardruna - Helvegen (English Translation) by Genius English Translations",
+                                "primary_artist": {"name": "Genius English Translations"},
+                            }
+                        },
+                        {
+                            "result": {
+                                "path": "/Wardruna-helvegen-lyrics",
+                                "title": "Helvegen",
+                                "full_title": "Wardruna - Helvegen",
+                                "primary_artist": {"name": "Wardruna"},
+                            }
+                        },
+                    ]
+                }
+            }).encode())
+
+        fetch.urllib.request.urlopen = fake_urlopen
+        try:
+            result = _genius_search("Wardruna", "Helvegen")
+            assert result is not None
+            assert result["artist"] == "Wardruna"
+            assert result["url"] == "https://genius.com/Wardruna-helvegen-lyrics"
+            assert len(result.get("rejected_translation_hits", [])) == 1
+            assert "translation marker" in result["rejected_translation_hits"][0]["reason"]
+        finally:
+            fetch.urllib.request.urlopen = original_urlopen
+
 
 def test_salience_guide_is_advisory_and_preserves_metric_detail():
     from galdr.assemble import assemble_prompt
