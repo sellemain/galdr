@@ -31,6 +31,29 @@ _CONTEXT_MATCH_WORD_STOP = {
     "lyrics", "lyric", "live", "remastered", "remaster", "hd", "hq", "music",
     "band", "song", "composition", "musician", "singer",
 }
+_GENIUS_TRANSLATION_MARKERS = (
+    "translation",
+    "translations",
+    "translated",
+    "deutsche übersetzung",
+    "deutsche ubersetzung",
+    "übersetzung",
+    "ubersetzung",
+    "traducción",
+    "traduccion",
+    "tradução",
+    "traducao",
+    "traduzione",
+    "traduction",
+    "romanization",
+    "romanized",
+)
+_GENIUS_TRANSLATION_ARTISTS = (
+    "genius english translations",
+    "genius deutsche übersetzungen",
+    "genius deutsche ubersetzungen",
+    "genius translations",
+)
 
 
 def _match_tokens(text: str) -> set[str]:
@@ -65,6 +88,34 @@ def _confidence_from_score(score: float) -> str:
     if score > 0:
         return "low"
     return "rejected"
+
+
+def _is_genius_translation_hit(hit: dict) -> tuple[bool, str | None]:
+    """Return whether a Genius search result is a translation/romanization page.
+
+    These pages can score as perfect identity matches because Genius often puts
+    the original artist and title inside the translated page title while the
+    primary artist is a generic translation account.
+    """
+    title = str(hit.get("title") or "")
+    artist = str(hit.get("artist") or "")
+    full_title = str(hit.get("full_title") or "")
+    url = str(hit.get("url") or "")
+    haystack = " ".join([title, artist, full_title, url]).lower()
+    artist_l = artist.lower()
+    bracketed_title = re.search(
+        r"[\[(][^\])]*(translation|übersetzung|ubersetzung|traducción|traduccion|tradução|traducao|traduzione|traduction|romanized|romanization)[^\])]*[\])]",
+        title.lower(),
+    )
+    if bracketed_title:
+        return True, f"translation marker in title: {bracketed_title.group(0)}"
+    for marker in _GENIUS_TRANSLATION_ARTISTS:
+        if marker in artist_l:
+            return True, f"translation artist: {artist}"
+    for marker in _GENIUS_TRANSLATION_MARKERS:
+        if marker in haystack:
+            return True, f"translation marker: {marker}"
+    return False, None
 
 
 _EJS_FAILURE_MARKERS = (
@@ -425,22 +476,29 @@ def _sanitize_lyric_lines(lines: list[str]) -> list[str]:
 
 
 def _genius_search(artist: str, title: str) -> dict | None:
-    """Search Genius and return the best hit metadata, or None."""
+    """Search Genius and return the best non-translation hit metadata, or None."""
     query = urllib.parse.quote(f"{artist} {title}")
     url = f"https://genius.com/api/search?q={query}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "galdr/0.1 (music-perception)"})
         data = json.loads(urllib.request.urlopen(req, timeout=10).read())
         hits = data.get("response", {}).get("hits", [])
-        if hits:
-            result = hits[0]["result"]
+        rejected: list[dict] = []
+        for raw_hit in hits:
+            result = raw_hit["result"]
             path = result.get("path")
-            return {
+            hit = {
                 "url": f"https://genius.com{path}" if path else None,
                 "title": result.get("title") or result.get("full_title") or "",
                 "artist": (result.get("primary_artist") or {}).get("name", ""),
                 "full_title": result.get("full_title", ""),
             }
+            is_translation, reason = _is_genius_translation_hit(hit)
+            if is_translation:
+                rejected.append({**hit, "reason": reason})
+                continue
+            hit["rejected_translation_hits"] = rejected
+            return hit
     except Exception:
         pass
     return None
@@ -470,7 +528,7 @@ def fetch_genius_lyrics(artist: str, title: str) -> dict:
     """Fetch clean lyrics from Genius with identity confidence metadata."""
     genius_hit = _genius_search(artist, title)
     if not genius_hit or not genius_hit.get("url"):
-        return {"found": False}
+        return {"found": False, "reason": "no non-translation Genius match"}
     genius_url = genius_hit["url"]
     confidence = _score_genius_hit(genius_hit, artist, title)
     if not confidence["use_in_prompt"]:
@@ -481,6 +539,7 @@ def fetch_genius_lyrics(artist: str, title: str) -> dict:
             **confidence,
             "candidate_title": genius_hit.get("title", ""),
             "candidate_artist": genius_hit.get("artist", ""),
+            "rejected_translation_hits": genius_hit.get("rejected_translation_hits", []),
         }
     try:
         req = urllib.request.Request(
@@ -499,6 +558,7 @@ def fetch_genius_lyrics(artist: str, title: str) -> dict:
             **confidence,
             "candidate_title": genius_hit.get("title", ""),
             "candidate_artist": genius_hit.get("artist", ""),
+            "rejected_translation_hits": genius_hit.get("rejected_translation_hits", []),
         }
     except Exception as e:
         return {"found": False, "url": genius_url, "error": str(e), **confidence}
@@ -633,8 +693,19 @@ def _looks_like_disambiguation_stub(result: dict) -> bool:
     )
 
 
-def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) -> dict:
-    """Attach confidence metadata to a Wikipedia intro result."""
+def _score_wikipedia_result(
+    result: dict,
+    expected_name: str,
+    entity_type: str,
+    expected_artist: str | None = None,
+) -> dict:
+    """Attach confidence metadata to a Wikipedia intro result.
+
+    Song titles are often ambiguous (``Dreams``, ``Alright``, translated
+    titles, etc.). Title overlap alone is not enough for a prompt-safe song
+    context when we know the artist, so require artist evidence for song pages
+    before allowing them into prompts.
+    """
     if not result.get("found"):
         return {"confidence": "rejected", "match_score": 0.0, "match_reasons": ["not found"], "use_in_prompt": False}
     if _looks_like_disambiguation_stub(result):
@@ -650,6 +721,25 @@ def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) 
     score = round(max(title_score, min(1.0, title_score + (extract_score * 0.25))), 3)
     confidence = _confidence_from_score(score)
 
+    match_reasons = [
+        f"title {title_score:.2f}: {'; '.join(title_reasons)}",
+        f"extract {extract_score:.2f}: {'; '.join(extract_reasons)}",
+    ]
+
+    if entity_type == "song" and expected_artist:
+        artist_score, artist_reasons = _identity_match_score(
+            expected_artist,
+            f"{result.get('title', '')} {result.get('extract', '')}",
+        )
+        match_reasons.append(f"artist {artist_score:.2f}: {'; '.join(artist_reasons)}")
+        if artist_score <= 0:
+            return {
+                "confidence": "rejected",
+                "match_score": score,
+                "match_reasons": match_reasons + ["song context lacks expected artist evidence"],
+                "use_in_prompt": False,
+            }
+
     # Song/composition pages can be valid with partial title matches, especially
     # traditional titles that pick up a related article. Artist pages should be
     # stricter; wrong artist context is usually worse than no context.
@@ -657,10 +747,7 @@ def _score_wikipedia_result(result: dict, expected_name: str, entity_type: str) 
     return {
         "confidence": confidence,
         "match_score": score,
-        "match_reasons": [
-            f"title {title_score:.2f}: {'; '.join(title_reasons)}",
-            f"extract {extract_score:.2f}: {'; '.join(extract_reasons)}",
-        ],
+        "match_reasons": match_reasons,
         "use_in_prompt": use_in_prompt,
     }
 
@@ -671,31 +758,49 @@ def _looks_like_wrong_article(result: dict, expected_name: str) -> bool:
     return scored["confidence"] == "rejected"
 
 
-def _with_wikipedia_confidence(result: dict, expected_name: str, entity_type: str) -> dict:
+def _with_wikipedia_confidence(
+    result: dict,
+    expected_name: str,
+    entity_type: str,
+    expected_artist: str | None = None,
+) -> dict:
     if not result.get("found"):
         return result
-    return {**result, **_score_wikipedia_result(result, expected_name, entity_type)}
+    return {
+        **result,
+        **_score_wikipedia_result(
+            result,
+            expected_name,
+            entity_type,
+            expected_artist=expected_artist,
+        ),
+    }
 
 
 def fetch_wikipedia_context(
     name: str,
     entity_type: str = "artist",
     exact_title: str | None = None,
+    expected_artist: str | None = None,
 ) -> dict:
     """Fetch Wikipedia intro with smart disambiguation and fallbacks.
 
     entity_type: "artist" or "song"
     exact_title: override — use this Wikipedia title directly (skip all fallbacks)
+    expected_artist: for song contexts, require artist evidence before prompt use
     """
     if exact_title:
         result = fetch_wikipedia_intro(exact_title)
         if result.get("found"):
+            scored = _score_wikipedia_result(
+                result,
+                name,
+                entity_type,
+                expected_artist=expected_artist,
+            )
             return {
                 **result,
-                "confidence": "high",
-                "match_score": 1.0,
-                "match_reasons": ["explicit Wikipedia override"],
-                "use_in_prompt": True,
+                **scored,
             }
         return result
 
@@ -706,12 +811,27 @@ def fetch_wikipedia_context(
         search_query = f"{name} band musician"
     else:
         candidates = [name, f"{name} (song)", f"{name} (composition)"]
-        search_query = f"{name} song music"
+        if expected_artist:
+            candidates = [
+                f"{name} ({expected_artist} song)",
+                f"{name} ({expected_artist})",
+                *candidates,
+            ]
+            search_query = f"{name} {expected_artist} song music"
+        else:
+            search_query = f"{name} song music"
 
     for candidate in candidates:
         result = fetch_wikipedia_intro(candidate)
         if result.get("found") and not _looks_like_wrong_article(result, name):
-            return _with_wikipedia_confidence(result, name, entity_type)
+            scored = _with_wikipedia_confidence(
+                result,
+                name,
+                entity_type,
+                expected_artist=expected_artist,
+            )
+            if scored.get("use_in_prompt"):
+                return scored
 
     # Search fallback: inspect several candidates and choose the highest-scoring
     # prompt-usable result instead of blindly accepting the first hit.
@@ -721,7 +841,12 @@ def fetch_wikipedia_context(
         result = fetch_wikipedia_intro(found_title)
         if not result.get("found"):
             continue
-        scored = _with_wikipedia_confidence(result, name, entity_type)
+        scored = _with_wikipedia_confidence(
+            result,
+            name,
+            entity_type,
+            expected_artist=expected_artist,
+        )
         if not scored.get("use_in_prompt"):
             continue
         score = float(scored.get("match_score", 0.0))
@@ -886,7 +1011,7 @@ def fetch_track(
 
         print(f"[fetch] Wikipedia: {title}")
         song_wiki = fetch_wikipedia_context(
-            title, entity_type="song", exact_title=wiki_song
+            title, entity_type="song", exact_title=wiki_song, expected_artist=artist
         )
         context["song_context"] = song_wiki
         if song_wiki["found"]:
