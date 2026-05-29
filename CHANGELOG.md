@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-29
+
+### Added
+- Evidence packet generation for analyzed tracks, including subject metadata, artifacts, observations, timeline entries, sources, collections, and warnings for agent-facing workflows.
+- Artist-aware song context plumbing so fetched context can preserve stronger performer/title identity through analysis and assembly.
+- Section boundary report helpers for ranking reset candidates and reading wrapped listener-state stream payloads.
+
+### Fixed
+- Genius lyric lookup now rejects translation and romanization pages when resolving source lyrics.
+
 ## [0.4.0] - 2026-05-16
 
 ### Added
