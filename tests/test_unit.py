@@ -2038,3 +2038,83 @@ def test_packet_cli_writes_json_file(tmp_path):
     data = json.loads(output.read_text())
     assert data["subject"]["slug"] == slug
     assert data["metadata"]["generator"] == "galdr.packet"
+
+# ── caption cue confidence helpers ────────────────────────────────────
+
+
+def test_parse_vtt_cues_preserves_end_times_and_strips_music_note_wrappers(tmp_path):
+    from galdr.captions import parse_vtt_cues, timed_lyric_segments
+
+    path = tmp_path / "song.en.vtt"
+    path.write_text(
+        "WEBVTT\n\n"
+        "00:00:01.000 --> 00:00:03.500\n"
+        "♪ I hurt myself today to see if I still feel ♪\n\n"
+        "00:00:04.000 --> 00:00:06.000\n"
+        "(slow quiet piano music)\n",
+        encoding="utf-8",
+    )
+
+    cues = parse_vtt_cues(path)
+
+    assert cues[0]["start"] == pytest.approx(1.0)
+    assert cues[0]["end"] == pytest.approx(3.5)
+    assert cues[0]["normalized_text"] == "I hurt myself today to see if I still feel"
+    assert cues[0]["kind"] == "lyric"
+    assert cues[0]["confidence"] == "high"
+    assert cues[1]["kind"] == "stage"
+    assert cues[1]["confidence"] == "rejected"
+    assert timed_lyric_segments(cues) == [
+        {
+            "start": 1.0,
+            "end": 3.5,
+            "ts": "0:01.00",
+            "text": "I hurt myself today to see if I still feel",
+            "source": "timed-caption",
+            "confidence": "high",
+        }
+    ]
+
+
+def test_caption_confidence_rejects_short_asr_fragments_as_lyric_timing_evidence(tmp_path):
+    from galdr.captions import parse_vtt_cues, timed_lyric_segments
+
+    path = tmp_path / "negative.en.vtt"
+    path.write_text(
+        "WEBVTT\n\n"
+        "00:00:01.000 --> 00:00:02.000\n"
+        "my life\n\n"
+        "00:00:03.000 --> 00:00:04.000\n"
+        "oh a\n\n"
+        "00:00:05.000 --> 00:00:06.000\n"
+        "[Music]\n",
+        encoding="utf-8",
+    )
+
+    cues = parse_vtt_cues(path)
+
+    assert [cue["kind"] for cue in cues] == ["caption", "caption", "stage"]
+    assert timed_lyric_segments(cues) == []
+
+
+def test_caption_confidence_accepts_clean_dense_lyrics_and_keeps_raw_captions(tmp_path):
+    from galdr.captions import parse_vtt_cues, timed_lyric_segments
+
+    path = tmp_path / "dense.en.vtt"
+    path.write_text(
+        "WEBVTT\n\n"
+        "00:00:10.000 --> 00:00:12.000\n"
+        "We're up all night to get lucky\n\n"
+        "00:00:12.000 --> 00:00:13.000\n"
+        "you\n",
+        encoding="utf-8",
+    )
+
+    cues = parse_vtt_cues(path)
+    lyrics = timed_lyric_segments(cues)
+
+    assert len(cues) == 2
+    assert lyrics[0]["text"] == "We're up all night to get lucky"
+    assert lyrics[0]["confidence"] == "high"
+    assert cues[1]["kind"] == "caption"
+    assert len(lyrics) == 1
