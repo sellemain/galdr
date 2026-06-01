@@ -143,6 +143,17 @@ def _classify_frame(frame: ArcFrame) -> str:
     return "returning"
 
 
+def _pressure_pivot(left: ArcFrame, right: ArcFrame) -> str | None:
+    """Name one-frame pressure turns before coarse state labels erase them."""
+    if left.silence >= 0.85 or right.silence >= 0.85:
+        return None
+    if left.pressure >= 0.22 and right.pressure <= -0.22:
+        return "pressure_peak_release"
+    if left.pressure <= -0.22 and right.pressure >= 0.22:
+        return "pressure_rebound"
+    return None
+
+
 def derive_arc_spans(stream: list[dict], *, min_span_frames: int = 2) -> list[dict]:
     """Collapse normalized frames into coarse contiguous arc spans."""
     frames = normalize_stream(stream)
@@ -150,6 +161,11 @@ def derive_arc_spans(stream: list[dict], *, min_span_frames: int = 2) -> list[di
         return []
 
     labels = [_classify_frame(frame) for frame in frames]
+    for i in range(1, len(frames)):
+        pivot = _pressure_pivot(frames[i - 1], frames[i])
+        if pivot is not None:
+            labels[i] = pivot
+
     spans: list[dict] = []
     start = 0
 
