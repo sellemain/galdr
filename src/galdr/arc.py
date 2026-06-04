@@ -225,6 +225,11 @@ def _dominant_label(spans: list[dict]) -> str:
     return max(counts.items(), key=lambda item: item[1])[0]
 
 
+def _preserve_arc_boundary(left: dict, right: dict) -> bool:
+    """Keep perceptually hard boundaries visible while coalescing chatter."""
+    return max(float(left.get("silence_ratio", 0.0)), float(right.get("silence_ratio", 0.0))) >= 0.85
+
+
 def coalesce_arc_spans(spans: list[dict], *, min_frames: int, weak_delta: float) -> list[dict]:
     """Merge shallow or very short adjacent arc spans into a coarser pattern scale."""
     if not spans:
@@ -233,9 +238,10 @@ def coalesce_arc_spans(spans: list[dict], *, min_frames: int, weak_delta: float)
     groups: list[list[dict]] = [[spans[0]]]
     for span in spans[1:]:
         previous = groups[-1][-1]
+        preserve_boundary = _preserve_arc_boundary(previous, span)
         short_boundary = previous["frame_count"] < min_frames or span["frame_count"] < min_frames
         shallow_boundary = _span_delta(previous, span) < weak_delta
-        if short_boundary or shallow_boundary:
+        if not preserve_boundary and (short_boundary or shallow_boundary):
             groups[-1].append(span)
         else:
             groups.append([span])
@@ -248,10 +254,10 @@ def coalesce_arc_spans(spans: list[dict], *, min_frames: int, weak_delta: float)
         while i < len(groups):
             group = groups[i]
             frames = sum(span["frame_count"] for span in group)
-            if frames < min_frames and next_groups:
+            if frames < min_frames and next_groups and not _preserve_arc_boundary(next_groups[-1][-1], group[0]):
                 next_groups[-1].extend(group)
                 changed = True
-            elif frames < min_frames and i + 1 < len(groups):
+            elif frames < min_frames and i + 1 < len(groups) and not _preserve_arc_boundary(group[-1], groups[i + 1][0]):
                 groups[i + 1] = group + groups[i + 1]
                 changed = True
             else:
