@@ -271,6 +271,35 @@ def test_arc_scale_selector_keeps_real_high_contrast_detail():
     assert selected == "detail"
     assert "contrast" in reason
 
+
+def test_arc_spans_mark_pressure_pivots_between_opposed_states():
+    stream = [
+        {"t": 0.0, "attention": 0.82, "pattern": 0.78, "pressure": 0.50, "body": 0.66, "silence": 0.0},
+        {"t": 1.0, "attention": 0.80, "pattern": 0.76, "pressure": 0.46, "body": 0.64, "silence": 0.0},
+        {"t": 2.0, "attention": 0.76, "pattern": 0.72, "pressure": -0.42, "body": 0.58, "silence": 0.0},
+        {"t": 3.0, "attention": 0.74, "pattern": 0.70, "pressure": -0.38, "body": 0.54, "silence": 0.0},
+        {"t": 4.0, "attention": 0.78, "pattern": 0.74, "pressure": 0.37, "body": 0.62, "silence": 0.0},
+        {"t": 5.0, "attention": 0.81, "pattern": 0.77, "pressure": 0.41, "body": 0.65, "silence": 0.0},
+    ]
+
+    spans = derive_arc_spans(stream)
+
+    assert [span["label"] for span in spans] == ["building", "pressure_peak_release", "pressure_rebound"]
+    assert spans[1]["start"] == pytest.approx(2.0)
+    assert spans[2]["start"] == pytest.approx(4.0)
+
+
+def test_arc_spans_do_not_mark_silence_as_pressure_pivot():
+    stream = [
+        {"t": 0.0, "attention": 0.82, "pattern": 0.78, "pressure": 0.50, "body": 0.66, "silence": 0.0},
+        {"t": 1.0, "attention": 0.05, "pattern": 0.05, "pressure": -0.60, "body": 0.05, "silence": 1.0},
+    ]
+
+    spans = derive_arc_spans(stream, min_span_frames=1)
+
+    assert [span["label"] for span in spans] == ["building", "emptying"]
+
+
 def test_arc_archetype_splits_plateau_subtypes():
     from galdr.assemble import _arc_archetype
 
