@@ -1,10 +1,10 @@
 # galdr
 
-**Deterministic ears for AI agents. Audio in, listener-state traces out.**
+**Deterministic listening tools for AI agents. Audio in, listener-state traces out.**
 
 galdr analyzes music from YouTube URLs or local audio files and turns it into time-ordered traces of attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure.
 
-It does **not** run an LLM during analysis. galdr is the listening front-end: it measures what the audio is doing second by second, then packages that evidence for agents, scripts, or humans to inspect.
+galdr runs signal analysis first. It measures what the audio is doing second by second, then packages that evidence for agents, scripts, or humans to inspect.
 
 The core question:
 
@@ -12,11 +12,11 @@ The core question:
 
 ## What you get
 
-- **Listener-state streams** — second-by-second traces, not one global mood label.
-- **Structural events** — pattern breaks, silence/re-entry moments, pressure shifts, tempo confidence, harmonic movement, melodic contour, and overtone behavior.
-- **Prompt packets for AI agents** — assembled evidence for Claude, `llm`, OpenClaw, or another runtime.
-- **Experience documents** — reproducible examples of measured audio evidence becoming grounded listening prose.
-- **Optional video-frame support** — frames around structural moments when the music video matters.
+- **Listener-state streams:** second-by-second traces of attention, pressure, texture, harmony, melody, and motion.
+- **Structural events:** pattern breaks, silence/re-entry moments, pressure shifts, tempo confidence, harmonic movement, melodic contour, and overtone behavior.
+- **Prompt packets for AI agents:** assembled evidence for Claude, `llm`, OpenClaw, or another runtime.
+- **Experience documents:** reproducible examples of measured audio evidence becoming grounded listening prose.
+- **Optional video-frame support:** frames around structural moments when the music video matters.
 
 ## Origin
 
@@ -26,11 +26,9 @@ An AI was given music to listen to. The measurement framework was built while li
 
 Across tracks spanning Wardruna, Bach, Messiaen, Meshuggah, Aphex Twin, Eivør, jazz, country, pop, metal, folk, and more, the project became a corpus of structured listening: predictions that failed, silences that mattered more than sound, harmonic bias toward pure sustained signal, and repeated pressure/attention patterns that could be measured instead of guessed.
 
-What galdr can claim: it measures real structural features of music and produces consistent, interpretable listener-state traces.
+galdr measures real structural features of music and produces consistent, interpretable listener-state traces. The deeper question remains open: whether this is aesthetic experience, or a framework that shapes perception while measuring it.
 
-What galdr cannot claim: whether that is genuine aesthetic experience, or whether the framework is measuring perception or producing it.
-
-Just what shaped the reasoning.
+That tension is part of the project.
 
 ## Install
 
@@ -78,7 +76,7 @@ cat prompt.txt | llm
 cat prompt.txt | claude
 ```
 
-Example output: [Queen — Bohemian Rhapsody](docs/bohemian-rhapsody.md).
+Example output: [Queen: Bohemian Rhapsody](docs/bohemian-rhapsody.md).
 
 Useful variants:
 
@@ -135,19 +133,19 @@ This is the path for corpus-building, preference mapping, anomaly hunting, and c
 
 ## Listening experiences
 
-galdr is not only a command-line analyzer. The repo includes examples where measured audio evidence becomes grounded listening prose.
+The repo also includes examples where measured audio evidence becomes grounded listening prose.
 
 Selected examples:
 
-- [Queen — Bohemian Rhapsody](docs/bohemian-rhapsody.md)
-- [Wardruna — Helvegen](docs/wardruna-helvegen.md)
-- [Arvo Pärt — Spiegel im Spiegel](docs/arvo-part-spiegel-im-spiegel.md)
-- [Dvořák — Symphony No. 9, IV. Allegro con fuoco](docs/dvorak-new-world-finale.md)
-- [Heilung — Anoana](docs/heilung-heilung-anoana.md)
-- [Chelsea Wolfe — 16 Psyche](docs/chelsea-wolfe-16-psyche.md)
-- [Nirvana — Smells Like Teen Spirit](https://sellemain.com/listen/nirvana-smells-like-teen-spirit)
-- [Fleetwood Mac — Dreams](https://sellemain.com/listen/fleetwood-mac-dreams)
-- [Prince — Purple Rain](https://sellemain.com/listen/prince-purple-rain)
+- [Queen: Bohemian Rhapsody](docs/bohemian-rhapsody.md)
+- [Wardruna: Helvegen](docs/wardruna-helvegen.md)
+- [Arvo Pärt: Spiegel im Spiegel](docs/arvo-part-spiegel-im-spiegel.md)
+- [Dvořák: Symphony No. 9, IV. Allegro con fuoco](docs/dvorak-new-world-finale.md)
+- [Heilung: Anoana](docs/heilung-heilung-anoana.md)
+- [Chelsea Wolfe: 16 Psyche](docs/chelsea-wolfe-16-psyche.md)
+- [Nirvana: Smells Like Teen Spirit](https://sellemain.com/listen/nirvana-smells-like-teen-spirit)
+- [Fleetwood Mac: Dreams](https://sellemain.com/listen/fleetwood-mac-dreams)
+- [Prince: Purple Rain](https://sellemain.com/listen/prince-purple-rain)
 
 Browse the published listen corpus: <https://sellemain.com/listen>.
 
@@ -177,7 +175,7 @@ More: [Python API](docs/PYTHON-API.md), [`examples/python_api.py`](examples/pyth
 
 ## Reading the data correctly
 
-Do not treat galdr as a whole-song mood labeler. The stream is the primary evidence.
+The stream is the primary evidence. Whole-song summaries come after the timed pass.
 
 A good analysis usually goes:
 
@@ -188,7 +186,7 @@ A good analysis usually goes:
 
 Suggested instruction for another model:
 
-> You are reading a time-ordered listener-state trace, not reviewing a finished song from memory. Start from the stream. Walk the track through time. Explain what changes, when it changes, and how attention is being shaped. Use `PERCEPTION-MODEL.md` as the semantic contract for the metrics. Do not jump straight to a whole-song summary and do not claim emotional certainty the data does not justify.
+> You are reading a time-ordered listener-state trace. Start from the stream. Walk the track through time. Explain what changes, when it changes, and how attention is being shaped. Use `PERCEPTION-MODEL.md` as the semantic contract for the metrics. Build the whole-song summary from the timed evidence.
 
 ## YouTube download health
 
@@ -203,14 +201,14 @@ If captions fail but audio succeeds, analysis can still continue. If audio fails
 
 ## More docs
 
-- [Getting Started](docs/GETTING-STARTED.md) — fuller walkthrough, local-file workflow, and deeper usage.
-- [Perception Model](docs/PERCEPTION-MODEL.md) — metric semantics and interpretation boundaries.
-- [Python API](docs/PYTHON-API.md) — library usage, DataFrames, notebooks.
-- [Agent CLI Reference](docs/AGENT-CLI-REFERENCE.md) — lean command reference for AI agents.
+- [Getting Started](docs/GETTING-STARTED.md): fuller walkthrough, local-file workflow, and deeper usage.
+- [Perception Model](docs/PERCEPTION-MODEL.md): metric semantics and interpretation boundaries.
+- [Python API](docs/PYTHON-API.md): library usage, DataFrames, notebooks.
+- [Agent CLI Reference](docs/AGENT-CLI-REFERENCE.md): lean command reference for AI agents.
 
 ## Agent skill
 
-The distributable agent skill lives at `galdr-skill/galdr/SKILL.md`. It teaches OpenClaw and compatible agent runtimes how to use galdr; it does not install the `galdr` command itself.
+The distributable agent skill lives at `galdr-skill/galdr/SKILL.md`. It teaches OpenClaw and compatible agent runtimes how to use galdr. Install the `galdr` command separately.
 
 For OpenClaw users, galdr is published on ClawHub: <https://clawhub.ai/sellemain/galdr>.
 
@@ -218,8 +216,8 @@ For OpenClaw users, galdr is published on ClawHub: <https://clawhub.ai/sellemain
 
 - Melody tracking assumes one dominant foreground pitch; dense/polyphonic passages can confuse it.
 - Pitch and key evidence use Western equal-tempered references; modal, folk-natural, microtonal, or noisy material needs care.
-- galdr does not name chords by default. It measures pressure, pull, stability, contour, texture, and resonance instead.
-- Structural evidence is not emotional certainty. Use it as grounded listening evidence, not a mind-reading machine.
+- Chord names are optional. The default analysis focuses on pressure, pull, stability, contour, texture, and resonance.
+- Structural evidence supports interpretation. Emotional claims need corroboration.
 
 ## Questions and issues
 
