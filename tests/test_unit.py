@@ -243,6 +243,42 @@ def test_derive_arc_spans_collapses_contiguous_states():
 
 
 
+def test_arc_scale_coalescing_preserves_terminal_silence_boundary():
+    stream = []
+    for i in range(90):
+        stream.append(
+            {
+                "t": float(i),
+                "attention": 0.82,
+                "pattern": 0.84,
+                "pressure": 0.01,
+                "body": 0.76,
+                "weight": 0.48,
+                "silence": 0.0,
+            }
+        )
+    for i in range(90, 94):
+        stream.append(
+            {
+                "t": float(i),
+                "attention": 0.06,
+                "pattern": 0.04,
+                "pressure": 0.0,
+                "body": 0.05,
+                "weight": 0.08,
+                "silence": 1.0,
+            }
+        )
+
+    scales = derive_arc_scales(stream)
+
+    assert [span["label"] for span in scales["detail"]] == ["held", "emptying"]
+    assert [span["label"] for span in scales["standard"]] == ["held", "emptying"]
+    assert [span["label"] for span in scales["macro"]] == ["held", "emptying"]
+    assert scales["macro"][-1]["start"] == pytest.approx(90.0)
+    assert scales["macro"][-1]["silence_ratio"] == pytest.approx(1.0)
+
+
 def test_arc_scales_preserve_detail_but_coalesce_shallow_chatter():
     stream = []
     pressures = [0.23, 0.0, -0.23, 0.0] * 10
