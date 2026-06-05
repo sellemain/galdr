@@ -308,6 +308,42 @@ def test_arc_scale_selector_keeps_real_high_contrast_detail():
     assert "contrast" in reason
 
 
+def test_arc_scale_selector_rejects_dense_moderate_detail_chatter():
+    stream = []
+    for i in range(160):
+        if (i // 2) % 2 == 0:
+            stream.append(
+                {
+                    "t": float(i),
+                    "attention": 0.72,
+                    "pattern": 0.74,
+                    "pressure": 0.24,
+                    "body": 0.60,
+                    "weight": 0.42,
+                    "silence": 0.0,
+                }
+            )
+        else:
+            stream.append(
+                {
+                    "t": float(i),
+                    "attention": 0.58,
+                    "pattern": 0.60,
+                    "pressure": -0.24,
+                    "body": 0.48,
+                    "weight": 0.38,
+                    "silence": 0.0,
+                }
+            )
+
+    scales = derive_arc_scales(stream)
+    selected, reason = select_arc_scale(scales)
+
+    assert len(scales["detail"]) >= 80
+    assert selected == "macro"
+    assert "chatter" in reason
+
+
 def test_arc_spans_mark_pressure_pivots_between_opposed_states():
     stream = [
         {"t": 0.0, "attention": 0.82, "pattern": 0.78, "pressure": 0.50, "body": 0.66, "silence": 0.0},
