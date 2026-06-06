@@ -344,6 +344,31 @@ def test_arc_scale_selector_rejects_dense_moderate_detail_chatter():
     assert "chatter" in reason
 
 
+def test_arc_scale_selector_caps_extreme_detail_volume_to_standard():
+    stream = []
+    for i in range(540):
+        phase = (i // 3) % 4
+        stream.append(
+            {
+                "t": float(i),
+                "attention": [0.84, 0.62, 0.78, 0.44][phase],
+                "pattern": [0.80, 0.58, 0.74, 0.40][phase],
+                "pressure": [0.46, -0.12, 0.38, -0.32][phase],
+                "body": [0.70, 0.48, 0.64, 0.34][phase],
+                "weight": [0.52, 0.36, 0.46, 0.28][phase],
+                "silence": 0.0,
+            }
+        )
+
+    scales = derive_arc_scales(stream)
+    selected, reason = select_arc_scale(scales)
+
+    assert len(scales["detail"]) >= 120
+    assert len(scales["standard"]) < len(scales["detail"])
+    assert selected == "standard"
+    assert "flood" in reason
+
+
 def test_arc_spans_mark_pressure_pivots_between_opposed_states():
     stream = [
         {"t": 0.0, "attention": 0.82, "pattern": 0.78, "pressure": 0.50, "body": 0.66, "silence": 0.0},
