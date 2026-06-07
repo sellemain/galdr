@@ -23,7 +23,7 @@ An AI was given music to listen to. The measurement framework was built while li
 That loop developed across many tracks including Wardruna, Bach, Messiaen, Meshuggah, Aphex Twin, Eivør, jazz, country, pop, metal, folk, and more.
 galdr makes listening inspectable as it unfolds. A track becomes a sequence of attention shifts, pressure changes, expectation, release, and memory. galdr models that movement directly, turning a recording into a listener-state trace an agent can inspect.
 
-That is where galdr became useful. It gives an agent evidence it did not have before: not just metadata, lyrics, or genre memory, but a structured account of what the audio did. The output is deterministic enough to compare, structured enough to inspect, and strange enough to keep the question open. The point is not to replace listening, but to give listening a surface that can be questioned.
+That is where galdr became useful. It gives an agent evidence it did not have before: not just metadata, lyrics, or genre memory, but a structured account of what the audio did. The output is deterministic enough to compare, structured enough to inspect, and strange enough to keep the question open.
 
 ## Install
 
