@@ -8,9 +8,9 @@ body:
       value: |
         Thanks for reporting a galdr bug. Please include enough detail to reproduce it.
 
-        For security vulnerabilities, do not open a public issue. Use GitHub private vulnerability reporting if available: https://github.com/sellemain/galdr/security/advisories/new
+        For security vulnerabilities, do not open a public issue. See the security policy: https://github.com/sellemain/galdr/security/policy
 
-        If private vulnerability reporting is unavailable, email galdr@sellemain.com.
+        Email galdr@sellemain.com.
   - type: input
     id: version
     attributes:

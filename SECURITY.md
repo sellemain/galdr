@@ -11,10 +11,9 @@
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Use GitHub's private vulnerability reporting:
-**[Report a vulnerability](https://github.com/sellemain/galdr/security/advisories/new)**
+Contact [galdr@sellemain.com](mailto:galdr@sellemain.com).
 
-If private vulnerability reporting is unavailable, contact [galdr@sellemain.com](mailto:galdr@sellemain.com).
+If GitHub private vulnerability reporting is enabled for the repository, you may also use the private reporting flow from the repository security tab.
 
 Include:
 - Description of the vulnerability
