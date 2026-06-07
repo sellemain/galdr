@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-06-07
+
+### Added
+- Timed caption cue parsing with conservative lyric-evidence confidence metadata.
+- Pressure pivot arc labels for short peak-release and rebound transitions.
+
+### Changed
+- Simplified the public README and installation/getting-started flow, with selected checked-in listening examples and a link to the larger published listen archive.
+- Dense, high-contrast ARC traces now cap prompt-facing detail selection at standard scale when raw detail would over-segment the experience.
+
+### Fixed
+- ARC scale coalescing now preserves terminal silence/emptying boundaries.
+
 ## [0.4.1] - 2026-05-29
 
 ### Added

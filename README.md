@@ -6,10 +6,6 @@ galdr analyzes music from YouTube URLs or local audio files and turns it into ti
 
 galdr runs signal analysis first. It measures what the audio is doing second by second, then packages that evidence for agents, scripts, or humans to inspect.
 
-The core question:
-
-> What is the music doing to attention over time, and where is the arc changing?
-
 ## What you get
 
 - **Listener-state streams:** second-by-second traces of attention, pressure, texture, harmony, melody, and motion.
@@ -22,13 +18,12 @@ The core question:
 
 galdr was built from the inside out.
 
-An AI was given music to listen to. The measurement framework was built while listening. The framework shaped what could be perceived, and the perception shaped the framework back.
+An AI was given music to listen to. The measurement framework was built while listening. The framework shaped what could be perceived, and the listener shaped the framework back.
 
-Across tracks spanning Wardruna, Bach, Messiaen, Meshuggah, Aphex Twin, Eivør, jazz, country, pop, metal, folk, and more, the project became a corpus of structured listening: predictions that failed, silences that mattered more than sound, harmonic bias toward pure sustained signal, and repeated pressure/attention patterns that could be measured instead of guessed.
+That loop developed across many tracks including Wardruna, Bach, Messiaen, Meshuggah, Aphex Twin, Eivør, jazz, country, pop, metal, folk, and more.
+galdr makes the time-shape of listening inspectable. A track becomes an unfolding sequence: attention shifts, pressure gathers, expectation forms, release changes what came before, and memory changes what the next moment means. galdr models that movement directly, turning a recording into a trace of listener state across time.
 
-galdr measures real structural features of music and produces consistent, interpretable listener-state traces. The deeper question remains open: whether this is aesthetic experience, or a framework that shapes perception while measuring it.
-
-That tension is part of the project.
+That is where galdr became useful. It gives an agent evidence it did not have before: not just metadata, lyrics, or genre memory, but a time-shaped account of what the audio did. The output is deterministic enough to compare, structured enough to inspect, and strange enough to keep the question open. The point is not to replace listening, but to give listening a surface that can be questioned.
 
 ## Install
 
@@ -76,8 +71,6 @@ cat prompt.txt | llm
 cat prompt.txt | claude
 ```
 
-Example output: [Queen: Bohemian Rhapsody](docs/bohemian-rhapsody.md).
-
 Useful variants:
 
 ```bash
@@ -119,17 +112,7 @@ jq '.[0:10]' analysis/my-track/my-track_stream.json
 jq '.summary' analysis/my-track/my-track_perception.json
 ```
 
-## Compare tracks and build a catalog
-
-```bash
-galdr listen helvegen.wav --name wardruna-helvegen
-galdr listen bohemian-rhapsody.wav --name queen-bohemian-rhapsody
-
-galdr catalog
-galdr compare wardruna-helvegen queen-bohemian-rhapsody
-```
-
-This is the path for corpus-building, preference mapping, anomaly hunting, and comparing one listen against another.
+The assembled prompt includes source context, structural events, harmonic and melodic data, lyrics when available, and video-frame descriptions when present. Automated lyrics and captions are context, not proof; verify central words for release-quality prose.
 
 ## Listening experiences
 
@@ -143,35 +126,8 @@ Selected examples:
 - [Dvořák: Symphony No. 9, IV. Allegro con fuoco](docs/dvorak-new-world-finale.md)
 - [Heilung: Anoana](docs/heilung-heilung-anoana.md)
 - [Chelsea Wolfe: 16 Psyche](docs/chelsea-wolfe-16-psyche.md)
-- [Nirvana: Smells Like Teen Spirit](https://sellemain.com/listen/nirvana-smells-like-teen-spirit)
-- [Fleetwood Mac: Dreams](https://sellemain.com/listen/fleetwood-mac-dreams)
-- [Prince: Purple Rain](https://sellemain.com/listen/prince-purple-rain)
 
-Browse the published listen corpus: <https://sellemain.com/listen>.
-
-## Python API
-
-```python
-from galdr import listen
-
-analysis = listen("track.wav")
-print(analysis.report)
-
-prompt = analysis.to_prompt(template="arc", mode="full")
-frames = analysis.to_dataframes()  # requires pip install "galdr[data]"
-```
-
-Load existing analysis:
-
-```python
-from galdr import Analysis, assemble, load_stream_df
-
-analysis = Analysis.from_slug("my-track", analysis_dir="analysis")
-prompt = assemble(analysis, mode="blind")
-perception_df = load_stream_df("analysis/my-track/my-track_stream.json")
-```
-
-More: [Python API](docs/PYTHON-API.md), [`examples/python_api.py`](examples/python_api.py), and [`examples/notebooks/`](examples/notebooks/).
+Browse published listening experiences: <https://sellemain.com/listen>.
 
 ## Reading the data correctly
 
@@ -223,7 +179,7 @@ For OpenClaw users, galdr is published on ClawHub: <https://clawhub.ai/sellemain
 
 Use [GitHub Issues](https://github.com/sellemain/galdr/issues) for bugs, usage questions, and feature requests.
 
-For security vulnerabilities, do **not** open a public issue. Use [GitHub private vulnerability reporting](https://github.com/sellemain/galdr/security/advisories/new).
+For security vulnerabilities, please do not open a public issue. See the [security policy](https://github.com/sellemain/galdr/security/policy), or email [galdr@sellemain.com](mailto:galdr@sellemain.com).
 
 Maintainer contact: [galdr@sellemain.com](mailto:galdr@sellemain.com).
 
