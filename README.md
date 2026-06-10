@@ -120,12 +120,12 @@ The repo also includes examples where measured audio evidence becomes grounded l
 
 Selected examples:
 
-- [Queen: Bohemian Rhapsody](docs/bohemian-rhapsody.md)
-- [Wardruna: Helvegen](docs/wardruna-helvegen.md)
-- [Arvo Pärt: Spiegel im Spiegel](docs/arvo-part-spiegel-im-spiegel.md)
-- [Dvořák: Symphony No. 9, IV. Allegro con fuoco](docs/dvorak-new-world-finale.md)
-- [Heilung: Anoana](docs/heilung-heilung-anoana.md)
-- [Chelsea Wolfe: 16 Psyche](docs/chelsea-wolfe-16-psyche.md)
+- [Queen: Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)
+- [Wardruna: Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)
+- [Arvo Pärt: Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)
+- [Dvořák: Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)
+- [Heilung: Anoana](https://github.com/sellemain/galdr/blob/main/docs/heilung-heilung-anoana.md)
+- [Chelsea Wolfe: 16 Psyche](https://github.com/sellemain/galdr/blob/main/docs/chelsea-wolfe-16-psyche.md)
 
 Browse published listening experiences: <https://sellemain.com/listen>.
 
@@ -135,7 +135,7 @@ The stream is the primary evidence. Whole-song summaries come after the timed pa
 
 A good analysis usually goes:
 
-1. Read the metric contract: [PERCEPTION-MODEL.md](docs/PERCEPTION-MODEL.md).
+1. Read the metric contract: [PERCEPTION-MODEL.md](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md).
 2. Walk `*_stream.json` in time order.
 3. Mark silences, returns, pattern breaks, attention shifts, pressure movement, and harmonic/timbral changes.
 4. Compress upward into the track's larger arc only after the timed pass.
@@ -157,10 +157,10 @@ If captions fail but audio succeeds, analysis can still continue. If audio fails
 
 ## More docs
 
-- [Getting Started](docs/GETTING-STARTED.md): fuller walkthrough, local-file workflow, and deeper usage.
-- [Perception Model](docs/PERCEPTION-MODEL.md): metric semantics and interpretation boundaries.
-- [Python API](docs/PYTHON-API.md): library usage, DataFrames, notebooks.
-- [Agent CLI Reference](docs/AGENT-CLI-REFERENCE.md): lean command reference for AI agents.
+- [Getting Started](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md): fuller walkthrough, local-file workflow, and deeper usage.
+- [Perception Model](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md): metric semantics and interpretation boundaries.
+- [Python API](https://github.com/sellemain/galdr/blob/main/docs/PYTHON-API.md): library usage, DataFrames, notebooks.
+- [Agent CLI Reference](https://github.com/sellemain/galdr/blob/main/docs/AGENT-CLI-REFERENCE.md): lean command reference for AI agents.
 
 ## Agent skill
 
