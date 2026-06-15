@@ -1,22 +1,28 @@
 ---
 name: galdr
-description: Use galdr's default ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
-version: 0.4.2
+description: OpenClaw skill for using galdr's ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
+version: "0.4.3"
 author: Sellemain
 license: MIT
 platforms: [linux, macos]
 ---
 # galdr
 
-Deterministic ears for AI agents. Audio in, listener-state traces out. Acoustic signal becomes structured evidence an LLM can encounter.
+Use this skill when an OpenClaw agent needs to analyze music from a YouTube URL or local audio file and produce a grounded listening-experience prompt from measurable audio structure.
 
-galdr is a music perception CLI for AI agents. Its default experience is **ARC**: analyze a track into time-ordered listener-state traces, then assemble those traces into a grounded listening-experience prompt. The metrics are evidence. The ARC prompt is the main user-facing output.
+galdr is a music perception CLI for AI agents. Its default workflow is **ARC**: analyze a track into time-ordered listener-state traces, then assemble those traces into a prompt for grounded listening-experience prose. The metrics are evidence. The ARC prompt is the main user-facing output.
 
-## Install
+## Important: skill vs CLI
 
-Preferred trusted sources:
-- PyPI: <https://pypi.org/project/galdr/>
-- Source: <https://github.com/sellemain/galdr>
+Installing this skill teaches OpenClaw how to use galdr. It does **not** install the `galdr` command itself.
+
+Before starting:
+
+```bash
+galdr --version
+```
+
+If missing, install the CLI from a trusted source:
 
 ```bash
 pip install galdr
@@ -27,19 +33,43 @@ cd galdr
 pip install -e .
 ```
 
-This skill teaches an agent how to use galdr; it does not install the `galdr` command itself. Check: `galdr --version`. If missing, install the CLI before proceeding. If provenance matters, verify the PyPI metadata or install from the source repository above before running it.
+Preferred trusted sources:
+- PyPI: <https://pypi.org/project/galdr/>
+- Source: <https://github.com/sellemain/galdr>
 
-## Core Workflows
+If provenance matters, verify the PyPI metadata or install from the source repository before running it.
 
-### Default: ARC listening experience
+## When to use this skill
 
-Use this path unless the user explicitly asks for raw metrics, comparison, debugging, or agent-internal traces. ARC turns galdr's evidence into a prose prompt for a grounded, time-ordered listening experience.
+Use galdr when the user asks to:
+- analyze a song or music video
+- describe what makes a track work structurally
+- generate a grounded listening experience
+- compare two tracks
+- extract frames around structural moments in a music video
+- create an evidence packet for another model to write from
 
-The shape is:
+Do not use galdr for:
+- general music trivia
+- ordinary recommendation lists
+- purely lyrical interpretation without audio structure
+- pretending the metrics prove private emotional intent
+- downloading copyrighted audio unless the operator has appropriate rights/context
+
+## OpenClaw agent contract
+
+Prefer the ARC path unless the user explicitly asks for raw metrics, comparison, debugging, or agent-internal traces.
+
+Default sequence:
 1. Fetch or listen to the track.
 2. Analyze it into listener-state traces.
 3. Assemble the ARC prompt with `--template arc --mode full`.
-4. Review the prompt, then write or send it to the requested model.
+4. Review the prompt.
+5. Write the listening experience yourself or pass the prompt to the requested model.
+
+The stream is evidence. Walk the track through time before summarizing. Do not invent emotional claims that the structure does not support.
+
+## Core Workflows
 
 ### YouTube URL → ARC prompt (most common)
 
@@ -56,11 +86,13 @@ galdr assemble artist-song-title --template arc --mode full > prompt.txt
 ```
 
 Override auto-derived metadata if needed:
+
 ```bash
 galdr fetch "https://youtu.be/..." --artist "Oliver Anthony" --title "Rich Men North of Richmond" --analyze
 ```
 
 If YouTube download behavior is flaky:
+
 ```bash
 galdr doctor
 galdr update-deps
@@ -109,6 +141,7 @@ Do not:
 - quote loudness/LUFS readings as if they were the experience
 
 Minimal recipe:
+
 ```bash
 galdr listen track.wav --name my-track
 jq '.[0:12]' analysis/my-track/my-track_stream.json
@@ -155,7 +188,7 @@ prompt = subprocess.run(
 
 `--template arc` prepends the default listening-experience rules: tone, format, interpretation bounds, and the instruction to walk the track through time. Omit it only when you want a raw data block.
 
-## Interpreting galdr Output
+## Interpreting galdr output
 
 ARC is the default output path. The metrics exist to keep that prose grounded: use them as evidence for what changes, returns, releases, locks, or breaks over time.
 
@@ -168,18 +201,18 @@ See [references/metrics.md](references/metrics.md) for full metric reference.
 - Clustered `pattern_breaks` at the end → planned release; distributed → varied structure
 - `silence` depth below -60dB with re-lock above 0.93 attention → structured withdrawal/return
 
-## Writing ARC Experience Prose (without piping)
+## Writing ARC experience prose yourself
 
 When writing experience prose yourself from galdr evidence, prefer `galdr assemble <slug> --template arc --mode full`. If you are writing from raw assembled output without the template:
 - First-person listener perspective, present tense
-- Timestamps only at structural pivots (silences, pattern breaks, major energy shifts)
-- Translate metrics — describe what they mean, don't quote numbers
+- Timestamps only at structural pivots: silences, pattern breaks, major energy shifts
+- Translate metrics; describe what they mean, do not quote numbers
 - LUFS/pressure values are evidence, not prose; write “pressure comes forward / holds / releases / empties”
-- Body anchors (chest, jaw, sternum) sparingly — two or three for the whole piece
+- Body anchors such as chest, jaw, sternum sparingly; two or three for the whole piece
 - End at the final sound event; no aftermath, no reflection
-- ~800 words, no section headers
+- Around 800 words, no section headers
 
-## Other Commands
+## Other commands
 
 ```bash
 galdr compare track-a track-b          # side-by-side structural comparison
