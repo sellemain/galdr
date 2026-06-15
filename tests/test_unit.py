@@ -949,6 +949,7 @@ class TestLufsPressureMotion:
         assert "loudness_lufs" in entry
         assert "pressure_lufs_delta" in entry
         assert "pressure_state" in entry
+        assert "texture_evidence" in entry
         assert "body" in entry
         assert "body_state" in entry
         assert "weight" in entry
@@ -967,6 +968,17 @@ class TestLufsPressureMotion:
             assert 0.0 <= entry[field] <= 1.0
             assert f"mean_{field}" in summary
             assert f"peak_{field}" in summary
+        for field in (
+            "roughness",
+            "noise_density",
+            "transient_attack",
+            "sustain_drone",
+            "band_pressure",
+        ):
+            assert field in entry["texture_evidence"]
+            assert 0.0 <= entry["texture_evidence"][field] <= 1.0
+            assert f"mean_texture_{field}" in summary
+            assert f"peak_texture_{field}" in summary
         event_entries = [e for e in report["stream"] if "event" in e]
         assert event_entries
         assert "event_note" in event_entries[0]
@@ -2244,3 +2256,68 @@ def test_caption_confidence_accepts_clean_dense_lyrics_and_keeps_raw_captions(tm
     assert lyrics[0]["confidence"] == "high"
     assert cues[1]["kind"] == "caption"
     assert len(lyrics) == 1
+
+
+class TestTextureFeatureBank:
+    def test_texture_feature_bank_outputs_bounded_listener_evidence(self):
+        from galdr.texture import compute_texture_feature_bank, texture_snapshot
+
+        sr = 22050
+        t = np.linspace(0, 2.0, sr * 2, endpoint=False)
+        tone = 0.15 * np.sin(2 * np.pi * 220 * t)
+        click = np.zeros_like(tone)
+        click[:: sr // 4] = 0.8
+        y = (tone + click).astype(np.float32)
+
+        bank = compute_texture_feature_bank(y, sr, hop_sec=0.5)
+
+        assert bank["hop_sec"] == pytest.approx(0.5)
+        assert len(bank["times"]) == 4
+        bounded_fields = (
+            "roughness",
+            "noise_density",
+            "transient_attack",
+            "sustain_drone",
+            "band_pressure",
+            "percussive_ratio",
+        )
+        for field in bounded_fields:
+            assert len(bank[field]) == len(bank["times"])
+            assert all(0.0 <= value <= 1.0 for value in bank[field])
+
+        for field in ("harmonic_rms", "percussive_rms"):
+            assert len(bank[field]) == len(bank["times"])
+            assert all(value >= 0.0 for value in bank[field])
+
+        snapshot = texture_snapshot(bank, 0)
+        assert snapshot["roughness_state"] in {"smooth", "grained", "abrasive"}
+        assert snapshot["motion_state"] in {"sustained", "moving", "striking"}
+        assert snapshot["pressure_state"] in {"thin", "held", "pressurized"}
+        assert 0.0 <= snapshot["percussive_ratio"] <= 1.0
+
+    def test_texture_feature_bank_separates_tone_noise_and_attacks(self):
+        from galdr.texture import compute_texture_feature_bank
+
+        sr = 22050
+        t = np.linspace(0, 2.0, sr * 2, endpoint=False)
+        tone = (0.15 * np.sin(2 * np.pi * 220 * t)).astype(np.float32)
+        rng = np.random.default_rng(7)
+        noise = (0.08 * rng.standard_normal(len(t))).astype(np.float32)
+        click = np.zeros_like(tone)
+        click[:: sr // 4] = 0.8
+        clicky = (tone + click).astype(np.float32)
+
+        tone_bank = compute_texture_feature_bank(tone, sr, hop_sec=0.5)
+        noise_bank = compute_texture_feature_bank(noise, sr, hop_sec=0.5)
+        click_bank = compute_texture_feature_bank(clicky, sr, hop_sec=0.5)
+
+        assert np.mean(noise_bank["noise_density"]) > np.mean(tone_bank["noise_density"])
+        assert np.mean(noise_bank["roughness"]) > np.mean(tone_bank["roughness"])
+        assert np.mean(click_bank["transient_attack"]) > np.mean(tone_bank["transient_attack"])
+        assert np.mean(tone_bank["sustain_drone"]) > np.mean(click_bank["sustain_drone"])
+
+    def test_texture_feature_bank_rejects_non_positive_hop(self):
+        from galdr.texture import compute_texture_feature_bank
+
+        with pytest.raises(ValueError, match="hop_sec must be positive"):
+            compute_texture_feature_bank(np.ones(22050, dtype=np.float32), 22050, hop_sec=0)

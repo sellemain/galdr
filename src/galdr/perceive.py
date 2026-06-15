@@ -25,6 +25,7 @@ from scipy.ndimage import uniform_filter1d
 from .analyze import compute_body, compute_weight
 from .audio_context import AudioContext, load_audio_context
 from .provenance import SCHEMA_VERSION, artifact_metadata
+from .texture import compute_texture_feature_bank, texture_snapshot
 from .constants import (
     ATTENTION_WINDOW_SEC, ATTENTION_HOP_SEC, ATTENTION_MIN_BEATS,
     DISRUPTION_WEIGHT_BEAT, DISRUPTION_WEIGHT_SPECTRAL, DISRUPTION_WEIGHT_ENERGY,
@@ -550,6 +551,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     hp_times, h_energy, p_energy, hp_balance = compute_harmonic_percussive_attention(
         y, sr, duration, hop_sec=hop_sec
     )
+    texture_bank = compute_texture_feature_bank(y, sr, hop_sec=hop_sec)
 
     silence_reentries = compute_silence_reentries(
         silences, m_times, attention, pressure, loudness["loudness_delta"], duration
@@ -878,6 +880,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         debt_input = disruption_debt + pressure_debt + drift_debt + comfort_debt
         debt_decay = 0.968 - min(0.018, release_force * 0.010)
         expectation_debt = float(np.clip(expectation_debt * debt_decay + debt_input - release_force * 0.24, 0.0, 1.0))
+        texture_evidence = texture_snapshot(texture_bank, i)
         entry = {
             "t": round(float(t), 3),
             "rms_energy": round(float(rms_energy[i]), 4),
@@ -911,6 +914,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             "texture": round(float(hp_balance[i]), 3),
             "harmonic_weight": round(float(h_energy[i]), 4),
             "percussive_weight": round(float(p_energy[i]), 4),
+            "texture_evidence": texture_evidence,
         }
 
         # Mark if we're in a silence, or just after one.
@@ -1235,6 +1239,13 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         "body_comfort",
         "surface_density",
     )
+    texture_metric_fields = (
+        "roughness",
+        "noise_density",
+        "transient_attack",
+        "sustain_drone",
+        "band_pressure",
+    )
     stream_metric_means = {
         f"mean_{field}": round(float(np.mean([float(e[field]) for e in stream])), 3)
         for field in stream_metric_fields
@@ -1243,6 +1254,20 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     stream_metric_peaks = {
         f"peak_{field}": round(float(np.max([float(e[field]) for e in stream])), 3)
         for field in stream_metric_fields
+        if stream
+    }
+    texture_metric_means = {
+        f"mean_texture_{field}": round(float(np.mean([
+            float(e["texture_evidence"][field]) for e in stream
+        ])), 3)
+        for field in texture_metric_fields
+        if stream
+    }
+    texture_metric_peaks = {
+        f"peak_texture_{field}": round(float(np.max([
+            float(e["texture_evidence"][field]) for e in stream
+        ])), 3)
+        for field in texture_metric_fields
         if stream
     }
 
@@ -1280,6 +1305,8 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         },
         **stream_metric_means,
         **stream_metric_peaks,
+        **texture_metric_means,
+        **texture_metric_peaks,
     }
 
     # Count pattern_breaks by type
