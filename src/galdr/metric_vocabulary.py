@@ -171,6 +171,15 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Surface balance depends on source separation quality. Treat it as evidence about the surface, not proof of instrumentation.",
     ),
     MetricVocabulary(
+        "roughness",
+        "Roughness",
+        "How much the local surface feels grained, noisy, saturated, or inharmonic.",
+        "Spectral flatness, zero-crossing activity, centroid, and contrast combined into bounded surface evidence.",
+        "High roughness means the surface is grained or abrasive; low roughness means it is smooth, clean, or fused.",
+        "grained surface, abrasive edge, saturated texture, smooth tone, fused resonance",
+        "Roughness is timbral evidence, not heaviness or intensity. Distortion, noisy synths, harsh cymbal wash, and inharmonicity can raise it; clean loud grooves may stay smooth.",
+    ),
+    MetricVocabulary(
         "surface_motion",
         "Surface motion",
         "How quickly the timbral surface changes from moment to moment.",
@@ -180,13 +189,22 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Surface motion is not section detection. It is local change-rate evidence, not a label for musical form.",
     ),
     MetricVocabulary(
+        "band_pressure",
+        "Band pressure",
+        "How much local energy concentrates in low and body bands where physical pressure is usually felt.",
+        "Coarse bass/body-band energy weighting blended with local loudness evidence.",
+        "High band pressure means the sound may feel grounded, weighted, or physically forward; low band pressure means the surface may feel thin or withheld.",
+        "low pressure, body pressure, weighted floor, held low band, thin surface",
+        "Band pressure is evidence, not prose truth. Bass-forward or warm mastered tracks can score high without feeling narratively pressurized; check loudness motion, body capture, and the surrounding arc before writing pressure claims.",
+    ),
+    MetricVocabulary(
         "punch",
         "Punch",
         "How sharply the waveform peaks above its local body.",
         "Local crest factor from peak amplitude over RMS energy.",
         "High punch means impact or transient snap rises above the average body; low punch means the sound is more even, compressed, or sustained.",
         "punch lands, sharp impact, transient snap, flattened wall, even pressure",
-        "Punch is not loudness. A quiet click can be punchy; a loud wall can have little crest left.",
+        "Punch is not loudness. A quiet click can be punchy; a loud wall can have little crest left. Do not write impact from punch alone without loudness, body, or pressure context.",
     ),
     MetricVocabulary(
         "bass_weight",
@@ -324,6 +342,10 @@ def glossary_lines(fields: list[str] | tuple[str, ...] | None = None) -> list[st
     """Return compact glossary lines for LLM prompt/context assembly."""
     metrics = METRICS if fields is None else tuple(vocabulary(field) for field in fields)
     return [
-        f"- `{metric.field}` ({metric.display}): {metric.definition} Evidence: {metric.evidence} Caveat: {metric.caveat}"
+        f"- `{metric.field}` ({metric.display}): {metric.definition} "
+        f"Evidence: {metric.evidence} "
+        f"Listener reading: {metric.listener_reading} "
+        f"Use as: {metric.prose_language}. "
+        f"Caveat: {metric.caveat}"
         for metric in metrics
     ]

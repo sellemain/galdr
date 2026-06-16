@@ -245,8 +245,8 @@ def surface_snapshot(bank: dict, index: int) -> dict:
         "percussive_ratio": bank["percussive_ratio"][index],
         "roughness_state": _state(
             float(bank["roughness"][index]),
-            low=0.32,
-            high=0.62,
+            low=0.24,
+            high=0.45,
             labels=("smooth", "grained", "abrasive"),
         ),
         "motion_state": _state(

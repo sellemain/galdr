@@ -104,6 +104,8 @@ In prose, use capture language for seizure and motor grip; use comfort language 
 
 `metric_tension` is a track-level estimate of competing metric pressure. It looks for alternate tempo or periodicity evidence that does not collapse into simple half-time or double-time readings. Strong values mean the listener can feel the grid while another cycle leans against it.
 
+Tempo evidence should be translated before it reaches listening prose. Do not write raw BPM values in an experience. Write the felt pulse instead: slow, fast, dragging, rushing, steady, doubled, halved, leaning forward, or pulling against the main grid. Raw BPM belongs in debugging, comparison packets, and regression notes.
+
 This is deliberately conservative language. `metric_tension` is not a full polyrhythm detector. Treat it as cross-rhythm pressure evidence. If the dominant experience is body/pressure lock, the prompt may keep metric tension as a technical underlayer rather than making it the headline.
 
 ---
@@ -228,6 +230,9 @@ Stream values are time-indexed listener-state samples. Read them as motion:
 - **negative `pressure`** → pressure is releasing
 - **negative `surface_balance`** → sustained tone, voice, drone, or harmony dominates
 - **positive `surface_balance`** → strike, groove, attack, or percussion dominates
+- **high `surface_evidence.roughness` / `roughness_state: grained|abrasive`** → the surface is grainy, saturated, noisy, or inharmonic; not automatically heavy
+- **high `surface_evidence.band_pressure` / `pressure_state: pressurized`** → low/body-band weight is present; confirm with loudness motion and body evidence before writing that the track feels pressurized
+- **high `surface_evidence.punch`** → peak snap rises above local body; confirm with loudness/body context before writing impact, because quiet attacks can be numerically punchy
 
 Events are narrative anchors derived from the stream. Macro events (`attention_arrives`, `body_lock_arrives`, `surface_hardens`, `weight_arrives`) describe major state changes. Phrase events (`phrase_lift`, `phrase_drop`, `ornamental_flash`) describe smaller local gestures inside a stable state. Events are not a checklist to recite. They are signposts for where prose should slow down and listen more closely.
 

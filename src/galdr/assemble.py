@@ -291,8 +291,32 @@ def _fmt_time(seconds: float) -> str:
     return f"{m}:{s:02d}"
 
 
+def _tempo_feel(value: float) -> str:
+    """Translate raw BPM into listener-facing pulse language."""
+    if value <= 0:
+        return "unknown pulse"
+    if value < 75:
+        return "slow pulse"
+    if value < 105:
+        return "moderate pulse"
+    if value < 140:
+        return "quick pulse"
+    if value < 175:
+        return "fast pulse"
+    return "very fast pulse"
+
+
+def _confidence_feel(value: float) -> str:
+    """Translate numeric pulse confidence without leaking metric values."""
+    if value < 0.35:
+        return "low confidence"
+    if value < 0.70:
+        return "moderate confidence"
+    return "high confidence"
+
+
 def _fmt_tempo(report: dict) -> str:
-    """Format tempo without presenting suspect alternate pulses as plain truth."""
+    """Format tempo as felt pulse language, not raw BPM."""
     detected = report.get("detected_pulse_bpm", 0)
     felt = report.get("felt_pulse_bpm")
     confidence = report.get("pulse_confidence")
@@ -300,17 +324,14 @@ def _fmt_tempo(report: dict) -> str:
     note = report.get("pulse_note")
 
     if felt is None:
-        return f"Pulse: detected ~{float(detected):.1f} BPM"
+        return f"Pulse: {_tempo_feel(float(detected))} (detected)"
 
+    line = f"Pulse: {_tempo_feel(float(felt))}"
     if ambiguous or abs(float(felt) - float(detected)) >= 1.0:
-        line = f"Pulse: felt ~{float(felt):.1f} BPM"
-        if detected:
-            line += f" (detected pulse {float(detected):.1f} BPM; ambiguous/suspect)"
-    else:
-        line = f"Pulse: {float(felt):.1f} BPM"
+        line += " (felt pulse; detected pulse ambiguous/suspect)"
 
     if confidence is not None:
-        line += f"; confidence {float(confidence):.2f}"
+        line += f"; {_confidence_feel(float(confidence))}"
     if note:
         line += f" — {note}"
     return line
@@ -762,6 +783,10 @@ def _build_metrics(analysis: dict) -> str:
             )
 
     lines.append("\n### Metric glossary\n")
+    lines.append(
+        "Use the `Use as` phrases as translation cues, not canned wording. "
+        "Prefer audible description over metric names, and check each caveat before making a strong prose claim."
+    )
     lines.extend(glossary_lines())
     lines.append("\n### How to read galdr\n")
     lines.append(

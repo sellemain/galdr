@@ -553,9 +553,8 @@ class TestAssemblePrompt:
         # Galdr metrics block is included in all modes
         for mode in ("blind", "lyrics", "context", "full"):
             result = self.fn(self._minimal_analysis(), mode=mode)
-            # tempo should always appear in the metrics section
-            assert "120" in result or "bpm" in result.lower(), \
-                f"Metrics missing from mode={mode}"
+            # tempo should always appear in the metrics section as felt language
+            assert "Pulse:" in result, f"Metrics missing from mode={mode}"
 
     def test_ambiguous_tempo_not_presented_as_plain_truth(self):
         analysis = {
@@ -571,9 +570,9 @@ class TestAssemblePrompt:
         result = self.fn(analysis, mode="blind")
 
         assert "Tempo: 92.3 BPM" not in result
-        assert "felt ~140.8 BPM" in result
-        assert "detected pulse 92.3 BPM" in result
-        assert "ambiguous/suspect" in result
+        assert "BPM" not in result
+        assert "Pulse: fast pulse" in result
+        assert "detected pulse ambiguous/suspect" in result
 
     def test_stream_arc_structure_is_included_for_experience_prompt(self):
         stream = []
@@ -2304,7 +2303,7 @@ class TestSurfaceFeatureBank:
         assert 0.0 <= snapshot["percussive_ratio"] <= 1.0
 
     def test_surface_feature_bank_separates_tone_noise_and_attacks(self):
-        from galdr.surface import compute_surface_feature_bank
+        from galdr.surface import compute_surface_feature_bank, surface_snapshot
 
         sr = 22050
         t = np.linspace(0, 2.0, sr * 2, endpoint=False)
@@ -2321,6 +2320,8 @@ class TestSurfaceFeatureBank:
 
         assert np.mean(noise_bank["noise_density"]) > np.mean(tone_bank["noise_density"])
         assert np.mean(noise_bank["roughness"]) > np.mean(tone_bank["roughness"])
+        assert surface_snapshot(noise_bank, 0)["roughness_state"] == "abrasive"
+        assert surface_snapshot(click_bank, 0)["roughness_state"] == "smooth"
         assert np.mean(click_bank["transient_attack"]) > np.mean(tone_bank["transient_attack"])
         assert np.mean(click_bank["surface_motion"]) > np.mean(tone_bank["surface_motion"])
         assert np.mean(click_bank["punch"]) > np.mean(tone_bank["punch"])
