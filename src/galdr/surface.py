@@ -1,10 +1,10 @@
 """Surface feature bank for listener-state evidence.
 
 These helpers keep low-level MIR measurements separate from the prose-facing
-perception model. They are deliberately small and dependency-light: no source
-separation, no trained classifier, no claims about exact instruments. The goal
-is to expose enough surface evidence for higher layers to describe what the
-sound feels like without turning galdr into a dashboard.
+perception model. They are deliberately small and dependency-light: no trained
+classifier, no claims about exact instruments. The goal is to expose enough
+surface evidence for higher layers to describe what the sound feels like without
+turning galdr into a dashboard.
 """
 
 from __future__ import annotations
@@ -35,6 +35,18 @@ def _state(score: float, *, low: float, high: float, labels: tuple[str, str, str
     return labels[0]
 
 
+def _safe_ratio(numerator: float, denominator: float) -> float:
+    if denominator <= 1e-12 or not np.isfinite(numerator) or not np.isfinite(denominator):
+        return 0.0
+    return float(numerator / denominator)
+
+
+def _mean_power(power: np.ndarray, freq_mask: np.ndarray, frame_mask: np.ndarray) -> float:
+    if not freq_mask.any() or not frame_mask.any():
+        return 0.0
+    return _safe_mean(power[np.ix_(freq_mask, frame_mask)])
+
+
 def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0) -> dict:
     """Compute per-window surface evidence aligned to a listener-state hop.
 
@@ -63,6 +75,10 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
     rms = librosa.feature.rms(y=y)[0]
     contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
     onset = librosa.onset.onset_strength(y=y, sr=sr)
+    stft = np.abs(librosa.stft(y))
+    power = stft ** 2
+    freqs = librosa.fft_frequencies(sr=sr, n_fft=(stft.shape[0] - 1) * 2)
+    spectral_flux = np.sqrt(np.mean(np.diff(stft, axis=1, prepend=stft[:, :1]) ** 2, axis=0))
     y_h, y_p = librosa.effects.hpss(y)
     harmonic_rms = librosa.feature.rms(y=y_h)[0]
     percussive_rms = librosa.feature.rms(y=y_p)[0]
@@ -89,7 +105,19 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         "transient_attack": [],
         "sustain_drone": [],
         "band_pressure": [],
+        "surface_motion": [],
+        "punch": [],
+        "bass_weight": [],
+        "body_weight": [],
+        "presence_weight": [],
+        "air_weight": [],
+        "brightness_tilt": [],
     }
+
+    bass_mask = (freqs >= 20.0) & (freqs < 160.0)
+    body_mask = (freqs >= 160.0) & (freqs < 800.0)
+    presence_mask = (freqs >= 800.0) & (freqs < 4000.0)
+    air_mask = freqs >= 4000.0
 
     half = hop_sec / 2.0
     for t in times:
@@ -121,6 +149,24 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         percussive_ratio = percussive_rms_mean / hp_total if hp_total > 1e-9 else 0.0
         contrast_mean = _safe_mean(contrast[:, mask])
         onset_mean = _safe_mean(onset[onset_mask]) if len(onset) else 0.0
+        flux_mean = _safe_mean(spectral_flux[mask])
+
+        start_sample = int(np.clip(round(start * sr), 0, len(y)))
+        end_sample = int(np.clip(round(end * sr), start_sample + 1, len(y)))
+        y_window = y[start_sample:end_sample]
+        window_rms = float(np.sqrt(np.mean(y_window ** 2))) if y_window.size else 0.0
+        window_peak = float(np.max(np.abs(y_window))) if y_window.size else 0.0
+        crest_db = 20.0 * np.log10(window_peak / max(window_rms, 1e-9)) if window_peak > 0 else 0.0
+
+        bass_energy = _mean_power(power, bass_mask, mask)
+        body_energy = _mean_power(power, body_mask, mask)
+        presence_energy = _mean_power(power, presence_mask, mask)
+        air_energy = _mean_power(power, air_mask, mask)
+        band_total = bass_energy + body_energy + presence_energy + air_energy
+        bass_weight = _safe_ratio(bass_energy, band_total)
+        body_weight = _safe_ratio(body_energy, band_total)
+        presence_weight = _safe_ratio(presence_energy, band_total)
+        air_weight = _safe_ratio(air_energy, band_total)
 
         mfcc_motion = _normalize(mfcc_std, 80.0)
         brightness = _normalize(centroid_mean, sr / 2.0)
@@ -130,6 +176,9 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         attack = _normalize(onset_mean, 4.0)
         body_floor = _normalize(rms_mean, 0.08)
         tonal_coherence = 1.0 - noisiness
+        surface_motion = _normalize(flux_mean, 0.20)
+        punch = _normalize(crest_db, 18.0)
+        brightness_tilt = float(np.clip(0.55 * (presence_weight + air_weight) + 0.45 * brightness, 0.0, 1.0))
 
         roughness = float(np.clip(
             0.30 * noisiness + 0.25 * edge + 0.20 * spread + 0.15 * mfcc_motion + 0.10 * brightness,
@@ -139,7 +188,12 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         noise_density = float(np.clip(0.55 * noisiness + 0.25 * spread + 0.20 * edge, 0.0, 1.0))
         transient_attack = float(np.clip(0.70 * attack + 0.30 * edge, 0.0, 1.0))
         sustain_drone = float(np.clip(tonal_coherence * body_floor * (1.0 - min(1.0, attack)), 0.0, 1.0))
-        band_pressure = float(np.clip(0.45 * body_floor + 0.25 * roughness + 0.20 * spread + 0.10 * attack, 0.0, 1.0))
+        band_pressure = float(np.clip(
+            0.35 * body_floor + 0.25 * bass_weight + 0.15 * body_weight
+            + 0.10 * roughness + 0.10 * spread + 0.05 * attack,
+            0.0,
+            1.0,
+        ))
 
         fields["mfcc_std"].append(round(mfcc_std, 3))
         fields["spectral_centroid"].append(round(centroid_mean, 3))
@@ -158,6 +212,13 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         fields["transient_attack"].append(round(transient_attack, 3))
         fields["sustain_drone"].append(round(sustain_drone, 3))
         fields["band_pressure"].append(round(band_pressure, 3))
+        fields["surface_motion"].append(round(surface_motion, 3))
+        fields["punch"].append(round(punch, 3))
+        fields["bass_weight"].append(round(bass_weight, 3))
+        fields["body_weight"].append(round(body_weight, 3))
+        fields["presence_weight"].append(round(presence_weight, 3))
+        fields["air_weight"].append(round(air_weight, 3))
+        fields["brightness_tilt"].append(round(brightness_tilt, 3))
 
     return {
         "times": [round(float(t), 3) for t in times],
@@ -174,6 +235,13 @@ def surface_snapshot(bank: dict, index: int) -> dict:
         "transient_attack": bank["transient_attack"][index],
         "sustain_drone": bank["sustain_drone"][index],
         "band_pressure": bank["band_pressure"][index],
+        "surface_motion": bank["surface_motion"][index],
+        "punch": bank["punch"][index],
+        "bass_weight": bank["bass_weight"][index],
+        "body_weight": bank["body_weight"][index],
+        "presence_weight": bank["presence_weight"][index],
+        "air_weight": bank["air_weight"][index],
+        "brightness_tilt": bank["brightness_tilt"][index],
         "percussive_ratio": bank["percussive_ratio"][index],
         "roughness_state": _state(
             float(bank["roughness"][index]),
@@ -192,5 +260,11 @@ def surface_snapshot(bank: dict, index: int) -> dict:
             low=0.25,
             high=0.55,
             labels=("thin", "held", "pressurized"),
+        ),
+        "tilt_state": _state(
+            float(bank["brightness_tilt"][index]),
+            low=0.25,
+            high=0.55,
+            labels=("dark", "balanced", "bright"),
         ),
     }

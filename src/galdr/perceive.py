@@ -1245,6 +1245,13 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         "transient_attack",
         "sustain_drone",
         "band_pressure",
+        "surface_motion",
+        "punch",
+        "bass_weight",
+        "body_weight",
+        "presence_weight",
+        "air_weight",
+        "brightness_tilt",
     )
     stream_metric_means = {
         f"mean_{field}": round(float(np.mean([float(e[field]) for e in stream])), 3)

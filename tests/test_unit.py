@@ -2279,6 +2279,13 @@ class TestSurfaceFeatureBank:
             "transient_attack",
             "sustain_drone",
             "band_pressure",
+            "surface_motion",
+            "punch",
+            "bass_weight",
+            "body_weight",
+            "presence_weight",
+            "air_weight",
+            "brightness_tilt",
             "percussive_ratio",
         )
         for field in bounded_fields:
@@ -2293,6 +2300,7 @@ class TestSurfaceFeatureBank:
         assert snapshot["roughness_state"] in {"smooth", "grained", "abrasive"}
         assert snapshot["motion_state"] in {"sustained", "moving", "striking"}
         assert snapshot["pressure_state"] in {"thin", "held", "pressurized"}
+        assert snapshot["tilt_state"] in {"dark", "balanced", "bright"}
         assert 0.0 <= snapshot["percussive_ratio"] <= 1.0
 
     def test_surface_feature_bank_separates_tone_noise_and_attacks(self):
@@ -2314,7 +2322,25 @@ class TestSurfaceFeatureBank:
         assert np.mean(noise_bank["noise_density"]) > np.mean(tone_bank["noise_density"])
         assert np.mean(noise_bank["roughness"]) > np.mean(tone_bank["roughness"])
         assert np.mean(click_bank["transient_attack"]) > np.mean(tone_bank["transient_attack"])
+        assert np.mean(click_bank["surface_motion"]) > np.mean(tone_bank["surface_motion"])
+        assert np.mean(click_bank["punch"]) > np.mean(tone_bank["punch"])
         assert np.mean(tone_bank["sustain_drone"]) > np.mean(click_bank["sustain_drone"])
+
+
+    def test_surface_feature_bank_tracks_band_balance_and_brightness_tilt(self):
+        from galdr.surface import compute_surface_feature_bank
+
+        sr = 22050
+        t = np.linspace(0, 2.0, sr * 2, endpoint=False)
+        bass = (0.15 * np.sin(2 * np.pi * 80 * t)).astype(np.float32)
+        air = (0.15 * np.sin(2 * np.pi * 6000 * t)).astype(np.float32)
+
+        bass_bank = compute_surface_feature_bank(bass, sr, hop_sec=0.5)
+        air_bank = compute_surface_feature_bank(air, sr, hop_sec=0.5)
+
+        assert np.mean(bass_bank["bass_weight"]) > np.mean(air_bank["bass_weight"])
+        assert np.mean(air_bank["air_weight"]) > np.mean(bass_bank["air_weight"])
+        assert np.mean(air_bank["brightness_tilt"]) > np.mean(bass_bank["brightness_tilt"])
 
     def test_surface_feature_bank_rejects_non_positive_hop(self):
         from galdr.surface import compute_surface_feature_bank
