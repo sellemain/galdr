@@ -177,7 +177,11 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         body_floor = _normalize(rms_mean, 0.08)
         tonal_coherence = 1.0 - noisiness
         surface_motion = _normalize(flux_mean, 0.20)
-        punch = _normalize(crest_db, 18.0)
+        # Crest factor alone makes tiny exposed clicks look like body-impact.
+        # Gate it by absolute audible level so punch remains transient snap with
+        # enough body behind it, not a mathematical spike in near-silence.
+        level_gate = _normalize(max(window_peak, rms_mean * 4.0), 0.25)
+        punch = _normalize(crest_db, 18.0) * level_gate
         brightness_tilt = float(np.clip(0.55 * (presence_weight + air_weight) + 0.45 * brightness, 0.0, 1.0))
 
         roughness = float(np.clip(
@@ -188,9 +192,13 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         noise_density = float(np.clip(0.55 * noisiness + 0.25 * spread + 0.20 * edge, 0.0, 1.0))
         transient_attack = float(np.clip(0.70 * attack + 0.30 * edge, 0.0, 1.0))
         sustain_drone = float(np.clip(tonal_coherence * body_floor * (1.0 - min(1.0, attack)), 0.0, 1.0))
+        # Bass can hold the floor without making the track feel pressurized.
+        # Treat low-band weight as one ingredient; require body, density,
+        # motion, or attack before the pressure cue rises hard.
         band_pressure = float(np.clip(
-            0.35 * body_floor + 0.25 * bass_weight + 0.15 * body_weight
-            + 0.10 * roughness + 0.10 * spread + 0.05 * attack,
+            0.15 * bass_weight + 0.20 * body_weight + 0.20 * body_floor * body_weight
+            + 0.15 * body_floor * roughness + 0.15 * body_floor * attack
+            + 0.10 * surface_motion + 0.05 * spread,
             0.0,
             1.0,
         ))

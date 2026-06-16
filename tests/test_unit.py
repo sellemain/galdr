@@ -2343,6 +2343,47 @@ class TestSurfaceFeatureBank:
         assert np.mean(air_bank["air_weight"]) > np.mean(bass_bank["air_weight"])
         assert np.mean(air_bank["brightness_tilt"]) > np.mean(bass_bank["brightness_tilt"])
 
+
+    def test_surface_punch_is_gated_by_audible_body(self):
+        from galdr.surface import compute_surface_feature_bank
+
+        sr = 22050
+        duration = 2.0
+        t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+        quiet_click = np.zeros_like(t)
+        loud_click = np.zeros_like(t)
+        quiet_click[:: sr // 2] = 0.01
+        loud_click[:: sr // 2] = 0.8
+
+        quiet_bank = compute_surface_feature_bank(quiet_click.astype(np.float32), sr, hop_sec=0.5)
+        loud_bank = compute_surface_feature_bank(loud_click.astype(np.float32), sr, hop_sec=0.5)
+
+        assert np.mean(quiet_bank["transient_attack"]) > 0.0
+        assert np.mean(quiet_bank["punch"]) < 0.10
+        assert np.mean(loud_bank["punch"]) > np.mean(quiet_bank["punch"]) + 0.25
+
+    def test_band_pressure_requires_more_than_bass_weight(self):
+        from galdr.surface import compute_surface_feature_bank, surface_snapshot
+
+        sr = 22050
+        duration = 2.0
+        t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+        bass = (0.15 * np.sin(2 * np.pi * 80 * t)).astype(np.float32)
+        rng = np.random.default_rng(11)
+        dense_low_body = (
+            0.25 * np.sin(2 * np.pi * 80 * t)
+            + 0.20 * np.sin(2 * np.pi * 300 * t)
+            + 0.03 * rng.standard_normal(len(t))
+        ).astype(np.float32)
+
+        bass_bank = compute_surface_feature_bank(bass, sr, hop_sec=0.5)
+        dense_bank = compute_surface_feature_bank(dense_low_body, sr, hop_sec=0.5)
+
+        assert np.mean(bass_bank["bass_weight"]) > 0.95
+        assert np.mean(bass_bank["band_pressure"]) < 0.45
+        assert surface_snapshot(bass_bank, 0)["pressure_state"] != "pressurized"
+        assert np.mean(dense_bank["band_pressure"]) > np.mean(bass_bank["band_pressure"]) + 0.10
+
     def test_surface_feature_bank_rejects_non_positive_hop(self):
         from galdr.surface import compute_surface_feature_bank
 
