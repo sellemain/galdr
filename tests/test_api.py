@@ -69,7 +69,8 @@ def test_assemble_accepts_raw_analysis_dict():
 
     assert "## Galdr Analysis" in prompt
     assert "Duration: 1:01 (61.0s)" in prompt
-    assert "Pulse: detected ~90.0 BPM" in prompt
+    assert "Pulse: moderate pulse (detected)" in prompt
+    assert "BPM" not in prompt
 
 
 def test_python_module_entrypoint_help():

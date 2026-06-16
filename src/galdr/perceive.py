@@ -25,6 +25,7 @@ from scipy.ndimage import uniform_filter1d
 from .analyze import compute_body, compute_weight
 from .audio_context import AudioContext, load_audio_context
 from .provenance import SCHEMA_VERSION, artifact_metadata
+from .surface import compute_surface_feature_bank, surface_snapshot
 from .constants import (
     ATTENTION_WINDOW_SEC, ATTENTION_HOP_SEC, ATTENTION_MIN_BEATS,
     DISRUPTION_WEIGHT_BEAT, DISRUPTION_WEIGHT_SPECTRAL, DISRUPTION_WEIGHT_ENERGY,
@@ -550,6 +551,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     hp_times, h_energy, p_energy, hp_balance = compute_harmonic_percussive_attention(
         y, sr, duration, hop_sec=hop_sec
     )
+    surface_bank = compute_surface_feature_bank(y, sr, hop_sec=hop_sec)
 
     silence_reentries = compute_silence_reentries(
         silences, m_times, attention, pressure, loudness["loudness_delta"], duration
@@ -588,7 +590,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         local_harmonic = float(np.mean(h_energy[frame_mask]))
         local_percussive = float(np.mean(p_energy[frame_mask]))
         total_texture = local_harmonic + local_percussive
-        texture = local_percussive / total_texture if total_texture > HP_BALANCE_MIN_ENERGY else 0.0
+        surface_balance = local_percussive / total_texture if total_texture > HP_BALANCE_MIN_ENERGY else 0.0
 
         rms_mask = (rms_times >= start) & (rms_times < end)
         local_rms = rms[rms_mask]
@@ -601,14 +603,14 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             pulse=pulse,
             pulse_confidence=pulse_confidence,
             pulse_ambiguous=False,
-            texture=texture,
+            surface_balance=surface_balance,
             onsets_per_second=onsets_per_second,
         )
         weight = compute_weight(
             pulse=pulse,
             pulse_confidence=pulse_confidence,
             body=body["body"],
-            texture=texture,
+            surface_balance=surface_balance,
             onsets_per_second=onsets_per_second,
             harmonic_weight=local_harmonic,
             percussive_weight=local_percussive,
@@ -702,18 +704,18 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             return False
 
         body_vals = [float(e["body"]) for e in phrase]
-        texture_vals = [float(e["texture"]) for e in phrase]
+        surface_balance_vals = [float(e["surface_balance"]) for e in phrase]
         loudness_vals = [float(e["loudness_lufs"]) for e in phrase if e.get("loudness_lufs") is not None]
         if not loudness_vals:
             return False
 
         body_range = max(body_vals) - min(body_vals)
-        texture_range = max(texture_vals) - min(texture_vals)
+        surface_balance_range = max(surface_balance_vals) - min(surface_balance_vals)
         loudness_range = max(loudness_vals) - min(loudness_vals)
 
         return (
             body_range <= EVENT_WDS_PHRASE_BODY_DELTA_MAX
-            and texture_range <= EVENT_WDS_PHRASE_TEXTURE_DELTA_MAX
+            and surface_balance_range <= EVENT_WDS_PHRASE_TEXTURE_DELTA_MAX
             and loudness_range <= EVENT_WDS_PHRASE_LOUDNESS_DELTA_MAX
         )
 
@@ -756,19 +758,19 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
 
         baseline = lookback[: max(3, len(lookback) // 2)]
         base_loudness = float(np.mean([float(e["loudness_lufs"]) for e in baseline]))
-        base_texture = float(np.mean([float(e["texture"]) for e in baseline]))
+        base_surface_balance = float(np.mean([float(e["surface_balance"]) for e in baseline]))
         base_percussive = float(np.mean([float(e["percussive_weight"]) for e in baseline]))
 
         loudness_rise = float(entry["loudness_lufs"]) - base_loudness
-        texture_rise = float(entry["texture"]) - base_texture
+        surface_balance_rise = float(entry["surface_balance"]) - base_surface_balance
         percussive_ratio = float(entry["percussive_weight"]) / max(base_percussive, 1e-6)
 
         body_holds = float(entry["body"]) >= EVENT_SURFACE_BODY_HOLD_MIN
         pattern_holds = float(entry["pattern"]) >= EVENT_SURFACE_PATTERN_HOLD_MIN
         hardens = (
             loudness_rise >= EVENT_SURFACE_LOUDNESS_RISE_LUFS
-            and texture_rise >= EVENT_SURFACE_TEXTURE_RISE
-            and float(entry["texture"]) >= EVENT_SURFACE_CURRENT_TEXTURE_MIN
+            and surface_balance_rise >= EVENT_SURFACE_TEXTURE_RISE
+            and float(entry["surface_balance"]) >= EVENT_SURFACE_CURRENT_TEXTURE_MIN
             and float(entry["percussive_weight"]) >= EVENT_SURFACE_CURRENT_PERCUSSIVE_MIN
             and percussive_ratio >= EVENT_SURFACE_PERCUSSIVE_RISE_RATIO
             and body_holds
@@ -777,7 +779,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
 
         if hardens:
             entry["surface_loudness_rise_lufs"] = round(loudness_rise, 2)
-            entry["surface_texture_rise"] = round(texture_rise, 3)
+            entry["surface_balance_rise"] = round(surface_balance_rise, 3)
             entry["surface_percussive_ratio"] = round(percussive_ratio, 2)
         return hardens
 
@@ -805,24 +807,24 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         recent_loudness = float(np.mean([float(e["loudness_lufs"]) for e in recent]))
         base_energy = float(np.mean([float(e["rms_energy"]) for e in baseline]))
         recent_energy = float(np.mean([float(e["rms_energy"]) for e in recent]))
-        base_texture = float(np.mean([float(e["texture"]) for e in baseline]))
-        recent_texture = float(np.mean([float(e["texture"]) for e in recent]))
+        base_surface_balance = float(np.mean([float(e["surface_balance"]) for e in baseline]))
+        recent_surface_balance = float(np.mean([float(e["surface_balance"]) for e in recent]))
         recent_pattern = float(np.mean([float(e["pattern"]) for e in recent]))
 
         loudness_delta = float(entry["loudness_lufs"]) - base_loudness
         recent_loudness_delta = recent_loudness - base_loudness
         energy_delta = float(entry["rms_energy"]) - base_energy
-        texture_delta = float(entry["texture"]) - base_texture
+        surface_balance_delta = float(entry["surface_balance"]) - base_surface_balance
         disruption_now = 1.0 - float(entry["pattern"])
 
         entry["phrase_loudness_delta_lufs"] = round(loudness_delta, 2)
         entry["phrase_energy_delta"] = round(energy_delta, 4)
-        entry["phrase_texture_delta"] = round(texture_delta, 3)
+        entry["phrase_surface_balance_delta"] = round(surface_balance_delta, 3)
 
         if (
             loudness_delta >= EVENT_PHRASE_LIFT_LUFS
             and energy_delta >= EVENT_PHRASE_ENERGY_SURGE
-            and texture_delta >= EVENT_PHRASE_SPECTRAL_FLASH
+            and surface_balance_delta >= EVENT_PHRASE_SPECTRAL_FLASH
         ):
             return "ornamental_flash", "bright local flash inside the phrase"
         if loudness_delta >= EVENT_PHRASE_LIFT_LUFS and energy_delta >= EVENT_PHRASE_ENERGY_SURGE:
@@ -878,6 +880,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         debt_input = disruption_debt + pressure_debt + drift_debt + comfort_debt
         debt_decay = 0.968 - min(0.018, release_force * 0.010)
         expectation_debt = float(np.clip(expectation_debt * debt_decay + debt_input - release_force * 0.24, 0.0, 1.0))
+        surface_evidence = surface_snapshot(surface_bank, i)
         entry = {
             "t": round(float(t), 3),
             "rms_energy": round(float(rms_energy[i]), 4),
@@ -908,9 +911,10 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
                 else "sustaining"
             ),
             "loudness_silence": bool(loudness["silence_mask"][i]),
-            "texture": round(float(hp_balance[i]), 3),
+            "surface_balance": round(float(hp_balance[i]), 3),
             "harmonic_weight": round(float(h_energy[i]), 4),
             "percussive_weight": round(float(p_energy[i]), 4),
+            "surface_evidence": surface_evidence,
         }
 
         # Mark if we're in a silence, or just after one.
@@ -1235,6 +1239,20 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         "body_comfort",
         "surface_density",
     )
+    surface_metric_fields = (
+        "roughness",
+        "noise_density",
+        "transient_attack",
+        "sustain_drone",
+        "band_pressure",
+        "surface_motion",
+        "punch",
+        "bass_weight",
+        "body_weight",
+        "presence_weight",
+        "air_weight",
+        "brightness_tilt",
+    )
     stream_metric_means = {
         f"mean_{field}": round(float(np.mean([float(e[field]) for e in stream])), 3)
         for field in stream_metric_fields
@@ -1243,6 +1261,20 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     stream_metric_peaks = {
         f"peak_{field}": round(float(np.max([float(e[field]) for e in stream])), 3)
         for field in stream_metric_fields
+        if stream
+    }
+    surface_metric_means = {
+        f"mean_surface_{field}": round(float(np.mean([
+            float(e["surface_evidence"][field]) for e in stream
+        ])), 3)
+        for field in surface_metric_fields
+        if stream
+    }
+    surface_metric_peaks = {
+        f"peak_surface_{field}": round(float(np.max([
+            float(e["surface_evidence"][field]) for e in stream
+        ])), 3)
+        for field in surface_metric_fields
         if stream
     }
 
@@ -1280,6 +1312,8 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
         },
         **stream_metric_means,
         **stream_metric_peaks,
+        **surface_metric_means,
+        **surface_metric_peaks,
     }
 
     # Count pattern_breaks by type
@@ -1444,7 +1478,7 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
         print(f"  Perception plot saved.")
 
         # 2. HP Balance over time
-        print("  Generating texture balance plot...")
+        print("  Generating surface balance plot...")
         fig, ax = plt.subplots(figsize=(fig_w, fig_h))
         ax.fill_between(hp_times, hp_balance, where=hp_balance < 0, alpha=0.4,
                         color="#2ecc71", label="harmonic dominant")

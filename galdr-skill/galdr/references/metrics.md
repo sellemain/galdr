@@ -56,22 +56,24 @@ High pulse + complex time signature (5/8, 7/8) = metric complexity is orthogonal
 
 ---
 
-## Texture (`texture`, `mean_texture`)
+## Surface balance (`surface_balance`, `mean_surface_balance`)
 
 **Range:** -1.0 to 1.0
 **What it is:** Where the track's weight sits between sustained harmonic sound and percussive impact. Negative values feel more tonal, vocal, droning, or atmospheric; positive values feel more struck, rhythmic, attack-heavy, or drum-forward.
 
-**How it is calculated:** harmonic/percussive source separation energy, smoothed into the perception stream. Very low total energy is treated as neutral so silence does not pretend to have texture.
+**How it is calculated:** harmonic/percussive source separation energy, smoothed into the perception stream. Very low total energy is treated as neutral so silence does not pretend to have a surface-balance claim.
+
+`surface_evidence` carries the local evidence behind the reading: roughness, noise density, transient attack, sustain/drone, band pressure, surface motion, punch, band weights, and brightness tilt.
 
 | Value | Meaning |
 |-------|---------|
 | < -0.5 | Strongly harmonic. Warm, tonal, sustained. Choirs, strings, pads. |
-| -0.5 to -0.2 | Harmonic dominant with texture. |
+| -0.5 to -0.2 | Harmonic dominant with surface detail. |
 | -0.2 to 0.2 | Balanced. Mixed character. |
 | 0.2 to 0.5 | Percussive with harmonic content. |
 | > 0.5 | Strongly percussive. Drum-forward, rhythmic emphasis. |
 
-Deepening negative texture across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
+Deepening negative surface balance across a track = harmonic weight increasing (dissolution, closing, ending accumulation).
 
 ---
 
@@ -209,7 +211,7 @@ Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.4
 | 0.15–0.30 | Clear vocal lead. |
 | >0.30 | Voice dominates the mix. |
 
-Low foreground pitch evidence + high texture negative = pure harmonic texture. High foreground pitch evidence + descending melody = voice/lead-forward with falling contour (often resignation/descent arc).
+Low foreground pitch evidence + deeply negative surface balance = pure harmonic surface. High foreground pitch evidence + descending melody = voice/lead-forward with falling contour (often resignation/descent arc).
 
 ---
 
@@ -248,7 +250,7 @@ Ascending contour during climax = conventional arc. Descending during what sound
 | `attention` | Beat regularity × beat density in rolling windows |
 | `pressure` / `pressure_state` | Short-term LUFS movement |
 | `pattern` | `1.0 - disruption`; disruption = beat + spectral + energy expectation failures |
-| `texture` | Harmonic/percussive separated energy |
+| `surface_balance` | Harmonic/percussive separated energy |
 | `pitch_grid` | Chroma concentration in equal-tempered pitch classes |
 | `interval_coherence` | Chroma interval relationships weighted by energy |
 | `harmonic_pull` | Tonnetz velocity |

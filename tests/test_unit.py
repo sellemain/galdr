@@ -553,9 +553,8 @@ class TestAssemblePrompt:
         # Galdr metrics block is included in all modes
         for mode in ("blind", "lyrics", "context", "full"):
             result = self.fn(self._minimal_analysis(), mode=mode)
-            # tempo should always appear in the metrics section
-            assert "120" in result or "bpm" in result.lower(), \
-                f"Metrics missing from mode={mode}"
+            # tempo should always appear in the metrics section as felt language
+            assert "Pulse:" in result, f"Metrics missing from mode={mode}"
 
     def test_ambiguous_tempo_not_presented_as_plain_truth(self):
         analysis = {
@@ -571,9 +570,9 @@ class TestAssemblePrompt:
         result = self.fn(analysis, mode="blind")
 
         assert "Tempo: 92.3 BPM" not in result
-        assert "felt ~140.8 BPM" in result
-        assert "detected pulse 92.3 BPM" in result
-        assert "ambiguous/suspect" in result
+        assert "BPM" not in result
+        assert "Pulse: fast pulse" in result
+        assert "detected pulse ambiguous/suspect" in result
 
     def test_stream_arc_structure_is_included_for_experience_prompt(self):
         stream = []
@@ -618,7 +617,7 @@ def _sm308_analysis():
             "pulse": 0.76,
             "harmonic_weight": 0.7,
             "percussive_weight": 0.3,
-            "texture": -0.4,
+            "surface_balance": -0.4,
             "character": "pure harmonic/vocal",
         },
         "perception": {
@@ -949,6 +948,7 @@ class TestLufsPressureMotion:
         assert "loudness_lufs" in entry
         assert "pressure_lufs_delta" in entry
         assert "pressure_state" in entry
+        assert "surface_evidence" in entry
         assert "body" in entry
         assert "body_state" in entry
         assert "weight" in entry
@@ -967,6 +967,17 @@ class TestLufsPressureMotion:
             assert 0.0 <= entry[field] <= 1.0
             assert f"mean_{field}" in summary
             assert f"peak_{field}" in summary
+        for field in (
+            "roughness",
+            "noise_density",
+            "transient_attack",
+            "sustain_drone",
+            "band_pressure",
+        ):
+            assert field in entry["surface_evidence"]
+            assert 0.0 <= entry["surface_evidence"][field] <= 1.0
+            assert f"mean_surface_{field}" in summary
+            assert f"peak_surface_{field}" in summary
         event_entries = [e for e in report["stream"] if "event" in e]
         assert event_entries
         assert "event_note" in event_entries[0]
@@ -1077,7 +1088,7 @@ def test_compute_body_separates_body_lock_from_raw_tempo():
         pulse=0.94,
         pulse_confidence=0.92,
         pulse_ambiguous=False,
-        texture=0.62,
+        surface_balance=0.62,
         onsets_per_second=3.2,
     )
     loose = compute_body(
@@ -1086,7 +1097,7 @@ def test_compute_body_separates_body_lock_from_raw_tempo():
         pulse=0.94,
         pulse_confidence=0.92,
         pulse_ambiguous=False,
-        texture=0.05,
+        surface_balance=0.05,
         onsets_per_second=0.15,
     )
 
@@ -1105,7 +1116,7 @@ def test_compute_body_damps_ambiguous_pulse():
         pulse=0.88,
         pulse_confidence=0.8,
         pulse_ambiguous=False,
-        texture=0.5,
+        surface_balance=0.5,
         onsets_per_second=2.5,
     )
     ambiguous = compute_body(
@@ -1114,7 +1125,7 @@ def test_compute_body_damps_ambiguous_pulse():
         pulse=0.88,
         pulse_confidence=0.8,
         pulse_ambiguous=True,
-        texture=0.5,
+        surface_balance=0.5,
         onsets_per_second=2.5,
     )
 
@@ -1129,7 +1140,7 @@ def test_compute_weight_separates_drag_from_motor_lock():
         pulse=0.95,
         pulse_confidence=0.60,
         body=0.52,
-        texture=0.31,
+        surface_balance=0.31,
         onsets_per_second=1.7,
         harmonic_weight=0.21,
         percussive_weight=0.095,
@@ -1139,7 +1150,7 @@ def test_compute_weight_separates_drag_from_motor_lock():
         pulse=0.97,
         pulse_confidence=0.90,
         body=0.78,
-        texture=0.35,
+        surface_balance=0.35,
         onsets_per_second=4.2,
         harmonic_weight=0.12,
         percussive_weight=0.065,
@@ -1625,7 +1636,7 @@ def test_salience_factorizes_ambient_field_as_force_without_motor_lock():
             "body": 0.02,
             "weight": 0.71,
             "weight_state": "heavy",
-            "texture": 0.10,
+            "surface_balance": 0.10,
             "metric_tension": 0.0,
         },
         "perception": {
@@ -2244,3 +2255,96 @@ def test_caption_confidence_accepts_clean_dense_lyrics_and_keeps_raw_captions(tm
     assert lyrics[0]["confidence"] == "high"
     assert cues[1]["kind"] == "caption"
     assert len(lyrics) == 1
+
+
+class TestSurfaceFeatureBank:
+    def test_surface_feature_bank_outputs_bounded_listener_evidence(self):
+        from galdr.surface import compute_surface_feature_bank, surface_snapshot
+
+        sr = 22050
+        t = np.linspace(0, 2.0, sr * 2, endpoint=False)
+        tone = 0.15 * np.sin(2 * np.pi * 220 * t)
+        click = np.zeros_like(tone)
+        click[:: sr // 4] = 0.8
+        y = (tone + click).astype(np.float32)
+
+        bank = compute_surface_feature_bank(y, sr, hop_sec=0.5)
+
+        assert bank["hop_sec"] == pytest.approx(0.5)
+        assert len(bank["times"]) == 4
+        bounded_fields = (
+            "roughness",
+            "noise_density",
+            "transient_attack",
+            "sustain_drone",
+            "band_pressure",
+            "surface_motion",
+            "punch",
+            "bass_weight",
+            "body_weight",
+            "presence_weight",
+            "air_weight",
+            "brightness_tilt",
+            "percussive_ratio",
+        )
+        for field in bounded_fields:
+            assert len(bank[field]) == len(bank["times"])
+            assert all(0.0 <= value <= 1.0 for value in bank[field])
+
+        for field in ("harmonic_rms", "percussive_rms"):
+            assert len(bank[field]) == len(bank["times"])
+            assert all(value >= 0.0 for value in bank[field])
+
+        snapshot = surface_snapshot(bank, 0)
+        assert snapshot["roughness_state"] in {"smooth", "grained", "abrasive"}
+        assert snapshot["motion_state"] in {"sustained", "moving", "striking"}
+        assert snapshot["pressure_state"] in {"thin", "held", "pressurized"}
+        assert snapshot["tilt_state"] in {"dark", "balanced", "bright"}
+        assert 0.0 <= snapshot["percussive_ratio"] <= 1.0
+
+    def test_surface_feature_bank_separates_tone_noise_and_attacks(self):
+        from galdr.surface import compute_surface_feature_bank, surface_snapshot
+
+        sr = 22050
+        t = np.linspace(0, 2.0, sr * 2, endpoint=False)
+        tone = (0.15 * np.sin(2 * np.pi * 220 * t)).astype(np.float32)
+        rng = np.random.default_rng(7)
+        noise = (0.08 * rng.standard_normal(len(t))).astype(np.float32)
+        click = np.zeros_like(tone)
+        click[:: sr // 4] = 0.8
+        clicky = (tone + click).astype(np.float32)
+
+        tone_bank = compute_surface_feature_bank(tone, sr, hop_sec=0.5)
+        noise_bank = compute_surface_feature_bank(noise, sr, hop_sec=0.5)
+        click_bank = compute_surface_feature_bank(clicky, sr, hop_sec=0.5)
+
+        assert np.mean(noise_bank["noise_density"]) > np.mean(tone_bank["noise_density"])
+        assert np.mean(noise_bank["roughness"]) > np.mean(tone_bank["roughness"])
+        assert surface_snapshot(noise_bank, 0)["roughness_state"] == "abrasive"
+        assert surface_snapshot(click_bank, 0)["roughness_state"] == "smooth"
+        assert np.mean(click_bank["transient_attack"]) > np.mean(tone_bank["transient_attack"])
+        assert np.mean(click_bank["surface_motion"]) > np.mean(tone_bank["surface_motion"])
+        assert np.mean(click_bank["punch"]) > np.mean(tone_bank["punch"])
+        assert np.mean(tone_bank["sustain_drone"]) > np.mean(click_bank["sustain_drone"])
+
+
+    def test_surface_feature_bank_tracks_band_balance_and_brightness_tilt(self):
+        from galdr.surface import compute_surface_feature_bank
+
+        sr = 22050
+        t = np.linspace(0, 2.0, sr * 2, endpoint=False)
+        bass = (0.15 * np.sin(2 * np.pi * 80 * t)).astype(np.float32)
+        air = (0.15 * np.sin(2 * np.pi * 6000 * t)).astype(np.float32)
+
+        bass_bank = compute_surface_feature_bank(bass, sr, hop_sec=0.5)
+        air_bank = compute_surface_feature_bank(air, sr, hop_sec=0.5)
+
+        assert np.mean(bass_bank["bass_weight"]) > np.mean(air_bank["bass_weight"])
+        assert np.mean(air_bank["air_weight"]) > np.mean(bass_bank["air_weight"])
+        assert np.mean(air_bank["brightness_tilt"]) > np.mean(bass_bank["brightness_tilt"])
+
+    def test_surface_feature_bank_rejects_non_positive_hop(self):
+        from galdr.surface import compute_surface_feature_bank
+
+        with pytest.raises(ValueError, match="hop_sec must be positive"):
+            compute_surface_feature_bank(np.ones(22050, dtype=np.float32), 22050, hop_sec=0)

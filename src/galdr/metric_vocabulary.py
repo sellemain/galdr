@@ -42,7 +42,7 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Beat-interval regularity from detected beat positions.",
         "High pulse means the beat grid is stable; low pulse means the pulse is absent, ambiguous, or deliberately fluid.",
         "steady pulse, metronomic grid, organic drift, unstable pulse, no reliable pulse",
-        "Low pulse is not a flaw. Some music is unpulsed, rubato, ambient, or organized by breath and texture instead of beat.",
+        "Low pulse is not a flaw. Some music is unpulsed, rubato, ambient, or organized by breath and surface balance instead of beat.",
     ),
     MetricVocabulary(
         "body",
@@ -132,7 +132,7 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Onset density, spectral motion, energy motion, and harmonic/percussive surface detail.",
         "High surface density means the moment is busy, detailed, or texturally loaded; low density means sparse, smooth, or sustained surface.",
         "busy surface, detail load, particulate motion, sparse surface, smooth wall, dense shimmer",
-        "Density is not heaviness. A loud sustained wall can be low-density; a quiet texture can be dense.",
+        "Density is not heaviness. A loud sustained wall can be low-density; a quiet surface balance can be dense.",
     ),
     MetricVocabulary(
         "weight",
@@ -162,13 +162,94 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Pressure is motion in heard loudness, not emotional drama by itself. Compression and mastering can affect it.",
     ),
     MetricVocabulary(
-        "texture",
-        "Texture",
+        "surface_balance",
+        "Surface balance",
         "Whether sonic weight sits in sustained tone or percussive attack.",
         "Harmonic/percussive separated energy balance.",
-        "Negative texture means sustained tone, voice, drone, or harmony dominates; positive texture means strike, groove, attack, or percussion dominates.",
+        "Negative surface balance means sustained tone, voice, drone, or harmony dominates; positive surface balance means strike, groove, attack, or percussion dominates.",
         "harmonic warmth, percussive edge, strike, drone, tonal atmosphere, surface hardens",
-        "Texture depends on source separation quality. Treat it as evidence about the surface, not proof of instrumentation.",
+        "Surface balance depends on source separation quality. Treat it as evidence about the surface, not proof of instrumentation.",
+    ),
+    MetricVocabulary(
+        "roughness",
+        "Roughness",
+        "How much the local surface feels grained, noisy, saturated, or inharmonic.",
+        "Spectral flatness, zero-crossing activity, centroid, and contrast combined into bounded surface evidence.",
+        "High roughness means the surface is grained or abrasive; low roughness means it is smooth, clean, or fused.",
+        "grained surface, abrasive edge, saturated texture, smooth tone, fused resonance",
+        "Roughness is timbral evidence, not heaviness or intensity. Distortion, noisy synths, harsh cymbal wash, and inharmonicity can raise it; clean loud grooves may stay smooth.",
+    ),
+    MetricVocabulary(
+        "surface_motion",
+        "Surface motion",
+        "How quickly the timbral surface changes from moment to moment.",
+        "Short-window spectral flux from adjacent magnitude spectra.",
+        "High surface motion means the surface is flickering, turning, or actively changing; low surface motion means it is sustained or stable.",
+        "surface flickers, timbre turns, restless skin, stable surface, slow-moving wall",
+        "Surface motion is not section detection. It is local change-rate evidence, not a label for musical form.",
+    ),
+    MetricVocabulary(
+        "band_pressure",
+        "Band pressure",
+        "How much local energy concentrates in low and body bands where physical pressure is usually felt.",
+        "Coarse bass/body-band energy weighting blended with local loudness evidence.",
+        "High band pressure means the sound may feel grounded, weighted, or physically forward; low band pressure means the surface may feel thin or withheld.",
+        "low pressure, body pressure, weighted floor, held low band, thin surface",
+        "Band pressure is evidence, not prose truth. Bass-forward or warm mastered tracks can score high without feeling narratively pressurized; check loudness motion, body capture, and the surrounding arc before writing pressure claims.",
+    ),
+    MetricVocabulary(
+        "punch",
+        "Punch",
+        "How sharply the waveform peaks above its local body.",
+        "Local crest factor from peak amplitude over RMS energy.",
+        "High punch means impact or transient snap rises above the average body; low punch means the sound is more even, compressed, or sustained.",
+        "punch lands, sharp impact, transient snap, flattened wall, even pressure",
+        "Punch is not loudness. A quiet click can be punchy; a loud wall can have little crest left. Do not write impact from punch alone without loudness, body, or pressure context.",
+    ),
+    MetricVocabulary(
+        "bass_weight",
+        "Bass weight",
+        "How much local energy sits in the low band.",
+        "Relative power from roughly 20-160 Hz.",
+        "High bass weight means the surface is grounded low; low bass weight means the bottom is withheld or carried elsewhere.",
+        "low floor, bass weight, grounded body, bottom drops out",
+        "Band splits are coarse. Use as color/weight evidence, not exact instrumentation.",
+    ),
+    MetricVocabulary(
+        "body_weight",
+        "Body-band weight",
+        "How much local energy sits in the low-mid body band.",
+        "Relative power from roughly 160-800 Hz.",
+        "High body-band weight means warmth, chest, or mid-body mass is carrying the surface.",
+        "body band, chest weight, warm mass, low-mid pressure",
+        "Band splits are coarse and mix fundamentals, overtones, and production choices.",
+    ),
+    MetricVocabulary(
+        "presence_weight",
+        "Presence weight",
+        "How much local energy sits in the presence band.",
+        "Relative power from roughly 800-4000 Hz.",
+        "High presence weight means the surface presses forward, speaks, bites, or occupies the perceptual front.",
+        "presence bite, forward surface, voice edge, glare, pressed mids",
+        "Presence does not prove vocals or lead instruments. It is frequency-placement evidence.",
+    ),
+    MetricVocabulary(
+        "air_weight",
+        "Air weight",
+        "How much local energy sits in the upper air band.",
+        "Relative power above roughly 4000 Hz.",
+        "High air weight means hiss, shimmer, brightness, cymbal air, or upper edge is prominent.",
+        "air, shimmer, hiss, upper edge, sparkle, brittle top",
+        "Air can come from noise, cymbals, distortion, mastering, or artifacts. Do not over-name the source.",
+    ),
+    MetricVocabulary(
+        "brightness_tilt",
+        "Brightness tilt",
+        "Whether the local surface leans dark/low or bright/high.",
+        "Blend of high-band energy share and spectral centroid brightness.",
+        "High brightness tilt means the surface leans upward, bright, sharp, or airy; low brightness tilt means it leans dark, low, or covered.",
+        "bright tilt, dark tilt, upper glare, covered tone, air opens",
+        "Brightness tilt is not emotional brightness. It is spectral placement.",
     ),
     MetricVocabulary(
         "harmonic_pull",
@@ -261,6 +342,10 @@ def glossary_lines(fields: list[str] | tuple[str, ...] | None = None) -> list[st
     """Return compact glossary lines for LLM prompt/context assembly."""
     metrics = METRICS if fields is None else tuple(vocabulary(field) for field in fields)
     return [
-        f"- `{metric.field}` ({metric.display}): {metric.definition} Evidence: {metric.evidence} Caveat: {metric.caveat}"
+        f"- `{metric.field}` ({metric.display}): {metric.definition} "
+        f"Evidence: {metric.evidence} "
+        f"Listener reading: {metric.listener_reading} "
+        f"Use as: {metric.prose_language}. "
+        f"Caveat: {metric.caveat}"
         for metric in metrics
     ]

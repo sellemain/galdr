@@ -291,8 +291,32 @@ def _fmt_time(seconds: float) -> str:
     return f"{m}:{s:02d}"
 
 
+def _tempo_feel(value: float) -> str:
+    """Translate raw BPM into listener-facing pulse language."""
+    if value <= 0:
+        return "unknown pulse"
+    if value < 75:
+        return "slow pulse"
+    if value < 105:
+        return "moderate pulse"
+    if value < 140:
+        return "quick pulse"
+    if value < 175:
+        return "fast pulse"
+    return "very fast pulse"
+
+
+def _confidence_feel(value: float) -> str:
+    """Translate numeric pulse confidence without leaking metric values."""
+    if value < 0.35:
+        return "low confidence"
+    if value < 0.70:
+        return "moderate confidence"
+    return "high confidence"
+
+
 def _fmt_tempo(report: dict) -> str:
-    """Format tempo without presenting suspect alternate pulses as plain truth."""
+    """Format tempo as felt pulse language, not raw BPM."""
     detected = report.get("detected_pulse_bpm", 0)
     felt = report.get("felt_pulse_bpm")
     confidence = report.get("pulse_confidence")
@@ -300,17 +324,14 @@ def _fmt_tempo(report: dict) -> str:
     note = report.get("pulse_note")
 
     if felt is None:
-        return f"Pulse: detected ~{float(detected):.1f} BPM"
+        return f"Pulse: {_tempo_feel(float(detected))} (detected)"
 
+    line = f"Pulse: {_tempo_feel(float(felt))}"
     if ambiguous or abs(float(felt) - float(detected)) >= 1.0:
-        line = f"Pulse: felt ~{float(felt):.1f} BPM"
-        if detected:
-            line += f" (detected pulse {float(detected):.1f} BPM; ambiguous/suspect)"
-    else:
-        line = f"Pulse: {float(felt):.1f} BPM"
+        line += " (felt pulse; detected pulse ambiguous/suspect)"
 
     if confidence is not None:
-        line += f"; confidence {float(confidence):.2f}"
+        line += f"; {_confidence_feel(float(confidence))}"
     if note:
         line += f" — {note}"
     return line
@@ -728,13 +749,13 @@ def _build_metrics(analysis: dict) -> str:
     if arc_structure:
         lines.append("\n" + arc_structure)
 
-    # Texture balance derived from report harmonic/percussive weight ratio
+    # Surface balance derived from report harmonic/percussive weight ratio
     if har_e or perc_e:
         total = har_e + perc_e
         if total > 0:
-            texture = (perc_e - har_e) / total  # negative = harmonic dominant
-            texture_label = "harmonic dominant (tonal, warm)" if texture < -0.2 else "percussive dominant" if texture > 0.2 else "balanced"
-            lines.append(f"{display_name('texture')}: {texture:.3f} ({texture_label})")
+            surface_balance = (perc_e - har_e) / total  # negative = harmonic dominant
+            surface_balance_label = "harmonic dominant (tonal, warm)" if surface_balance < -0.2 else "percussive dominant" if surface_balance > 0.2 else "balanced"
+            lines.append(f"{display_name('surface_balance')}: {surface_balance:.3f} ({surface_balance_label})")
 
     # Harmony surface: keep listener-state tension foregrounded.  Key/mode,
     # major/minor balance, and chord names remain internal evidence unless a
@@ -762,6 +783,10 @@ def _build_metrics(analysis: dict) -> str:
             )
 
     lines.append("\n### Metric glossary\n")
+    lines.append(
+        "Use the `Use as` phrases as translation cues, not canned wording. "
+        "Prefer audible description over metric names, and check each caveat before making a strong prose claim."
+    )
     lines.extend(glossary_lines())
     lines.append("\n### How to read galdr\n")
     lines.append(
@@ -772,14 +797,14 @@ def _build_metrics(analysis: dict) -> str:
     lines.append(
         "Macro events change the listening landscape: attention, body lock, weight, "
         "surface change, pressure movement, pattern break, and silence. Phrase events "
-        "are local motion inside that landscape and usually become texture within a paragraph."
+        "are local motion inside that landscape and usually become surface balance within a paragraph."
     )
     lines.append(
         "Metric families: pattern / pulse = reliability and carried time; "
         "body = whether the pulse has the body or merely offers itself; "
         "metric tension = cross-rhythm/accent pressure against a stable pulse; "
         "weight / weight arc = hold, suspension, or macro weight; "
-        "pressure = heard pressure movement; texture = harmonic warmth vs percussive edge; "
+        "pressure = heard pressure movement; surface_balance = harmonic warmth vs percussive edge; "
         "harmonic pull / chroma motion = tonal restlessness, drift, or pitch-color movement; "
         "phrase dynamics = local lift, drop, or flash, usually not structure."
     )

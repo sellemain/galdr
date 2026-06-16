@@ -1,6 +1,6 @@
 ---
 name: galdr
-description: OpenClaw skill for using galdr's ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, texture, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
+description: OpenClaw skill for using galdr's ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, surface balance/evidence, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
 version: "0.4.3"
 author: Sellemain
 license: MIT
@@ -196,7 +196,7 @@ See [references/metrics.md](references/metrics.md) for full metric reference.
 
 **Quick read:**
 - `pattern` near 1.0 → listener is locked; near 0 → constant disruption
-- `texture` negative → harmonic dominant (warm, tonal); positive → percussive dominant
+- `surface_balance` negative → harmonic dominant (warm, tonal); positive → percussive dominant
 - `pressure_balance` building/releasing/sustaining → heard-pressure shape across the track
 - Clustered `pattern_breaks` at the end → planned release; distributed → varied structure
 - `silence` depth below -60dB with re-lock above 0.93 attention → structured withdrawal/return

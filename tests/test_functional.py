@@ -57,7 +57,7 @@ def test_perception_stream_entry_keys(audio_path, tmp_path):
     report = generate_perception_stream(audio_path, str(tmp_path), "test-track")
     stream = report.get("stream", [])
 
-    expected_keys = {"t", "weight", "attention", "pattern", "pressure", "texture",
+    expected_keys = {"t", "weight", "attention", "pattern", "pressure", "surface_balance",
                      "harmonic_weight", "percussive_weight"}
     for entry in stream:
         assert expected_keys.issubset(entry.keys()), (
@@ -106,7 +106,7 @@ def test_analyze_track_report_structure(audio_path, tmp_path):
 
     assert isinstance(report, dict)
     for key in ["track", "duration_seconds", "detected_pulse_bpm", "felt_pulse_bpm", "beat_count",
-                 "pulse", "texture", "weight_arc"]:
+                 "pulse", "surface_balance", "weight_arc"]:
         assert key in report, f"Missing report key: {key}"
     assert report["track"] == "test-track"
     assert report["duration_seconds"] > 0

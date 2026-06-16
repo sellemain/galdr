@@ -36,7 +36,7 @@ Galdr keeps three layers separate:
 | `weight` | Weight | weight, drag, suspension, or room-pressure arrives |
 | `weight_arc` | Weight arc | where the track puts macro weight over time |
 | `pressure` | Pressure | pressure builds, releases, sustains, or empties |
-| `texture` | Texture | weight sits in sustained tone or percussive attack |
+| `surface_balance` | Surface balance | weight sits in sustained tone or percussive attack |
 | `harmonic_pull` | Harmonic pull | the tonal field moves, pulls, or refuses to settle |
 | `chroma_motion` | Chroma motion | harmonic color changes over time |
 | `tonal_anchor` | Tonal anchor | the local key center holds or loosens |
@@ -77,10 +77,10 @@ Do not write "LUFS rises from -27 to -20" in experience prose. That belongs in d
 
 ---
 
-### `texture`
-Display name: **Texture**. Where the track's weight sits between sustained harmonic sound and percussive impact. Negative = harmonic/vocal dominant. Positive = percussive dominant.
+### `surface_balance`
+Display name: **Surface balance**. Where the track's weight sits between sustained harmonic sound and percussive impact. Negative = harmonic/vocal dominant. Positive = percussive dominant.
 
-Implementation evidence: harmonic/percussive source separation energy, smoothed at the perception-stream hop. Very low total energy is treated as neutral rather than forcing a false texture claim.
+Implementation evidence: harmonic/percussive source separation energy, smoothed at the perception-stream hop. Very low total energy is treated as neutral rather than forcing a false surface-balance claim.
 
 Deep negative values often feel like voice, drone, strings, choir, or tonal atmosphere taking over the room. Strong positive values feel like strike, groove, attack, or drum-forward physicality. The deepest negative values typically occur when only a single voice remains.
 
@@ -103,6 +103,8 @@ In prose, use capture language for seizure and motor grip; use comfort language 
 `accent_phase_drift` measures how much local attacks spread around the beat grid instead of landing in one stable phase. High drift can mean accents are leaning, walking around the barline, or creating local grid friction. It is not proof of a notated polyrhythm.
 
 `metric_tension` is a track-level estimate of competing metric pressure. It looks for alternate tempo or periodicity evidence that does not collapse into simple half-time or double-time readings. Strong values mean the listener can feel the grid while another cycle leans against it.
+
+Tempo evidence should be translated before it reaches listening prose. Do not write raw BPM values in an experience. Write the felt pulse instead: slow, fast, dragging, rushing, steady, doubled, halved, leaning forward, or pulling against the main grid. Raw BPM belongs in debugging, comparison packets, and regression notes.
 
 This is deliberately conservative language. `metric_tension` is not a full polyrhythm detector. Treat it as cross-rhythm pressure evidence. If the dominant experience is body/pressure lock, the prompt may keep metric tension as a technical underlayer rather than making it the headline.
 
@@ -144,7 +146,7 @@ How cleanly the harmony sits inside familiar equal-tempered pitch space. High va
 
 Implementation evidence: concentration of chroma energy across pitch classes. This is an equal-tempered chroma measure, so use care with modal, folk-natural, microtonal, or noisy material.
 
-Low pitch_grid is not out-of-tune. Folk traditions, overtone singing, and ritual music frequently sit here by design. Often co-occurs with deeply negative texture.
+Low pitch_grid is not out-of-tune. Folk traditions, overtone singing, and ritual music frequently sit here by design. Often co-occurs with deeply negative surface balance.
 
 ---
 
@@ -198,7 +200,7 @@ Display name: **Weight arc**. The track divided into segments with mean and peak
 | `release_force` | Negative pressure weighted by prior debt | Whether a drop or opening pays back accumulated pressure |
 | `section_gravity` | Attention, pattern, body-lock, and grid stability | Whether a moment feels like a local anchor |
 | `surface_density` | Onset density plus spectral/energy surface motion | How busy or sparse the surface feels |
-| `texture` / Texture | Harmonic/percussive separated energy | Whether weight sits in sustained tone or attack |
+| `surface_balance` / Surface balance | Harmonic/percussive separated energy | Whether weight sits in sustained tone or attack |
 | `pitch_grid` | Chroma concentration in equal-tempered pitch classes | How centered or outside-the-grid the pitch world feels |
 | `interval_coherence` | Chroma interval relationships weighted by energy | How easily pitch classes organize into stable relations |
 | `harmonic_pull` | Tonnetz velocity | How much the harmonic field pulls or turns |
@@ -226,8 +228,11 @@ Stream values are time-indexed listener-state samples. Read them as motion:
 - **low `pattern`** → rhythm, texture, or energy has violated expectation
 - **positive `pressure`** → pressure is coming forward
 - **negative `pressure`** → pressure is releasing
-- **negative `texture`** → sustained tone, voice, drone, or harmony dominates
-- **positive `texture`** → strike, groove, attack, or percussion dominates
+- **negative `surface_balance`** → sustained tone, voice, drone, or harmony dominates
+- **positive `surface_balance`** → strike, groove, attack, or percussion dominates
+- **high `surface_evidence.roughness` / `roughness_state: grained|abrasive`** → the surface is grainy, saturated, noisy, or inharmonic; not automatically heavy
+- **high `surface_evidence.band_pressure` / `pressure_state: pressurized`** → low/body-band weight is present; confirm with loudness motion and body evidence before writing that the track feels pressurized
+- **high `surface_evidence.punch`** → peak snap rises above local body; confirm with loudness/body context before writing impact, because quiet attacks can be numerically punchy
 
 Events are narrative anchors derived from the stream. Macro events (`attention_arrives`, `body_lock_arrives`, `surface_hardens`, `weight_arrives`) describe major state changes. Phrase events (`phrase_lift`, `phrase_drop`, `ornamental_flash`) describe smaller local gestures inside a stable state. Events are not a checklist to recite. They are signposts for where prose should slow down and listen more closely.
 
@@ -242,7 +247,7 @@ Examples:
 
 - High `attention` + high `pattern` + steady `pressure` = the track has the listener and is holding them without strain.
 - High `attention` + low `pattern` = the listener is still gripped, but the surface is unstable or disruptive.
-- Negative `texture` + high `overtone_fit` = sustained pitched material is carrying the experience through resonance rather than impact.
+- Negative `surface_balance` + high `overtone_fit` = sustained pitched material is carrying the experience through resonance rather than impact.
 - Falling `pressure` + high `attention` = the pressure is releasing, but attention has not let go.
 - Silence + fast attention recovery = the music empties briefly, then reclaims the listener.
 
@@ -255,7 +260,7 @@ Treat field names as implementation labels. In public prose, do not write that a
 Reading galdr output is translating metrics into what is happening in the listener's body and attention.
 
 **Mechanical readout:**
-> "attention: 0.974 (high), pattern: 0.964 (high), texture: -0.518 (harmonic dominant), pressure_state: sustaining"
+> "attention: 0.974 (high), pattern: 0.964 (high), surface_balance: -0.518 (harmonic dominant), pressure_state: sustaining"
 
 **Perceptual description:**
 > "The track is fully locked — resonance has been running near-maximum for over five minutes without degrading. The rhythm is extremely metronomic, but this isn't rigidity — it's the steadiness of ritual, a pulse the listener can surrender to rather than track. The music is voice and harmony dominant throughout. The pressure holds rather than climbing or collapsing; the listener knows exactly where they are."

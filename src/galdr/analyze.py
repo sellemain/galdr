@@ -67,7 +67,7 @@ def compute_body(
     pulse: float,
     pulse_confidence: float | None,
     pulse_ambiguous: bool,
-    texture: float,
+    surface_balance: float,
     onsets_per_second: float,
 ) -> dict:
     """Estimate felt body-lock separately from raw tempo detection.
@@ -82,7 +82,7 @@ def compute_body(
     if pulse_ambiguous:
         pulse_component *= 0.75
 
-    percussive_component = float(np.clip(texture, 0.0, 1.0))
+    percussive_component = float(np.clip(surface_balance, 0.0, 1.0))
 
     # Body-lock needs audible events, but extra density stops helping once the
     # surface is busy enough.  4 onsets/sec is already plenty of handle.
@@ -138,7 +138,7 @@ def compute_weight(
     pulse: float,
     pulse_confidence: float | None,
     body: float,
-    texture: float,
+    surface_balance: float,
     onsets_per_second: float,
     harmonic_weight: float,
     percussive_weight: float,
@@ -158,9 +158,9 @@ def compute_weight(
     very_sparse = float(np.clip(1.0 - (onsets_per_second / 2.2), 0.0, 1.0))
     pulse_component = float(np.clip(pulse, 0.0, 1.0)) * pulse_conf
     drag_gap = float(np.clip((pulse_component - body) / 0.35, 0.0, 1.0))
-    texture_component = float(np.clip((0.55 - texture) / 0.55, 0.0, 1.0))
+    surface_balance_component = float(np.clip((0.55 - surface_balance) / 0.55, 0.0, 1.0))
     dynamics_component = float(np.clip(np.log10(max(dynamic_range_ratio, 1.0)) / 4.0, 0.0, 1.0))
-    pressure_component = harmonic_component * texture_component
+    pressure_component = harmonic_component * surface_balance_component
     suspended_pull = drag_gap * slow_density
 
     score = float(np.clip(
@@ -168,7 +168,7 @@ def compute_weight(
         + 0.24 * suspended_pull
         + 0.18 * harmonic_component
         + 0.14 * slow_density
-        + 0.10 * texture_component
+        + 0.10 * surface_balance_component
         + 0.06 * dynamics_component
         + 0.04 * very_sparse,
         0.0,
@@ -286,7 +286,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     y_percussive_plot = y_percussive[::plot_step].copy()
     del y_harmonic, y_percussive
 
-    # --- Zero crossing rate (texture) ---
+    # --- Zero crossing rate (surface texture) ---
     zcr = librosa.feature.zero_crossing_rate(y)[0]
 
     # --- Loudness / dynamics ---
@@ -305,14 +305,14 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         pulse=pulse,
         pulse_confidence=tempo_profile.get("pulse_confidence"),
         pulse_ambiguous=bool(tempo_profile.get("pulse_ambiguous")),
-        texture=perc_ratio,
+        surface_balance=perc_ratio,
         onsets_per_second=onsets_per_second,
     )
     weight = compute_weight(
         pulse=pulse,
         pulse_confidence=tempo_profile.get("pulse_confidence"),
         body=body["body"],
-        texture=perc_ratio,
+        surface_balance=perc_ratio,
         onsets_per_second=onsets_per_second,
         harmonic_weight=harm_energy,
         percussive_weight=perc_energy,
@@ -369,7 +369,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
             else "organic/fluid" if pulse > 0.5
             else "free/rubato"
         ),
-        "texture": round(perc_ratio, 3),  # 0=all harmonic, 1=all percussive
+        "surface_balance": round(perc_ratio, 3),  # 0=all harmonic, 1=all percussive
         "harmonic_weight": round(harm_energy, 6),
         "percussive_weight": round(perc_energy, 6),
         "character": (
@@ -399,7 +399,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         "onsets_per_second": round(onsets_per_second, 2),
         "texture_density": (
             "dense/busy" if onsets_per_second > 5
-            else "moderate texture" if onsets_per_second > 2
+            else "moderate surface texture" if onsets_per_second > 2
             else "sparse/spacious" if onsets_per_second > 0.5
             else "very sparse/ambient"
         ),
