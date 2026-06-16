@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Surface evidence now includes local sensory cues for surface motion, punch, band weights, and brightness tilt.
+
+### Changed
+- Renamed listener texture fields to surface terminology: `texture` → `surface_balance`, `texture_evidence` → `surface_evidence`.
+- Updated bundled agent metric references to read surface balance/evidence instead of the retired texture field name.
+
 ## [0.4.2] - 2026-06-07
 
 ### Added
