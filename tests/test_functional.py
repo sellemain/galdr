@@ -1,6 +1,5 @@
-"""Functional tests for galdr — run real audio through the pipeline.
+"""Functional tests for galdr — run synthetic audio through the pipeline.
 
-These tests require audio files in audio/ and are marked slow.
 Run with: pytest tests/test_functional.py -v
 Skip in CI: pytest -m "not slow"
 """
@@ -11,9 +10,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
-
-AUDIO_FILE = Path("audio/1-anoana.wav")
+import soundfile as sf
 
 
 def _galdr_cli_cmd(*args: str) -> list[str]:
@@ -29,11 +28,19 @@ def _galdr_subprocess_env() -> dict[str, str]:
 
 
 @pytest.fixture
-def audio_path():
-    """Path to test audio file, skip if not available."""
-    if not AUDIO_FILE.exists():
-        pytest.skip(f"Audio file not found: {AUDIO_FILE}")
-    return str(AUDIO_FILE)
+def audio_path(tmp_path):
+    """Path to a generated test tone fixture."""
+    sr = 22050
+    duration = 3.0
+    t = np.linspace(0.0, duration, int(sr * duration), endpoint=False)
+    # Two tones plus a soft amplitude rise give the pipeline enough structure
+    # without depending on private or copyrighted audio fixtures.
+    y = 0.18 * np.sin(2 * np.pi * 220.0 * t)
+    y += 0.08 * np.sin(2 * np.pi * 440.0 * t)
+    y *= np.linspace(0.35, 1.0, len(t))
+    path = tmp_path / "synthetic-tone.wav"
+    sf.write(path, y, sr)
+    return str(path)
 
 
 # ── Perception stream tests ──────────────────────────────────────────
@@ -134,7 +141,7 @@ def test_cli_listen_subprocess(audio_path, tmp_path):
     result = subprocess.run(
         _galdr_cli_cmd(
             "listen", audio_path,
-            "--name", "test-anoana",
+            "--name", "test-synthetic-tone",
             "--analysis-dir", str(tmp_path),
             "--no-catalog",
         ),
@@ -145,7 +152,7 @@ def test_cli_listen_subprocess(audio_path, tmp_path):
     )
     assert result.returncode == 0, f"CLI failed:\nstdout: {result.stdout}\nstderr: {result.stderr}"
 
-    output_dir = tmp_path / "test-anoana"
+    output_dir = tmp_path / "test-synthetic-tone"
     assert output_dir.exists()
-    assert (output_dir / "test-anoana_report.json").exists()
-    assert (output_dir / "test-anoana_stream.json").exists()
+    assert (output_dir / "test-synthetic-tone_report.json").exists()
+    assert (output_dir / "test-synthetic-tone_stream.json").exists()

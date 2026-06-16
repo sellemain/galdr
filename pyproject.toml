@@ -91,7 +91,7 @@ ignore = ["E501", "F401", "F541", "F841"]
 addopts = "-m 'not slow'"
 pythonpath = ["src"]
 markers = [
-    "slow: full audio-analysis pipeline (requires audio files in audio/)",
+    "slow: full audio-analysis pipeline",
 ]
 
 [tool.setuptools.packages.find]

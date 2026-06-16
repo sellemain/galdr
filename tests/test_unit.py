@@ -1356,8 +1356,8 @@ class TestContextConfidenceScoring:
                 "artist": "David Hume",
                 "full_title": "The History of England, Vol. I, Chap. 158 by David Hume",
             },
-            artist="Band of the Atholl Highlanders",
-            title="The Atholl Highlanders",
+            artist="Example Ensemble",
+            title="Bright Signal",
         )
         assert result["confidence"] == "rejected"
         assert result["use_in_prompt"] is False
@@ -1368,10 +1368,10 @@ class TestContextConfidenceScoring:
         result = _score_wikipedia_result(
             {
                 "found": True,
-                "title": "Atholl Highlanders",
-                "extract": "The Atholl Highlanders is a Scottish private ceremonial infantry regiment.",
+                "title": "Bright Signal",
+                "extract": "Bright Signal is a traditional ceremonial march.",
             },
-            expected_name="The Atholl Highlanders",
+            expected_name="The Bright Signal",
             entity_type="song",
         )
         assert result["confidence"] in {"medium", "high"}
@@ -1383,12 +1383,12 @@ class TestContextConfidenceScoring:
         result = _score_wikipedia_result(
             {
                 "found": True,
-                "title": "Alright (Supergrass song)",
-                "extract": "\"Alright\" is a song by English alternative rock band Supergrass.",
+                "title": "Bright Signal (Example Ensemble song)",
+                "extract": "\"Bright Signal\" is a song by Example Ensemble.",
             },
-            expected_name="Alright",
+            expected_name="Bright Signal",
             entity_type="song",
-            expected_artist="Kendrick Lamar",
+            expected_artist="Reference Artist",
         )
 
         assert result["confidence"] == "rejected"
@@ -1401,12 +1401,12 @@ class TestContextConfidenceScoring:
         result = _score_wikipedia_result(
             {
                 "found": True,
-                "title": "Alright (Kendrick Lamar song)",
-                "extract": "\"Alright\" is a song by American rapper Kendrick Lamar.",
+                "title": "Bright Signal (Reference Artist song)",
+                "extract": "\"Bright Signal\" is a song by Reference Artist.",
             },
-            expected_name="Alright",
+            expected_name="Bright Signal",
             entity_type="song",
-            expected_artist="Kendrick Lamar",
+            expected_artist="Reference Artist",
         )
 
         assert result["confidence"] in {"medium", "high"}
@@ -1418,10 +1418,10 @@ class TestContextConfidenceScoring:
         result = _score_wikipedia_result(
             {
                 "found": True,
-                "title": "Teardrop",
-                "extract": "Teardrop or Teardrops may refer to:",
+                "title": "Bright Signal",
+                "extract": "Bright Signal may refer to:",
             },
-            expected_name="Teardrop",
+            expected_name="Bright Signal",
             entity_type="song",
         )
         assert result["confidence"] == "rejected"
@@ -1432,24 +1432,24 @@ class TestContextConfidenceScoring:
         import galdr.fetch as fetch
 
         def fake_intro(title):
-            if title == "Machine Head (band)":
-                return {"found": True, "title": "Machine Head (band)", "extract": "Machine Head is an American heavy metal band from Oakland, California."}
-            if title == "Machine Head":
-                return {"found": True, "title": "Machine head", "extract": "Machine head may refer to:"}
+            if title == "Example Band (band)":
+                return {"found": True, "title": "Example Band (band)", "extract": "Example Band is an American heavy metal band from Oakland, California."}
+            if title == "Example Band":
+                return {"found": True, "title": "Example band", "extract": "Example band may refer to:"}
             return {"found": False}
 
         monkeypatch.setattr(fetch, "fetch_wikipedia_intro", fake_intro)
 
-        result = fetch.fetch_wikipedia_context("Machine Head", entity_type="artist")
+        result = fetch.fetch_wikipedia_context("Example Band", entity_type="artist")
 
-        assert result["title"] == "Machine Head (band)"
+        assert result["title"] == "Example Band (band)"
         assert result["use_in_prompt"] is True
 
     def test_genius_sanitizer_removes_live_ticket_cta(self):
         from galdr.fetch import _sanitize_lyric_lines
 
         lines = _sanitize_lyric_lines([
-            "See Machine Head LiveGet tickets as low as $67",
+            "See Example Band LiveGet tickets as low as $67",
             "This is real lyric text",
             "Embed",
         ])
@@ -2025,9 +2025,9 @@ def test_boundary_alignment_scores_known_section_starts_and_extras():
         {"start": 700.0, "end": 705.0, "kind": "interlude_gap", "confidence": 0.5, "reset_strength": 0.0},
     ]
     sections = [
-        {"start": 0.0, "title": "Asja"},
-        {"start": 318.0, "title": "Anoana"},
-        {"start": 617.0, "title": "Tenet"},
+        {"start": 0.0, "title": "Section A"},
+        {"start": 318.0, "title": "Section B"},
+        {"start": 617.0, "title": "Section C"},
         {"start": 900.0, "title": "Missing"},
     ]
 
@@ -2038,7 +2038,7 @@ def test_boundary_alignment_scores_known_section_starts_and_extras():
     assert alignment["match_count"] == 3
     assert alignment["missed_count"] == 1
     assert alignment["extra_count"] == 1
-    assert alignment["matches"][1]["section"] == "Anoana"
+    assert alignment["matches"][1]["section"] == "Section B"
     assert alignment["matches"][1]["delta"] == pytest.approx(0.5)
     assert alignment["missed_sections"] == [{"section": "Missing", "start": 900.0}]
     assert alignment["extra_candidates"][0]["start"] == 700.0
