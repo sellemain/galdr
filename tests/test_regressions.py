@@ -453,7 +453,7 @@ def test_body_lock_events_require_sustained_dwell(monkeypatch):
         pulse,
         pulse_confidence,
         pulse_ambiguous,
-        texture,
+        surface_balance,
         onsets_per_second,
     ):
         idx = fake_body.idx

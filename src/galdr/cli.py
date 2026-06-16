@@ -218,7 +218,7 @@ def cmd_listen(args):
               f"({r.get('body_state', '?')}) | "
               f"Weight: {r.get('weight', '?')} "
               f"({r.get('weight_state', '?')}) | "
-              f"Texture: {r.get('texture', '?')}")
+              f"Surface balance: {r.get('surface_balance', '?')}")
 
     if "perception" in results:
         s = results["perception"].get("summary", results["perception"])

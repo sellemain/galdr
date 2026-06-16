@@ -58,7 +58,7 @@ def synthesize_salience(analysis: dict) -> dict:
     pulse_confidence = _f(report.get("pulse_confidence"), 0.5)
     pulse = _f(report.get("pulse"))
     surface_density = _f(summary.get("mean_surface_density"))
-    texture = _f(report.get("texture"), 0.5)
+    surface_balance = _f(report.get("surface_balance"), 0.5)
     accent_drift = _f(summary.get("mean_accent_phase_drift"))
     release_force = _f(summary.get("peak_release_force"))
     pressure_building = _f(summary.get("pressure_building_pct"))
@@ -88,7 +88,7 @@ def synthesize_salience(analysis: dict) -> dict:
     pressure_only_lock = pressure_sustaining >= 84 and not settled_comfort and not light_or_present_weight
     sparse_or_suspended = (
         (body_capture < 0.45 and surface_density <= 0.35 and (weight >= 0.35 or silence_pct >= 10))
-        or (body <= 0.45 and weight >= 0.45 and texture <= 0.20)
+        or (body <= 0.45 and weight >= 0.45 and surface_balance <= 0.20)
     )
 
     # Factorized force axes. These are reusable primitives, not compound genre labels.
@@ -148,7 +148,7 @@ def synthesize_salience(analysis: dict) -> dict:
         primary_contract = "field"
         _add_unique(
             headline,
-            "sustained texture / space",
+            "sustained surface balance / space",
             f"body_capture {body_capture:.3f}, surface_density {surface_density:.3f}, weight {weight:.3f}",
             confidence="high",
         )

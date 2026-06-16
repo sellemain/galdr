@@ -169,7 +169,7 @@ class CatalogState:
                 "pulse": report.get("pulse"),
                 "body": report.get("body"),
                 "weight": report.get("weight"),
-                "texture": report.get("texture"),
+                "surface_balance": report.get("surface_balance"),
                 "spectral_centroid_mean_hz": report.get("spectral_centroid_mean_hz"),
             })
 
@@ -258,7 +258,7 @@ class CatalogState:
             ("pulse", display_name("pulse"), "higher = steadier measured pulse"),
             ("body", display_name("body"), "higher = stronger felt body-lock"),
             ("weight", display_name("weight"), "higher = stronger hold from weight, drag, or suspended sway"),
-            ("texture", display_name("texture"), "negative = harmonic weight, positive = percussive weight"),
+            ("surface_balance", display_name("surface_balance"), "negative = harmonic weight, positive = percussive weight"),
             ("mean_harmonic_pull", display_name("harmonic_pull"), "higher = more harmonic pull, motion, or refusal to settle"),
             ("mean_chroma_motion", display_name("chroma_motion"), "higher = faster shifts in harmonic color"),
         ]

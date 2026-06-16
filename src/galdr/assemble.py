@@ -728,13 +728,13 @@ def _build_metrics(analysis: dict) -> str:
     if arc_structure:
         lines.append("\n" + arc_structure)
 
-    # Texture balance derived from report harmonic/percussive weight ratio
+    # Surface balance derived from report harmonic/percussive weight ratio
     if har_e or perc_e:
         total = har_e + perc_e
         if total > 0:
-            texture = (perc_e - har_e) / total  # negative = harmonic dominant
-            texture_label = "harmonic dominant (tonal, warm)" if texture < -0.2 else "percussive dominant" if texture > 0.2 else "balanced"
-            lines.append(f"{display_name('texture')}: {texture:.3f} ({texture_label})")
+            surface_balance = (perc_e - har_e) / total  # negative = harmonic dominant
+            surface_balance_label = "harmonic dominant (tonal, warm)" if surface_balance < -0.2 else "percussive dominant" if surface_balance > 0.2 else "balanced"
+            lines.append(f"{display_name('surface_balance')}: {surface_balance:.3f} ({surface_balance_label})")
 
     # Harmony surface: keep listener-state tension foregrounded.  Key/mode,
     # major/minor balance, and chord names remain internal evidence unless a
@@ -772,14 +772,14 @@ def _build_metrics(analysis: dict) -> str:
     lines.append(
         "Macro events change the listening landscape: attention, body lock, weight, "
         "surface change, pressure movement, pattern break, and silence. Phrase events "
-        "are local motion inside that landscape and usually become texture within a paragraph."
+        "are local motion inside that landscape and usually become surface balance within a paragraph."
     )
     lines.append(
         "Metric families: pattern / pulse = reliability and carried time; "
         "body = whether the pulse has the body or merely offers itself; "
         "metric tension = cross-rhythm/accent pressure against a stable pulse; "
         "weight / weight arc = hold, suspension, or macro weight; "
-        "pressure = heard pressure movement; texture = harmonic warmth vs percussive edge; "
+        "pressure = heard pressure movement; surface_balance = harmonic warmth vs percussive edge; "
         "harmonic pull / chroma motion = tonal restlessness, drift, or pitch-color movement; "
         "phrase dynamics = local lift, drop, or flash, usually not structure."
     )

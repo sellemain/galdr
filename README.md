@@ -2,13 +2,13 @@
 
 **Deterministic listening tools for AI agents. Audio in, listener-state traces out.**
 
-galdr analyzes music from YouTube URLs or local audio files and turns it into time-ordered traces of attention, pattern, pulse, pressure, texture, harmony, melody, overtones, and silence/re-entry structure.
+galdr analyzes music from YouTube URLs or local audio files and turns it into time-ordered traces of attention, pattern, pulse, pressure, surface balance, surface evidence, harmony, melody, overtones, and silence/re-entry structure.
 
 galdr runs signal analysis first. It measures what the audio is doing second by second, then packages that evidence for agents, scripts, or humans to inspect.
 
 ## What you get
 
-- **Listener-state streams:** second-by-second traces of attention, pressure, texture, harmony, melody, and motion.
+- **Listener-state streams:** second-by-second traces of attention, pressure, surface balance, surface evidence, harmony, melody, and motion.
 - **Structural events:** pattern breaks, silence/re-entry moments, pressure shifts, tempo confidence, harmonic movement, melodic contour, and overtone behavior.
 - **Prompt packets for AI agents:** assembled evidence for Claude, `llm`, OpenClaw, or another runtime.
 - **Experience documents:** reproducible examples of measured audio evidence becoming grounded listening prose.
@@ -172,7 +172,7 @@ For OpenClaw users, galdr is published on ClawHub: <https://clawhub.ai/sellemain
 
 - Melody tracking assumes one dominant foreground pitch; dense/polyphonic passages can confuse it.
 - Pitch and key evidence use Western equal-tempered references; modal, folk-natural, microtonal, or noisy material needs care.
-- Chord names are optional. The default analysis focuses on pressure, pull, stability, contour, texture, and resonance.
+- Chord names are optional. The default analysis focuses on pressure, pull, stability, contour, surface, and resonance.
 - Structural evidence supports interpretation. Emotional claims need corroboration.
 
 ## Questions and issues

@@ -42,7 +42,7 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Beat-interval regularity from detected beat positions.",
         "High pulse means the beat grid is stable; low pulse means the pulse is absent, ambiguous, or deliberately fluid.",
         "steady pulse, metronomic grid, organic drift, unstable pulse, no reliable pulse",
-        "Low pulse is not a flaw. Some music is unpulsed, rubato, ambient, or organized by breath and texture instead of beat.",
+        "Low pulse is not a flaw. Some music is unpulsed, rubato, ambient, or organized by breath and surface balance instead of beat.",
     ),
     MetricVocabulary(
         "body",
@@ -132,7 +132,7 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Onset density, spectral motion, energy motion, and harmonic/percussive surface detail.",
         "High surface density means the moment is busy, detailed, or texturally loaded; low density means sparse, smooth, or sustained surface.",
         "busy surface, detail load, particulate motion, sparse surface, smooth wall, dense shimmer",
-        "Density is not heaviness. A loud sustained wall can be low-density; a quiet texture can be dense.",
+        "Density is not heaviness. A loud sustained wall can be low-density; a quiet surface balance can be dense.",
     ),
     MetricVocabulary(
         "weight",
@@ -162,13 +162,13 @@ METRICS: tuple[MetricVocabulary, ...] = (
         "Pressure is motion in heard loudness, not emotional drama by itself. Compression and mastering can affect it.",
     ),
     MetricVocabulary(
-        "texture",
-        "Texture",
+        "surface_balance",
+        "Surface balance",
         "Whether sonic weight sits in sustained tone or percussive attack.",
         "Harmonic/percussive separated energy balance.",
-        "Negative texture means sustained tone, voice, drone, or harmony dominates; positive texture means strike, groove, attack, or percussion dominates.",
+        "Negative surface balance means sustained tone, voice, drone, or harmony dominates; positive surface balance means strike, groove, attack, or percussion dominates.",
         "harmonic warmth, percussive edge, strike, drone, tonal atmosphere, surface hardens",
-        "Texture depends on source separation quality. Treat it as evidence about the surface, not proof of instrumentation.",
+        "Surface balance depends on source separation quality. Treat it as evidence about the surface, not proof of instrumentation.",
     ),
     MetricVocabulary(
         "harmonic_pull",

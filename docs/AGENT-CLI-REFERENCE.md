@@ -36,9 +36,9 @@ galdr listen <audio.wav> [--name NAME] [--analysis-dir DIR]
 ```
 
 Outputs to `<analysis-dir>/<track-name>/`:
-- `*_report.json` — pulse confidence, pulse, weight arc, texture, dominant chroma
+- `*_report.json` — pulse confidence, pulse, weight arc, surface balance, dominant chroma
 - `*_perception.json` — attention-grip stream, silences, attention shift events, pressure summary
-- `*_stream.json` — per-hop time series (attention, pressure, pressure_state, loudness_lufs, pressure_lufs_delta, texture, pattern, silence)
+- `*_stream.json` — per-hop time series (attention, pressure, pressure_state, loudness_lufs, pressure_lufs_delta, surface_balance, surface_evidence, pattern, silence)
 - `*_harmony.json` — harmonic pull, tonal anchor evidence, chroma motion, internal tonal-center evidence
 - `*_melody.json` — foreground line, pitch contour, internal range/center evidence
 - `*_overtone.json` — resonance/grain evidence: overtone fit, overtone density, inharmonicity

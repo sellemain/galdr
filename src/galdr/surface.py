@@ -1,9 +1,9 @@
-"""Texture feature bank for listener-state evidence.
+"""Surface feature bank for listener-state evidence.
 
 These helpers keep low-level MIR measurements separate from the prose-facing
 perception model. They are deliberately small and dependency-light: no source
 separation, no trained classifier, no claims about exact instruments. The goal
-is to expose enough texture evidence for higher layers to describe what the
+is to expose enough surface evidence for higher layers to describe what the
 sound feels like without turning galdr into a dashboard.
 """
 
@@ -35,8 +35,8 @@ def _state(score: float, *, low: float, high: float, labels: tuple[str, str, str
     return labels[0]
 
 
-def compute_texture_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0) -> dict:
-    """Compute per-window texture evidence aligned to a listener-state hop.
+def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0) -> dict:
+    """Compute per-window surface evidence aligned to a listener-state hop.
 
     Returns a dict with ``times`` and one value list per measured/derived field.
     Derived fields are bounded 0-1 perceptual cues, not genre or instrument
@@ -166,8 +166,8 @@ def compute_texture_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
     }
 
 
-def texture_snapshot(bank: dict, index: int) -> dict:
-    """Return one compact, prose-facing texture evidence row."""
+def surface_snapshot(bank: dict, index: int) -> dict:
+    """Return one compact, prose-facing surface evidence row."""
     return {
         "roughness": bank["roughness"][index],
         "noise_density": bank["noise_density"][index],
