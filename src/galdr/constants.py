@@ -22,7 +22,7 @@ KK_MINOR_PROFILE = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 
 # ============================================================
 
 # Rolling window for rhythmic attention calculation (seconds)
-ATTENTION_WINDOW_SEC = 8.0
+ATTENTION_WINDOW_SEC = 4.0
 
 # Time step between attention samples (seconds)
 ATTENTION_HOP_SEC = 0.5
@@ -63,9 +63,8 @@ DISRUPTION_ENERGY_SMOOTH_SEC = 0.5
 # ============================================================
 
 # LUFS-pressure smoothing window for pressure calculation (seconds).
-# Chosen from fixture-matrix tests as the smoothest value in the 10-12s
-# stable band without suppressing meaningful events.
-PRESSURE_SMOOTH_SEC = 12.0
+# Short enough to follow musical swells/releases without edge twitch.
+PRESSURE_SMOOTH_SEC = 8.0
 
 
 # ============================================================
@@ -132,7 +131,7 @@ EVENT_WDS_PHRASE_LOUDNESS_DELTA_MAX = 2.5
 
 # Surface-transform events catch timbral/pressure hardening while the body
 # current remains stable.  This is distinct from WDS body-carriage change.
-EVENT_SURFACE_WINDOW_SEC = 14.0
+EVENT_SURFACE_WINDOW_SEC = 8.0
 EVENT_SURFACE_LOUDNESS_RISE_LUFS = 7.0
 EVENT_SURFACE_TEXTURE_RISE = 0.30
 EVENT_SURFACE_CURRENT_TEXTURE_MIN = -0.15
@@ -145,9 +144,8 @@ EVENT_SURFACE_COOLDOWN_SEC = 45.0
 # Phrase dynamics are a local gesture layer. They should catch short musical
 # movements inside an otherwise stable macro state: lift, drop, flash, turn.
 # Macro body/pressure/attention events still get first narrative claim.
-# A 5s lookback keeps Brahms gestures dense while reducing repeated phrase
-# triggers in high-energy tracks compared with the original 6s window.
-EVENT_PHRASE_WINDOW_SEC = 5.0
+# A 3s lookback keeps phrase gestures local instead of averaging a whole phrase.
+EVENT_PHRASE_WINDOW_SEC = 3.0
 EVENT_PHRASE_MIN_GAP_SEC = 3.0
 EVENT_PHRASE_MACRO_SUPPRESS_SEC = 1.0
 EVENT_PHRASE_LIFT_LUFS = 3.0
