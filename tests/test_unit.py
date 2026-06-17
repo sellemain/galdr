@@ -591,7 +591,7 @@ class TestAssemblePrompt:
             },
         }
 
-        prompt = self.fn(analysis, mode="blind")
+        prompt = self.fn(analysis, mode="blind", template="arc")
 
         assert "### Arc structure" in prompt
         assert "Felt mechanism:" in prompt
@@ -603,6 +603,27 @@ class TestAssemblePrompt:
         assert "Never mention galdr" in prompt
         assert "metrics, percentages, frame counts, span counts" in prompt
         assert "Translate them into felt experience" in prompt
+
+    def test_arc_prompt_protects_natural_vivid_major_turns(self):
+        analysis = {
+            "report": {"duration_seconds": 240.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        prompt = self.fn(analysis, mode="blind", template="arc")
+
+        assert "Surface discipline is not a command to flatten" in prompt
+        assert "Treat anti-pattern warnings as guardrails" in prompt
+        assert "sound natural, specific, and alive" in prompt
+        assert "Protect major form turns" in prompt
+        assert "late groove turn" in prompt
+        assert "private transition map" in prompt
+        assert "Do not use a fixed lyric quota" in prompt
+        assert "~150 words per minute" in prompt
+        assert "900-1,300" in prompt
 
 
 # ── SM-308 Perception surface demotion ───────────────────────────────────────
