@@ -12,6 +12,8 @@ The central model is a listener who starts outside the music, gets pulled in, ho
 
 Every metric galdr emits describes some aspect of this resonance.
 
+Metric changes should be proved with a before/after listening test, not just a cleaner aggregate number. See [Listening-Test Workflow](listening-tests/README.md) for the release standard.
+
 ---
 
 ## Metric Vocabulary

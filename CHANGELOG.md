@@ -7,12 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-18
+
 ### Added
 - Surface evidence now includes local sensory cues for surface motion, punch, band weights, and brightness tilt.
+- Listener-state tuning for surface restraint, pressure pivots, and ARC transition-map drafting.
+- A listening-test workflow document for proving perception metric changes with before/after evidence.
 
 ### Changed
 - Renamed listener texture fields to surface terminology: `texture` → `surface_balance`, `texture_evidence` → `surface_evidence`.
 - Updated bundled agent metric references to read surface balance/evidence instead of the retired texture field name.
+- Tuned ARC prompt behavior for listener-first lyric handling, natural prose scale, and hidden transition-map planning.
+- Updated OpenClaw skill install examples to the current `openclaw skills install galdr` command.
 
 ## [0.4.2] - 2026-06-07
 

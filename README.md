@@ -159,6 +159,7 @@ If captions fail but audio succeeds, analysis can still continue. If audio fails
 
 - [Getting Started](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md): fuller walkthrough, local-file workflow, and deeper usage.
 - [Perception Model](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md): metric semantics and interpretation boundaries.
+- [Listening-Test Workflow](https://github.com/sellemain/galdr/blob/main/docs/listening-tests/README.md): how metric changes prove before/after listening improvement.
 - [Python API](https://github.com/sellemain/galdr/blob/main/docs/PYTHON-API.md): library usage, DataFrames, notebooks.
 - [Agent CLI Reference](https://github.com/sellemain/galdr/blob/main/docs/AGENT-CLI-REFERENCE.md): lean command reference for AI agents.
 

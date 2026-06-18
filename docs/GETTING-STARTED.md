@@ -170,6 +170,8 @@ Once you've done a first listen, galdr has more to give.
 
 **Read the perception model first.** The metrics describe listener *attention*, not audio features. High pattern is not mechanical — it may be ritual. Negative pressure is not failure — the track may be exhaling. LUFS-backed pressure is there to improve the evidence; in prose, write what it means: pressure comes forward, holds, releases, or empties. [PERCEPTION-MODEL.md](PERCEPTION-MODEL.md) defines each metric in detail.
 
+When changing metrics, leave a before/after proof packet. [listening-tests/README.md](listening-tests/README.md) defines the minimum workflow.
+
 **Focus on one thing.** Run only the harmony module to explore chord structure:
 
 ```bash

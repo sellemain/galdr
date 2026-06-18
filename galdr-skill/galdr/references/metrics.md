@@ -77,7 +77,7 @@ Deepening negative surface balance across a track = harmonic weight increasing (
 
 ---
 
-## Pressure / Heard Pressure (`pressure`, `pressure_state`, `pressure_balance`)
+## Pressure / Heard Pressure (`pressure`, `pressure_state`, pressure summary percentages)
 
 **Shape:** Stream fields plus three summary percentages — building / releasing / sustaining — summing to 100%.
 **What it is:** The heard-pressure shape of the track. Pressure is derived from short-term EBU R128/LUFS loudness rather than raw RMS energy so it tracks whether pressure comes forward, holds, or withdraws.
