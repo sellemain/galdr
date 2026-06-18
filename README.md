@@ -34,7 +34,7 @@ pip install galdr
 Using OpenClaw? Install the agent skill from ClawHub:
 
 ```bash
-clawhub install galdr
+openclaw skills install galdr
 ```
 
 From source:

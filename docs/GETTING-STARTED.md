@@ -29,7 +29,7 @@ pip install galdr
 Using OpenClaw? Install the galdr skill from ClawHub:
 
 ```bash
-clawhub install galdr
+openclaw skills install galdr
 ```
 
 Galdr requires `ffmpeg` for audio decoding:
