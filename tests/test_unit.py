@@ -622,6 +622,8 @@ class TestAssemblePrompt:
         assert "late groove turn" in prompt
         assert "private transition map" in prompt
         assert "Do not use a fixed lyric quota" in prompt
+        assert "Treat lyrics as sung words, not supplied text" in prompt
+        assert "Write as if the words arrive through the performance" in prompt
         assert "~150 words per minute" in prompt
         assert "900-1,300" in prompt
 
