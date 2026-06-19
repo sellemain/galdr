@@ -14,6 +14,14 @@ galdr is a music perception CLI for AI agents. Its default workflow is **ARC**: 
 
 ## Important: skill vs CLI
 
+Current OpenClaw CLI install command:
+
+```bash
+openclaw skills install galdr
+```
+
+ClawHub may display an owner-qualified command such as `openclaw skills install @sellemain/galdr`. As of OpenClaw `2026.6.8`, the released CLI expects the bare skill slug `galdr`.
+
 Installing this skill teaches OpenClaw how to use galdr. It does **not** install the `galdr` command itself.
 
 Before starting:
