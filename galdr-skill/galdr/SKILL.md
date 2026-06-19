@@ -1,7 +1,7 @@
 ---
 name: galdr
 description: OpenClaw skill for using galdr's ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, surface balance/evidence, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
-version: "0.5.0"
+version: "0.5.1"
 author: Sellemain
 license: MIT
 platforms: [linux, macos]
