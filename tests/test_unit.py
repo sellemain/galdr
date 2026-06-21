@@ -504,6 +504,19 @@ class TestAssemblePrompt:
         assert "Source: local VTT captions (/tmp/song.en.vtt)" in result
         assert "[0:01]  caption words" in result
 
+    def test_autocaption_lyrics_are_labeled_as_coarse_timing(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "youtube-auto-captions",
+                "caption_lines": [{"ts": "0:01", "text": "caption words"}],
+                "full_text": "caption words",
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "## Lyrics — autocaptions (coarse timing; text may contain mishears)" in result
+        assert "timestamps accurate" not in result
+
     def test_low_confidence_context_excluded_from_prompt(self):
         analysis = self._minimal_analysis()
         context = {
@@ -624,6 +637,8 @@ class TestAssemblePrompt:
         assert "Do not use a fixed lyric quota" in prompt
         assert "Treat lyrics as sung words, not supplied text" in prompt
         assert "Write as if the words arrive through the performance" in prompt
+        assert "Galdr stream/event timestamps are authoritative for sound and structure" in prompt
+        assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "~150 words per minute" in prompt
         assert "900-1,300" in prompt
 

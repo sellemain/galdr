@@ -927,11 +927,11 @@ def _build_lyrics(context: dict) -> str | None:
     """Build lyrics section(s) from context.json.
 
     When both Genius and autocaptions are available, renders two sections:
-      1. Timestamped autocaption lines (accurate timing, may have ASR mishears)
+      1. Timestamped autocaption lines (coarse timing, may have ASR mishears)
       2. Clean Genius text (correct words, no timestamps)
 
-    The model uses captions for structural anchoring (frame selection, timing
-    claims) and Genius as the reference for what was actually sung.
+    The model uses captions for coarse orientation only and Genius as the
+    reference for what was actually sung.
 
     Falls back to a single section if only one source is available.
     """
@@ -951,7 +951,7 @@ def _build_lyrics(context: dict) -> str | None:
     sections: list[str] = []
 
     if caption_lines:
-        cap_section = ["## Lyrics — autocaptions (timestamps accurate; text may contain mishears)\n"]
+        cap_section = ["## Lyrics — autocaptions (coarse timing; text may contain mishears)\n"]
         if source_line:
             cap_section.append(source_line)
         for entry in caption_lines:
