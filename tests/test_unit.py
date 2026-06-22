@@ -2295,6 +2295,61 @@ def test_caption_confidence_accepts_clean_dense_lyrics_and_keeps_raw_captions(tm
     assert len(lyrics) == 1
 
 
+def test_fetch_does_not_promote_rejected_autocaptions_to_lyric_timestamps(tmp_path, monkeypatch):
+    from galdr import fetch
+
+    audio_dir = tmp_path / "audio"
+    analysis_dir = tmp_path / "analysis"
+    vtt_path = audio_dir / "demo-song.en.vtt"
+
+    def fake_download_youtube(url, audio_dir_arg, slug):
+        audio_dir_arg.mkdir(parents=True, exist_ok=True)
+        vtt_path.write_text(
+            "WEBVTT\n\n"
+            "00:00:01.000 --> 00:00:03.000\n"
+            "[Music] you\n\n"
+            "00:00:03.000 --> 00:00:04.000\n"
+            "oh\n",
+            encoding="utf-8",
+        )
+        return {
+            "audio_file": str(audio_dir_arg / f"{slug}.mp3"),
+            "captions_file": str(vtt_path),
+            "downloaded_at": "2026-01-01T00:00:00Z",
+            "audio_sha256": "fake",
+        }
+
+    def fake_genius_lyrics(artist, title):
+        return {
+            "found": True,
+            "url": "https://genius.example/demo",
+            "lines": ["Hey you, big star", "Shove it aside"],
+            "confidence": "high",
+            "match_score": 1.0,
+            "match_reasons": [],
+            "use_in_prompt": True,
+            "candidate_title": title,
+            "candidate_artist": artist,
+        }
+
+    monkeypatch.setattr(fetch, "download_youtube", fake_download_youtube)
+    monkeypatch.setattr(fetch, "fetch_genius_lyrics", fake_genius_lyrics)
+
+    context = fetch.fetch_track(
+        "demo-song",
+        "Demo Artist",
+        "Demo Song",
+        analysis_dir,
+        audio_dir,
+        url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        skip_wikipedia=True,
+    )
+
+    assert context["lyrics"]["source"] == "genius"
+    assert context["lyrics"]["genius_text"] == "Hey you, big star\nShove it aside"
+    assert context["lyrics"]["caption_lines"] == []
+
+
 class TestSurfaceFeatureBank:
     def test_surface_feature_bank_outputs_bounded_listener_evidence(self):
         from galdr.surface import compute_surface_feature_bank, surface_snapshot
