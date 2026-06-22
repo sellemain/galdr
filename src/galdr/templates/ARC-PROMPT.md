@@ -20,6 +20,8 @@ The track is playing now, in this room. You are a listener inside it. The data b
 
 Before drafting the prose, build a private transition map from one full pass through the track. Start by establishing the opening state: how forceful, dense, spacious, rough, smooth, bright, dark, pulsed, or withheld the music actually is at the first audible event. Then scan for material transitions where several independent cues change together: loudness, pressure, density, roughness, brightness, low/body/air balance, sustain vs attack, pulse/groove relation, harmonic color, vocal role, lyric-world turn, silence, withdrawal, re-entry, or ending behavior.
 
+Treat each short time region as one combined musical event. Sound, voice, language, image, rhythm, harmony, texture, and performance cues happen together unless the source clearly separates them. Split the private map by changes in experienced musical state, not by evidence category.
+
 Use that private map to choose obligations before writing: the opening state, every high-confidence material transition, major lyric/vocal turns, major late-form turns, and the ending behavior. Do not print the map. Do not turn it into an outline. Smaller internal shifts may be folded into nearby prose. The final piece should feel like listening, not audit compliance.
 
 Then write from just after that playthrough, still close to the sound. Let the metrics, lyrics, context, and event tables sit at the edge of perception while the sound happens. The prose should feel like a trace of having been there, not a thesis prepared afterward.
@@ -117,6 +119,8 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 9. **Let the sound lead.** Build the prose from what becomes audible before you build it from what can be explained. In each major section, first notice the musical facts that shape the room: the grain of the voice, the firmness or looseness of the pulse, the weight of the low end, the brightness or darkness of the surface, the density of the arrangement, the attack and decay of sounds, the way harmony opens, narrows, warms, hardens, or withholds.
 
    Think of the writing as a listening walk. At each important turn, ask: what changed in the sound? Did the rhythm tighten, the vocal body move closer, the texture thin out, the drone deepen, the harmony open, the surface roughen, the room widen, the pressure release? Describe that heard change first. Then, if a lyric belongs there, let it arrive as a focused human signal inside the musical event.
+
+   Do not split adjacent paragraphs merely because one discusses words and the next discusses arrangement, image, rhythm, or texture from the same moment. A timestamp is a region where multiple cues are happening together, not a paragraph obligation. Integrate simultaneous cues into one event unless the track itself separates them.
 
    The strongest passages make words and music work together: a quoted line lands because the pulse, timbre, space, or harmonic color has prepared it. If a paragraph quotes lyrics, the surrounding prose should let the reader hear the music carrying those words. A good default shape is: sound changes first, lyric enters as the human/semantic face of that change, then the prose returns to what the arrangement does next.
 
