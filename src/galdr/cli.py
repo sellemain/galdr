@@ -111,12 +111,25 @@ def _write_plot_index(output_dir: str | Path, track_name: str) -> Path | None:
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <style>
-body {{ font: 14px/1.4 system-ui, sans-serif; margin: 24px; background: #f7f7f4; color: #202124; }}
+:root {{ color-scheme: dark; }}
+body {{
+  font: 14px/1.4 system-ui, sans-serif;
+  margin: 24px;
+  background: #0d1117;
+  color: #e6edf3;
+}}
 h1 {{ font-size: 22px; margin: 0 0 18px; }}
 .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; }}
-figure {{ margin: 0; padding: 10px; background: white; border: 1px solid #ddd; }}
-img {{ display: block; width: 100%; height: auto; }}
-figcaption {{ margin-top: 8px; color: #555; overflow-wrap: anywhere; }}
+figure {{
+  margin: 0;
+  padding: 10px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+}}
+img {{ display: block; width: 100%; height: auto; background: #010409; }}
+figcaption {{ margin-top: 8px; color: #9da7b3; overflow-wrap: anywhere; }}
+a {{ color: inherit; }}
 </style>
 </head>
 <body>
