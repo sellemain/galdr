@@ -8,6 +8,7 @@ Usage:
 """
 
 import argparse
+import html
 import os
 import re
 import sys
@@ -82,6 +83,53 @@ def _print_null_signal_summary(track_name, total_start, result):
     print(f"  RMS: {result.get('rms', '?')}")
     print("  No analysis files written and catalog indexing skipped.")
     print()
+
+
+def _write_plot_index(output_dir: str | Path, track_name: str) -> Path | None:
+    """Write a tiny local contact sheet for PNG artifacts in one analysis directory."""
+    out = Path(output_dir)
+    pngs = sorted(out.glob(f"{track_name}_*.png"))
+    if not pngs:
+        return None
+
+    cards = []
+    for path in pngs:
+        name = html.escape(path.name)
+        cards.append(
+            f'<figure><a href="{name}"><img src="{name}" alt="{name}"></a>'
+            f"<figcaption>{name}</figcaption></figure>"
+        )
+
+    title = html.escape(f"{track_name} plot index")
+    body = "\n".join(cards)
+    index_path = out / "index.html"
+    index_path.write_text(
+        f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<style>
+body {{ font: 14px/1.4 system-ui, sans-serif; margin: 24px; background: #f7f7f4; color: #202124; }}
+h1 {{ font-size: 22px; margin: 0 0 18px; }}
+.grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; }}
+figure {{ margin: 0; padding: 10px; background: white; border: 1px solid #ddd; }}
+img {{ display: block; width: 100%; height: auto; }}
+figcaption {{ margin-top: 8px; color: #555; overflow-wrap: anywhere; }}
+</style>
+</head>
+<body>
+<h1>{title}</h1>
+<div class="grid">
+{body}
+</div>
+</body>
+</html>
+""",
+        encoding="utf-8",
+    )
+    return index_path
 
 
 def cmd_listen(args):
@@ -179,6 +227,13 @@ def cmd_listen(args):
         result = run_module("Overtone", analyze_overtones, audio_path, output_dir, track_name, audio=audio)
         if result:
             results["overtone"] = result
+
+    try:
+        plot_index = _write_plot_index(output_dir, track_name)
+        if plot_index:
+            print(f"  Plot index saved: {plot_index}")
+    except Exception as e:
+        print(f"  Plot index failed: {e}")
 
     # Catalog indexing
     if not args.no_catalog and results:
