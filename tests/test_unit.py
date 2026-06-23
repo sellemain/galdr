@@ -1101,7 +1101,13 @@ class TestLufsPressureMotion:
 
 
 def test_perception_metric_plots_cover_listener_state_and_surface_evidence(tmp_path):
-    from galdr.perceive import _plot_listener_state_metrics, _plot_surface_evidence_metrics
+    import numpy as np
+
+    from galdr.perceive import (
+        _plot_listener_state_metrics,
+        _plot_reading_map,
+        _plot_surface_evidence_metrics,
+    )
 
     stream = []
     for i in range(8):
@@ -1136,16 +1142,25 @@ def test_perception_metric_plots_cover_listener_state_and_surface_evidence(tmp_p
         })
 
     silences = [{"start": 2.0, "end": 3.0}]
+    sr = 22050
+    t = np.linspace(0, 8, sr * 8, endpoint=False)
+    y = (0.15 * np.sin(2 * np.pi * 220 * t)).astype(np.float32)
+    hp_times = np.asarray([entry["t"] for entry in stream], dtype=float)
+    hp_balance = np.linspace(-0.4, 0.5, len(stream))
 
     _plot_listener_state_metrics(stream, silences, tmp_path, "plot-test")
     _plot_surface_evidence_metrics(stream, silences, tmp_path, "plot-test")
+    _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, tmp_path, "plot-test")
 
     listener_plot = tmp_path / "plot-test_listener_state.png"
     surface_plot = tmp_path / "plot-test_surface_evidence.png"
+    reading_plot = tmp_path / "plot-test_reading_map.png"
     assert listener_plot.exists()
     assert listener_plot.stat().st_size > 0
     assert surface_plot.exists()
     assert surface_plot.stat().st_size > 0
+    assert reading_plot.exists()
+    assert reading_plot.stat().st_size > 0
 
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 

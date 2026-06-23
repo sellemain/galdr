@@ -99,6 +99,15 @@ def _surface_series_from_stream(stream: list[dict], field: str) -> list[float]:
     return values
 
 
+def _time_extent(times: list[float], fallback_step: float = 1.0) -> tuple[float, float]:
+    if not times:
+        return 0.0, fallback_step
+    if len(times) == 1:
+        return times[0], times[0] + fallback_step
+    step = max(fallback_step, float(np.median(np.diff(times))))
+    return times[0], times[-1] + step
+
+
 def _shade_silences(axes, silences: list[dict]) -> None:
     for ax in np.ravel(axes):
         for silence in silences:
@@ -164,65 +173,128 @@ def _plot_listener_state_metrics(stream: list[dict], silences: list[dict], out: 
 
 
 def _plot_surface_evidence_metrics(stream: list[dict], silences: list[dict], out: Path, track_name: str) -> None:
-    """Plot the newer surface evidence bank in readable groups."""
+    """Plot the newer surface evidence bank as a compact heatmap."""
     if not stream or not any(entry.get("surface_evidence") for entry in stream):
         return
 
     times = [float(entry["t"]) for entry in stream]
-    fig, axes = plt.subplots(4, 1, figsize=(16, 11), sharex=True)
+    fields = (
+        ("roughness", "roughness"),
+        ("noise_density", "noise density"),
+        ("surface_motion", "surface motion"),
+        ("brightness_tilt", "brightness tilt"),
+        ("transient_attack", "transient attack"),
+        ("punch", "punch"),
+        ("sustain_drone", "sustain / drone"),
+        ("band_pressure", "band pressure"),
+        ("bass_weight", "bass weight"),
+        ("body_weight", "body weight"),
+        ("presence_weight", "presence weight"),
+        ("air_weight", "air weight"),
+        ("percussive_ratio", "percussive ratio"),
+    )
+    matrix = np.asarray([_surface_series_from_stream(stream, field) for field, _ in fields], dtype=float)
+    start, end = _time_extent(times)
 
-    groups = (
-        (
-            "Surface grain and motion",
-            (
-                ("roughness", "Roughness", "#c0392b"),
-                ("noise_density", "Noise density", "#8e44ad"),
-                ("surface_motion", "Surface motion", "#2980b9"),
-                ("brightness_tilt", "Brightness tilt", "#f1c40f"),
-            ),
-        ),
-        (
-            "Attack and sustain",
-            (
-                ("transient_attack", "Transient attack", "#e67e22"),
-                ("punch", "Punch", "#d35400"),
-                ("sustain_drone", "Sustain drone", "#27ae60"),
-                ("band_pressure", "Band pressure", "#2c3e50"),
-            ),
-        ),
-        (
-            "Band weights",
-            (
-                ("bass_weight", "Bass", "#34495e"),
-                ("body_weight", "Body", "#16a085"),
-                ("presence_weight", "Presence", "#3498db"),
-                ("air_weight", "Air", "#95a5a6"),
-            ),
-        ),
-        (
-            "Percussive balance",
-            (
-                ("percussive_ratio", "Percussive ratio", "#e67e22"),
-            ),
-        ),
+    fig, ax = plt.subplots(figsize=(16, 7))
+    image = ax.imshow(
+        matrix,
+        aspect="auto",
+        origin="lower",
+        cmap="magma",
+        vmin=0,
+        vmax=1,
+        extent=[start, end, -0.5, len(fields) - 0.5],
+        interpolation="nearest",
+    )
+    for silence in silences:
+        ax.axvspan(silence["start"], silence["end"], alpha=0.16, color="#7f8c8d")
+    ax.set_yticks(range(len(fields)))
+    ax.set_yticklabels([label for _, label in fields])
+    ax.set_xlabel("Time (s)")
+    ax.set_title(f"{track_name} — Surface evidence heatmap", fontsize=14)
+    plt.colorbar(image, ax=ax, label="Score")
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_surface_evidence.png", dpi=150)
+    plt.close()
+
+
+def _plot_reading_map(
+    y: np.ndarray,
+    sr: int,
+    stream: list[dict],
+    hp_times,
+    hp_balance,
+    silences: list[dict],
+    out: Path,
+    track_name: str,
+) -> None:
+    """Plot a compact human reading map: spectrogram, surface balance, and metric strips."""
+    if not stream:
+        return
+
+    times = [float(entry["t"]) for entry in stream]
+    fig, axes = plt.subplots(
+        5,
+        1,
+        figsize=(16, 12),
+        sharex=True,
+        gridspec_kw={"height_ratios": [3.0, 0.7, 0.9, 0.9, 0.9]},
     )
 
-    for ax, (title, fields) in zip(axes, groups):
+    s = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=96, fmax=min(10000, sr / 2))
+    s_db = librosa.power_to_db(s, ref=np.max)
+    librosa.display.specshow(s_db, sr=sr, x_axis="time", y_axis="mel", ax=axes[0], cmap="magma")
+    axes[0].set_title(f"{track_name} — Reading map", fontsize=14)
+    axes[0].set_xlabel("")
+
+    axes[1].fill_between(hp_times, hp_balance, where=hp_balance < 0, alpha=0.55, color="#2ecc71", label="harmonic")
+    axes[1].fill_between(hp_times, hp_balance, where=hp_balance > 0, alpha=0.55, color="#e67e22", label="percussive")
+    axes[1].axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
+    axes[1].set_ylabel("surface")
+    axes[1].set_ylim(-1.05, 1.05)
+    axes[1].legend(loc="upper right", fontsize=8, ncol=2)
+
+    strip_groups = (
+        (
+            axes[2],
+            (
+                ("attention", "attention", "#27ae60"),
+                ("pattern", "pattern", "#2980b9"),
+                ("section_gravity", "section", "#f39c12"),
+            ),
+            "hold",
+        ),
+        (
+            axes[3],
+            (
+                ("body_capture", "capture", "#e74c3c"),
+                ("body_comfort", "comfort", "#2ecc71"),
+                ("weight", "weight", "#34495e"),
+            ),
+            "body",
+        ),
+        (
+            axes[4],
+            (
+                ("expectation_debt", "debt", "#c0392b"),
+                ("release_force", "release", "#27ae60"),
+                ("surface_density", "density", "#16a085"),
+            ),
+            "motion",
+        ),
+    )
+    for ax, fields, ylabel in strip_groups:
         for field, label, color in fields:
-            values = _surface_series_from_stream(stream, field)
-            ax.plot(times, values, label=label, color=color, linewidth=1.0)
-            if len(fields) == 1:
-                ax.fill_between(times, values, alpha=0.25, color=color)
-        ax.set_ylabel("Score")
+            ax.plot(times, _series_from_stream(stream, field), label=label, color=color, linewidth=1.0)
+        ax.set_ylabel(ylabel)
         ax.set_ylim(-0.05, 1.05)
-        ax.set_title(title, fontsize=12)
-        ax.legend(loc="upper right", fontsize=9, ncol=4)
+        ax.legend(loc="upper right", fontsize=8, ncol=3)
 
     _shade_silences(axes, silences)
     axes[-1].set_xlabel("Time (s)")
-    plt.suptitle(f"{track_name} — Surface evidence metrics", fontsize=14, y=0.995)
     plt.tight_layout()
-    plt.savefig(out / f"{track_name}_surface_evidence.png", dpi=150)
+    plt.savefig(out / f"{track_name}_reading_map.png", dpi=150)
     plt.close()
 
 
@@ -1659,5 +1731,9 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
         print("  Generating surface evidence plot...")
         _plot_surface_evidence_metrics(stream, silences, out, track_name)
         print("  Surface evidence plot saved.")
+
+        print("  Generating reading map plot...")
+        _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, out, track_name)
+        print("  Reading map plot saved.")
 
     return report
