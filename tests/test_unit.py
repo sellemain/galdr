@@ -1163,9 +1163,9 @@ def test_perception_metric_plots_cover_listener_state_and_surface_evidence(tmp_p
     hp_times = np.asarray([entry["t"] for entry in stream], dtype=float)
     hp_balance = np.linspace(-0.4, 0.5, len(stream))
 
-    _plot_listener_state_metrics(stream, silences, tmp_path, "plot-test")
-    _plot_surface_evidence_metrics(stream, silences, tmp_path, "plot-test")
-    _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, tmp_path, "plot-test")
+    _plot_listener_state_metrics(stream, silences, tmp_path, "plot-test", duration=8.0)
+    _plot_surface_evidence_metrics(stream, silences, tmp_path, "plot-test", duration=8.0)
+    _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, tmp_path, "plot-test", duration=8.0)
 
     listener_plot = tmp_path / "plot-test_listener_state.png"
     surface_plot = tmp_path / "plot-test_surface_evidence.png"
@@ -1176,6 +1176,22 @@ def test_perception_metric_plots_cover_listener_state_and_surface_evidence(tmp_p
     assert surface_plot.stat().st_size > 0
     assert reading_plot.exists()
     assert reading_plot.stat().st_size > 0
+
+
+def test_cli_plot_index_lists_png_artifacts(tmp_path):
+    from galdr.cli import _write_plot_index
+
+    (tmp_path / "plot-test_reading_map.png").write_bytes(b"fake-png")
+    (tmp_path / "plot-test_surface_evidence.png").write_bytes(b"fake-png")
+    (tmp_path / "other-track_reading_map.png").write_bytes(b"fake-png")
+
+    index_path = _write_plot_index(tmp_path, "plot-test")
+
+    assert index_path == tmp_path / "index.html"
+    text = index_path.read_text()
+    assert "plot-test_reading_map.png" in text
+    assert "plot-test_surface_evidence.png" in text
+    assert "other-track_reading_map.png" not in text
 
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 

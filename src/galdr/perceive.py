@@ -114,7 +114,19 @@ def _shade_silences(axes, silences: list[dict]) -> None:
             ax.axvspan(silence["start"], silence["end"], alpha=0.18, color="#7f8c8d")
 
 
-def _plot_listener_state_metrics(stream: list[dict], silences: list[dict], out: Path, track_name: str) -> None:
+def _plot_title(track_name: str, title: str, duration: float | None = None) -> str:
+    if duration is None:
+        return f"{track_name} — {title}"
+    return f"{track_name} ({duration:.1f}s) — {title}"
+
+
+def _plot_listener_state_metrics(
+    stream: list[dict],
+    silences: list[dict],
+    out: Path,
+    track_name: str,
+    duration: float | None = None,
+) -> None:
     """Plot stream-derived listener-state metrics that are otherwise JSON-only."""
     if not stream:
         return
@@ -166,13 +178,19 @@ def _plot_listener_state_metrics(stream: list[dict], silences: list[dict], out: 
 
     _shade_silences(axes, silences)
     axes[-1].set_xlabel("Time (s)")
-    plt.suptitle(f"{track_name} — Listener-state metrics", fontsize=14, y=0.995)
+    plt.suptitle(_plot_title(track_name, "Listener-state metrics", duration), fontsize=14, y=0.995)
     plt.tight_layout()
     plt.savefig(out / f"{track_name}_listener_state.png", dpi=150)
     plt.close()
 
 
-def _plot_surface_evidence_metrics(stream: list[dict], silences: list[dict], out: Path, track_name: str) -> None:
+def _plot_surface_evidence_metrics(
+    stream: list[dict],
+    silences: list[dict],
+    out: Path,
+    track_name: str,
+    duration: float | None = None,
+) -> None:
     """Plot the newer surface evidence bank as a compact heatmap."""
     if not stream or not any(entry.get("surface_evidence") for entry in stream):
         return
@@ -212,8 +230,8 @@ def _plot_surface_evidence_metrics(stream: list[dict], silences: list[dict], out
     ax.set_yticks(range(len(fields)))
     ax.set_yticklabels([label for _, label in fields])
     ax.set_xlabel("Time (s)")
-    ax.set_title(f"{track_name} — Surface evidence heatmap", fontsize=14)
-    plt.colorbar(image, ax=ax, label="Score")
+    ax.set_title(_plot_title(track_name, "Surface evidence heatmap", duration), fontsize=14)
+    plt.colorbar(image, ax=ax, label="Score (fixed 0-1 scale)")
     plt.tight_layout()
     plt.savefig(out / f"{track_name}_surface_evidence.png", dpi=150)
     plt.close()
@@ -228,6 +246,7 @@ def _plot_reading_map(
     silences: list[dict],
     out: Path,
     track_name: str,
+    duration: float | None = None,
 ) -> None:
     """Plot a compact human reading map: spectrogram, surface balance, and metric strips."""
     if not stream:
@@ -245,15 +264,29 @@ def _plot_reading_map(
     s = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=96, fmax=min(10000, sr / 2))
     s_db = librosa.power_to_db(s, ref=np.max)
     librosa.display.specshow(s_db, sr=sr, x_axis="time", y_axis="mel", ax=axes[0], cmap="magma")
-    axes[0].set_title(f"{track_name} — Reading map", fontsize=14)
+    axes[0].set_title(_plot_title(track_name, "Reading map", duration), fontsize=14)
     axes[0].set_xlabel("")
 
-    axes[1].fill_between(hp_times, hp_balance, where=hp_balance < 0, alpha=0.55, color="#2ecc71", label="harmonic")
-    axes[1].fill_between(hp_times, hp_balance, where=hp_balance > 0, alpha=0.55, color="#e67e22", label="percussive")
+    axes[1].fill_between(
+        hp_times,
+        hp_balance,
+        where=hp_balance < 0,
+        alpha=0.55,
+        color="#1f77b4",
+        label="sustain / voice / harmony",
+    )
+    axes[1].fill_between(
+        hp_times,
+        hp_balance,
+        where=hp_balance > 0,
+        alpha=0.55,
+        color="#ff7f0e",
+        label="strike / groove / attack",
+    )
     axes[1].axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
     axes[1].set_ylabel("surface")
     axes[1].set_ylim(-1.05, 1.05)
-    axes[1].legend(loc="upper right", fontsize=8, ncol=2)
+    axes[1].legend(loc="upper right", fontsize=8, ncol=1)
 
     strip_groups = (
         (
@@ -1725,15 +1758,15 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
         plt.close()
 
         print("  Generating listener-state metric plot...")
-        _plot_listener_state_metrics(stream, silences, out, track_name)
+        _plot_listener_state_metrics(stream, silences, out, track_name, duration)
         print("  Listener-state metric plot saved.")
 
         print("  Generating surface evidence plot...")
-        _plot_surface_evidence_metrics(stream, silences, out, track_name)
+        _plot_surface_evidence_metrics(stream, silences, out, track_name, duration)
         print("  Surface evidence plot saved.")
 
         print("  Generating reading map plot...")
-        _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, out, track_name)
+        _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, out, track_name, duration)
         print("  Reading map plot saved.")
 
     return report
