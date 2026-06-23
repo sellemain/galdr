@@ -21,6 +21,8 @@ from .captions import (
     fmt_ts as _fmt_ts,
     parse_ts as _parse_ts,
     parse_vtt,
+    parse_vtt_cues,
+    timed_lyric_segments,
 )
 from .provenance import file_sha256, utc_now_iso
 
@@ -916,6 +918,7 @@ def fetch_track(
 
     # 1. Download audio + captions
     caption_segments: list[dict] = []
+    timed_caption_lines: list[dict] = []
     if url and not skip_download:
         print(f"\n[fetch] Downloading: {artist} — {title}")
         dl = download_youtube(url, audio_dir, slug)
@@ -936,16 +939,23 @@ def fetch_track(
             vtt_path = Path(dl["captions_file"])
             if vtt_path.exists():
                 caption_segments = parse_vtt(vtt_path)
-                print(f"  Captions: {len(caption_segments)} segments")
+                caption_cues = parse_vtt_cues(vtt_path)
+                timed_caption_lines = timed_lyric_segments(caption_cues)
+                print(
+                    f"  Captions: {len(caption_segments)} segments; "
+                    f"{len(timed_caption_lines)} timed lyric cues accepted"
+                )
             else:
                 print("  Captions: VTT file missing")
 
     # 2. Genius lyrics + captions — stored separately, merged in assemble
     if not skip_lyrics:
         caption_lines: list[dict] = []
-        if caption_segments:
-            caption_lines = dedup_captions_with_timestamps(caption_segments)
-            print(f"  Caption lines: {len(caption_lines)} (from {len(caption_segments)} segments)")
+        if timed_caption_lines:
+            caption_lines = timed_caption_lines
+            print(f"  Caption lines: {len(caption_lines)} accepted as timed lyric evidence")
+        elif caption_segments:
+            print("  Caption lines: none accepted as timed lyric evidence")
 
         print(f"\n[fetch] Genius: {artist} — {title}")
         genius = fetch_genius_lyrics(artist, title)

@@ -504,6 +504,19 @@ class TestAssemblePrompt:
         assert "Source: local VTT captions (/tmp/song.en.vtt)" in result
         assert "[0:01]  caption words" in result
 
+    def test_autocaption_lyrics_are_labeled_as_coarse_timing(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "youtube-auto-captions",
+                "caption_lines": [{"ts": "0:01", "text": "caption words"}],
+                "full_text": "caption words",
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "## Lyrics — autocaptions (coarse timing; text may contain mishears)" in result
+        assert "timestamps accurate" not in result
+
     def test_low_confidence_context_excluded_from_prompt(self):
         analysis = self._minimal_analysis()
         context = {
@@ -624,6 +637,8 @@ class TestAssemblePrompt:
         assert "Do not use a fixed lyric quota" in prompt
         assert "Treat lyrics as sung words, not supplied text" in prompt
         assert "Write as if the words arrive through the performance" in prompt
+        assert "Galdr stream/event timestamps are authoritative for sound and structure" in prompt
+        assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "~150 words per minute" in prompt
         assert "900-1,300" in prompt
 
@@ -2278,6 +2293,61 @@ def test_caption_confidence_accepts_clean_dense_lyrics_and_keeps_raw_captions(tm
     assert lyrics[0]["confidence"] == "high"
     assert cues[1]["kind"] == "caption"
     assert len(lyrics) == 1
+
+
+def test_fetch_does_not_promote_rejected_autocaptions_to_lyric_timestamps(tmp_path, monkeypatch):
+    from galdr import fetch
+
+    audio_dir = tmp_path / "audio"
+    analysis_dir = tmp_path / "analysis"
+    vtt_path = audio_dir / "demo-song.en.vtt"
+
+    def fake_download_youtube(url, audio_dir_arg, slug):
+        audio_dir_arg.mkdir(parents=True, exist_ok=True)
+        vtt_path.write_text(
+            "WEBVTT\n\n"
+            "00:00:01.000 --> 00:00:03.000\n"
+            "[Music] you\n\n"
+            "00:00:03.000 --> 00:00:04.000\n"
+            "oh\n",
+            encoding="utf-8",
+        )
+        return {
+            "audio_file": str(audio_dir_arg / f"{slug}.mp3"),
+            "captions_file": str(vtt_path),
+            "downloaded_at": "2026-01-01T00:00:00Z",
+            "audio_sha256": "fake",
+        }
+
+    def fake_genius_lyrics(artist, title):
+        return {
+            "found": True,
+            "url": "https://genius.example/demo",
+            "lines": ["Hey you, big star", "Shove it aside"],
+            "confidence": "high",
+            "match_score": 1.0,
+            "match_reasons": [],
+            "use_in_prompt": True,
+            "candidate_title": title,
+            "candidate_artist": artist,
+        }
+
+    monkeypatch.setattr(fetch, "download_youtube", fake_download_youtube)
+    monkeypatch.setattr(fetch, "fetch_genius_lyrics", fake_genius_lyrics)
+
+    context = fetch.fetch_track(
+        "demo-song",
+        "Demo Artist",
+        "Demo Song",
+        analysis_dir,
+        audio_dir,
+        url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        skip_wikipedia=True,
+    )
+
+    assert context["lyrics"]["source"] == "genius"
+    assert context["lyrics"]["genius_text"] == "Hey you, big star\nShove it aside"
+    assert context["lyrics"]["caption_lines"] == []
 
 
 class TestSurfaceFeatureBank:
