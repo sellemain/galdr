@@ -2,12 +2,6 @@
 
 Write a continuous prose listening experience. Not what this music is — what it *does*. To the body, to attention, to time. First sound to last. This is an encounter, not an analysis.
 
-```bash
-galdr assemble <slug> --template arc --mode full
-```
-
-Pipe the output to any model. To adapt this template: Rules 6, 7, and 8 control voice and density. Rule 10 controls what the model is allowed to assert. Rules 1, 2, and 11 are structural — change them only with a specific reason.
-
 ---
 
 ## Posture
@@ -44,7 +38,7 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
    Do **not** timestamp every event. Phrase-level movement usually reads better without a clock. Translate clusters of nearby events into one continuous sentence or paragraph instead of walking the reader through the event list. Treat timestamps as **orientation markers**, not beat-by-beat labels: a timestamp should place the reader in the right region of the song, while the music itself carries the fine timing. When several events occur within a few seconds, collapse them into one approximate anchor (`around 2:23`, `near the mid-2:20s`, `by the late 3:40s`). Never walk through adjacent events second by second. Do not enumerate adjacent seconds unless the exact timing is structurally important. If two candidate timestamps are within 5 seconds of each other, use one timestamp unless they mark genuinely separate structural moments. If they are within 5-10 seconds and describe one continuous gesture, treat them as a single region.
 
-   Keep musical chronology and lyric evidence separate when lyric timing is uncertain. Galdr stream/event timestamps are authoritative for sound and structure. Lyric timestamps are timing evidence only when the Lyrics section labels them as clean, manual, verified, or otherwise reliable aligned captions. Auto-captions, rough caption matches, and Genius-plus-autocaption packets are coarse orientation only; they may contain misheard words, shifted cues, or matched text with no exact line timing. Do not attach a quoted lyric to a specific metric event or timestamp unless the packet gives reliable lyric timing or the alignment is obvious from the evidence. Otherwise, describe the musical change first, then let the lyric enter as a nearby verse, refrain, or section turn without pretending exact alignment.
+   Failure case: do not make up exact entrances for words. Galdr stream/event timestamps are authoritative for sound and structure, not proof that a specific lyric line arrived at that second. Lyric timestamps are timing evidence only when the Lyrics section labels them as clean, manual, verified, or otherwise reliable aligned captions. Auto-captions, rough caption matches, and Genius-plus-autocaption packets are coarse orientation only; they may contain misheard words, shifted cues, or matched text with no exact line timing. Do not attach a quoted lyric to a specific metric event or timestamp unless the packet gives reliable lyric timing or the alignment is obvious from the evidence. When lyric timing is uncertain, keep the private evidence separate: describe the musical change first, then let the lyric enter as a nearby verse, refrain, or section turn without pretending exact alignment.
 
    Never wrap timestamps or event names in backticks. This is prose, not code.
 
@@ -120,7 +114,7 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
    Think of the writing as a listening walk. At each important turn, ask: what changed in the sound? Did the rhythm tighten, the vocal body move closer, the texture thin out, the drone deepen, the harmony open, the surface roughen, the room widen, the pressure release? Describe that heard change first. Then, if a lyric belongs there, let it arrive as a focused human signal inside the musical event.
 
-   Do not split adjacent paragraphs merely because one discusses words and the next discusses arrangement, image, rhythm, or texture from the same moment. A timestamp is a region where multiple cues are happening together, not a paragraph obligation. Integrate simultaneous cues into one event unless the track itself separates them.
+   Do not split adjacent paragraphs merely because one discusses words and the next discusses arrangement, image, rhythm, or texture from the same moment. A timestamp is a region where multiple cues are happening together, not a paragraph obligation. Integrate simultaneous cues into one event unless the track itself separates them. If lyric timing is uncertain, integrate the sound and words as a nearby musical and semantic turn, not as a claimed second-by-second alignment.
 
    The strongest passages make words and music work together: a quoted line lands because the pulse, timbre, space, or harmonic color has prepared it. If a paragraph quotes lyrics, the surrounding prose should let the reader hear the music carrying those words. A good default shape is: sound changes first, lyric enters as the human/semantic face of that change, then the prose returns to what the arrangement does next.
 
