@@ -1194,6 +1194,7 @@ def test_cli_plot_index_lists_png_artifacts(tmp_path):
     assert "other-track_reading_map.png" not in text
     assert "color-scheme: dark" in text
     assert "background: #0d1117" in text
+    assert "grid-template-columns: minmax(0, 1fr)" in text
 
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 

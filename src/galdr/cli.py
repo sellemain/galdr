@@ -119,7 +119,7 @@ body {{
   color: #e6edf3;
 }}
 h1 {{ font-size: 22px; margin: 0 0 18px; }}
-.grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; }}
+.grid {{ display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }}
 figure {{
   margin: 0;
   padding: 10px;
