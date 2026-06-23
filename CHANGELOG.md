@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-06-23
+
 ### Added
 - Perception runs now write `*_listener_state.png` and `*_surface_evidence.png` so the newer listener-state and surface evidence metrics are visible to humans, not only available in JSON and assembled prompts.
 - Perception runs also write `*_reading_map.png`, a compact human-review plot combining a mel spectrogram, surface-balance band, and selected listener-state metric strips.
+- `galdr listen` now writes a self-contained `index.html` plot contact sheet for the generated PNG visualizations.
+
+### Changed
+- The generated plot contact sheet now uses dark styling and a single-column layout for easier local review.
+- ARC prompt guidance now separates uncertain lyric timing from musical chronology more clearly and removes the model-facing `galdr assemble` preamble from assembled prompts.
 
 ## [0.5.0] - 2026-06-18
 

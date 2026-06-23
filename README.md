@@ -93,6 +93,7 @@ Outputs are written under `analysis/my-track/`:
 
 ```text
 analysis/my-track/
+├── index.html                    # local contact sheet for generated plots
 ├── my-track_report.json
 ├── my-track_perception.json
 ├── my-track_stream.json
@@ -102,8 +103,13 @@ analysis/my-track/
 ├── my-track_melody_stream.json
 ├── my-track_overtone.json
 ├── my-track_overtone_stream.json
-└── *.png                         # visualizations, including listener-state, surface-evidence, and reading-map plots
+├── my-track_listener_state.png
+├── my-track_surface_evidence.png
+├── my-track_reading_map.png
+└── *.png                         # additional visualizations
 ```
+
+Open `analysis/my-track/index.html` for a local plot contact sheet.
 
 Inspect the time stream directly:
 
