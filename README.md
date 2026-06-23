@@ -102,8 +102,14 @@ analysis/my-track/
 ├── my-track_melody_stream.json
 ├── my-track_overtone.json
 ├── my-track_overtone_stream.json
-└── *.png
+└── *.png                         # visualizations, including listener-state and surface-evidence plots
 ```
+
+The perception PNGs include `*_listener_state.png` for body capture/comfort,
+groove comfort, accent drift, section gravity, surface density, expectation
+debt, release force, weight, and pressure; and `*_surface_evidence.png` for the
+surface feature bank: roughness, noise density, motion, brightness tilt, attack,
+punch, sustain/drone, band pressure, band weights, and percussive ratio.
 
 Inspect the time stream directly:
 

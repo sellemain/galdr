@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Perception runs now write `*_listener_state.png` and `*_surface_evidence.png` so the newer listener-state and surface evidence metrics are visible to humans, not only available in JSON and assembled prompts.
+
 ## [0.5.0] - 2026-06-18
 
 ### Added

@@ -70,6 +70,162 @@ def _duration_to_frames(duration_sec: float, frame_step_sec: float, max_len: int
     return frames
 
 
+def _series_from_stream(stream: list[dict], field: str) -> list[float]:
+    values = []
+    for entry in stream:
+        value = entry.get(field)
+        if value is None:
+            values.append(np.nan)
+            continue
+        try:
+            values.append(float(value))
+        except (TypeError, ValueError):
+            values.append(np.nan)
+    return values
+
+
+def _surface_series_from_stream(stream: list[dict], field: str) -> list[float]:
+    values = []
+    for entry in stream:
+        evidence = entry.get("surface_evidence") or {}
+        value = evidence.get(field)
+        if value is None:
+            values.append(np.nan)
+            continue
+        try:
+            values.append(float(value))
+        except (TypeError, ValueError):
+            values.append(np.nan)
+    return values
+
+
+def _shade_silences(axes, silences: list[dict]) -> None:
+    for ax in np.ravel(axes):
+        for silence in silences:
+            ax.axvspan(silence["start"], silence["end"], alpha=0.18, color="#7f8c8d")
+
+
+def _plot_listener_state_metrics(stream: list[dict], silences: list[dict], out: Path, track_name: str) -> None:
+    """Plot stream-derived listener-state metrics that are otherwise JSON-only."""
+    if not stream:
+        return
+
+    times = [float(entry["t"]) for entry in stream]
+    fig, axes = plt.subplots(4, 1, figsize=(16, 11), sharex=True)
+
+    groups = (
+        (
+            "Body relation",
+            (
+                ("body_capture", "Body capture", "#e74c3c"),
+                ("body_comfort", "Body comfort", "#2ecc71"),
+                ("groove_comfort", "Groove comfort", "#3498db"),
+            ),
+        ),
+        (
+            "Grid and section hold",
+            (
+                ("accent_phase_drift", "Accent phase drift", "#9b59b6"),
+                ("section_gravity", "Section gravity", "#f39c12"),
+                ("surface_density", "Surface density", "#16a085"),
+            ),
+        ),
+        (
+            "Debt and release",
+            (
+                ("expectation_debt", "Expectation debt", "#c0392b"),
+                ("release_force", "Release force", "#27ae60"),
+            ),
+        ),
+        (
+            "Weight and pressure",
+            (
+                ("weight", "Weight", "#34495e"),
+                ("pressure", "Pressure", "#d35400"),
+            ),
+        ),
+    )
+
+    for ax, (title, fields) in zip(axes, groups):
+        for field, label, color in fields:
+            ax.plot(times, _series_from_stream(stream, field), label=label, color=color, linewidth=1.0)
+        ax.axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
+        ax.set_ylabel("Score")
+        ax.set_ylim(-1.05 if title == "Weight and pressure" else -0.05, 1.05)
+        ax.set_title(title, fontsize=12)
+        ax.legend(loc="upper right", fontsize=9, ncol=3)
+
+    _shade_silences(axes, silences)
+    axes[-1].set_xlabel("Time (s)")
+    plt.suptitle(f"{track_name} — Listener-state metrics", fontsize=14, y=0.995)
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_listener_state.png", dpi=150)
+    plt.close()
+
+
+def _plot_surface_evidence_metrics(stream: list[dict], silences: list[dict], out: Path, track_name: str) -> None:
+    """Plot the newer surface evidence bank in readable groups."""
+    if not stream or not any(entry.get("surface_evidence") for entry in stream):
+        return
+
+    times = [float(entry["t"]) for entry in stream]
+    fig, axes = plt.subplots(4, 1, figsize=(16, 11), sharex=True)
+
+    groups = (
+        (
+            "Surface grain and motion",
+            (
+                ("roughness", "Roughness", "#c0392b"),
+                ("noise_density", "Noise density", "#8e44ad"),
+                ("surface_motion", "Surface motion", "#2980b9"),
+                ("brightness_tilt", "Brightness tilt", "#f1c40f"),
+            ),
+        ),
+        (
+            "Attack and sustain",
+            (
+                ("transient_attack", "Transient attack", "#e67e22"),
+                ("punch", "Punch", "#d35400"),
+                ("sustain_drone", "Sustain drone", "#27ae60"),
+                ("band_pressure", "Band pressure", "#2c3e50"),
+            ),
+        ),
+        (
+            "Band weights",
+            (
+                ("bass_weight", "Bass", "#34495e"),
+                ("body_weight", "Body", "#16a085"),
+                ("presence_weight", "Presence", "#3498db"),
+                ("air_weight", "Air", "#95a5a6"),
+            ),
+        ),
+        (
+            "Percussive balance",
+            (
+                ("percussive_ratio", "Percussive ratio", "#e67e22"),
+            ),
+        ),
+    )
+
+    for ax, (title, fields) in zip(axes, groups):
+        for field, label, color in fields:
+            values = _surface_series_from_stream(stream, field)
+            ax.plot(times, values, label=label, color=color, linewidth=1.0)
+            if len(fields) == 1:
+                ax.fill_between(times, values, alpha=0.25, color=color)
+        ax.set_ylabel("Score")
+        ax.set_ylim(-0.05, 1.05)
+        ax.set_title(title, fontsize=12)
+        ax.legend(loc="upper right", fontsize=9, ncol=4)
+
+    _shade_silences(axes, silences)
+    axes[-1].set_xlabel("Time (s)")
+    plt.suptitle(f"{track_name} — Surface evidence metrics", fontsize=14, y=0.995)
+    plt.tight_layout()
+    plt.savefig(out / f"{track_name}_surface_evidence.png", dpi=150)
+    plt.close()
+
+
 def compute_attention(beat_times, duration,
                      window_sec=ATTENTION_WINDOW_SEC,
                      hop_sec=ATTENTION_HOP_SEC):
@@ -1495,5 +1651,13 @@ def generate_perception_stream(audio_path, output_dir, track_name, hop_sec: floa
         plt.tight_layout()
         plt.savefig(out / f"{track_name}_hp_balance.png", dpi=150)
         plt.close()
+
+        print("  Generating listener-state metric plot...")
+        _plot_listener_state_metrics(stream, silences, out, track_name)
+        print("  Listener-state metric plot saved.")
+
+        print("  Generating surface evidence plot...")
+        _plot_surface_evidence_metrics(stream, silences, out, track_name)
+        print("  Surface evidence plot saved.")
 
     return report

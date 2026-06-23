@@ -42,6 +42,7 @@ Outputs to `<analysis-dir>/<track-name>/`:
 - `*_harmony.json` — harmonic pull, tonal anchor evidence, chroma motion, internal tonal-center evidence
 - `*_melody.json` — foreground line, pitch contour, internal range/center evidence
 - `*_overtone.json` — resonance/grain evidence: overtone fit, overtone density, inharmonicity
+- `*.png` — visualizations, including listener-state and surface-evidence metric plots for human review
 
 Run only specific modules:
 ```bash
