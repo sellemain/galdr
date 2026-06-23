@@ -1114,6 +1114,69 @@ class TestLufsPressureMotion:
         assert "0:10–0:40 — locked engine; expectation debt accumulating" in prompt
         assert "body capture 0.700 / comfort 0.440" in prompt
 
+
+def test_perception_metric_plots_cover_listener_state_and_surface_evidence(tmp_path):
+    import numpy as np
+
+    from galdr.perceive import (
+        _plot_listener_state_metrics,
+        _plot_reading_map,
+        _plot_surface_evidence_metrics,
+    )
+
+    stream = []
+    for i in range(8):
+        v = i / 7
+        stream.append({
+            "t": float(i),
+            "body_capture": v,
+            "body_comfort": 1.0 - v,
+            "groove_comfort": 0.5,
+            "accent_phase_drift": v * 0.4,
+            "section_gravity": 0.2 + v * 0.6,
+            "surface_density": 0.1 + v * 0.5,
+            "expectation_debt": v * 0.8,
+            "release_force": max(0.0, 0.7 - v),
+            "weight": 0.25 + v * 0.2,
+            "pressure": -0.5 + v,
+            "surface_evidence": {
+                "roughness": v,
+                "noise_density": 1.0 - v,
+                "surface_motion": 0.2 + v * 0.5,
+                "brightness_tilt": 0.4,
+                "transient_attack": v * 0.6,
+                "punch": v * 0.5,
+                "sustain_drone": 1.0 - v * 0.5,
+                "band_pressure": 0.3 + v * 0.3,
+                "bass_weight": 0.25,
+                "body_weight": 0.35,
+                "presence_weight": 0.30,
+                "air_weight": 0.10,
+                "percussive_ratio": v,
+            },
+        })
+
+    silences = [{"start": 2.0, "end": 3.0}]
+    sr = 22050
+    t = np.linspace(0, 8, sr * 8, endpoint=False)
+    y = (0.15 * np.sin(2 * np.pi * 220 * t)).astype(np.float32)
+    hp_times = np.asarray([entry["t"] for entry in stream], dtype=float)
+    hp_balance = np.linspace(-0.4, 0.5, len(stream))
+
+    _plot_listener_state_metrics(stream, silences, tmp_path, "plot-test")
+    _plot_surface_evidence_metrics(stream, silences, tmp_path, "plot-test")
+    _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, tmp_path, "plot-test")
+
+    listener_plot = tmp_path / "plot-test_listener_state.png"
+    surface_plot = tmp_path / "plot-test_surface_evidence.png"
+    reading_plot = tmp_path / "plot-test_reading_map.png"
+    assert listener_plot.exists()
+    assert listener_plot.stat().st_size > 0
+    assert surface_plot.exists()
+    assert surface_plot.stat().st_size > 0
+    assert reading_plot.exists()
+    assert reading_plot.stat().st_size > 0
+
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 
 
