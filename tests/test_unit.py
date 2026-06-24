@@ -2210,6 +2210,91 @@ def test_section_boundary_report_keeps_chapters_and_acoustic_evidence_separate()
     assert [candidate["start"] for candidate in report["acoustic_boundaries_without_declared_section"]] == [210.0, 400.0]
 
 
+# ── Section / Arc Events ─────────────────────────────────────────────────────
+
+
+def test_section_arc_events_keep_sustained_arc_without_boundary_evidence():
+    from galdr.section_arc import derive_section_arc_events
+
+    stream = []
+    for t in range(0, 16):
+        stream.append(_boundary_frame(t, pressure=0.04, body=0.64, density=0.55))
+
+    events = derive_section_arc_events(stream)
+
+    assert [event["source"] for event in events["arc_spans"]] == ["arc_span"]
+    assert events["arc_spans"][0]["label"] == "held"
+    assert events["acoustic_boundaries"] == []
+    assert events["reset_points"] == []
+    assert events["declared_alignment"] is None
+    assert all(event["source"] == "arc_span" for event in events["arc_spans"])
+
+
+def test_section_arc_events_split_acoustic_boundary_from_reset_point():
+    from galdr.section_arc import derive_section_arc_events
+
+    silence_stream = []
+    for t in range(0, 6):
+        silence_stream.append(_boundary_frame(t, pressure=0.05, density=0.7))
+    for t in range(6, 12):
+        silence_stream.append(
+            _boundary_frame(
+                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
+                density=0.0, rms=0.001, lufs=-68.0
+            )
+        )
+    for t in range(12, 20):
+        silence_stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+
+    boundary_events = derive_section_arc_events(silence_stream)
+
+    assert [event["label"] for event in boundary_events["acoustic_boundaries"]] == ["probable_boundary"]
+    assert boundary_events["acoustic_boundaries"][0]["source"] == "acoustic_boundary"
+    assert boundary_events["reset_points"] == []
+
+    reset_stream = []
+    for t in range(0, 8):
+        reset_stream.append(
+            _boundary_frame(t, attention=0.9, pattern=0.96, pressure=-0.08, body=0.43, weight=0.88,
+                            density=0.06, rms=0.07, lufs=-24.0)
+        )
+    for t in range(8, 16):
+        reset_stream.append(
+            _boundary_frame(t, attention=0.97, pattern=0.99, pressure=0.08, body=0.72, weight=0.55,
+                            density=0.31, rms=0.16, lufs=-19.0)
+        )
+
+    reset_events = derive_section_arc_events(reset_stream)
+
+    assert reset_events["acoustic_boundaries"] == []
+    assert [event["label"] for event in reset_events["reset_points"]] == ["reset_point"]
+    assert reset_events["reset_points"][0]["source"] == "reset_point"
+
+
+def test_section_arc_events_align_declared_sections_without_merging_lanes():
+    from galdr.section_arc import derive_section_arc_events
+
+    stream = []
+    for t in range(0, 6):
+        stream.append(_boundary_frame(t, pressure=0.05, density=0.7))
+    for t in range(6, 12):
+        stream.append(
+            _boundary_frame(
+                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
+                density=0.0, rms=0.001, lufs=-68.0
+            )
+        )
+    for t in range(12, 20):
+        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+
+    events = derive_section_arc_events(stream, declared_sections=[{"start": 12.0, "title": "Second movement"}])
+
+    assert events["declared_alignment"]["summary"]["matched_count"] == 1
+    assert events["declared_alignment"]["matched_declared_sections"][0]["section"] == "Second movement"
+    assert events["acoustic_boundaries"][0]["source"] == "acoustic_boundary"
+    assert "declared_alignment" not in events["acoustic_boundaries"][0]
+
+
 def test_packet_builds_generic_evidence_container(tmp_path):
     from galdr.packet import build_packet_from_disk
 
