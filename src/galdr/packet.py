@@ -13,8 +13,8 @@ from typing import Any
 
 from .arc import derive_arc_scales, select_arc_scale
 from .assemble import load_analysis, load_context
-from .boundary import derive_boundary_candidates
 from .provenance import utc_now_iso
+from .section_arc import derive_section_arc_events
 
 PACKET_SCHEMA_VERSION = "evidence_packet_v0"
 
@@ -233,38 +233,38 @@ def _span_timeline_item(span: dict[str, Any], *, scale: str) -> dict[str, Any]:
     }
 
 
+def _section_arc_timeline_item(event: dict[str, Any]) -> dict[str, Any]:
+    source = event.get("source")
+    kind = {
+        "acoustic_boundary": "boundary_candidate",
+        "reset_point": "reset_point",
+    }.get(source, "arc_span")
+    values = event.get("values")
+    return {
+        "kind": kind,
+        "source_ref": "perception.stream",
+        "scale": event.get("scale"),
+        "start": event.get("start"),
+        "end": event.get("end"),
+        "label": event.get("label"),
+        "confidence": event.get("confidence", "derived"),
+        "values": values if isinstance(values, dict) else {},
+    }
+
+
 def _build_timeline(analysis: dict[str, Any]) -> list[dict[str, Any]]:
     perception = analysis.get("perception") or {}
     stream = perception.get("stream") or []
     timeline: list[dict[str, Any]] = []
 
     if stream:
-        scales = derive_arc_scales(stream)
-        selected_scale, _reason = select_arc_scale(scales)
-        for span in scales.get(selected_scale, []):
-            timeline.append(_span_timeline_item(span, scale=selected_scale))
-
-        for candidate in derive_boundary_candidates(stream):
-            timeline.append({
-                "kind": "boundary_candidate",
-                "source_ref": "perception.stream",
-                "start": candidate.get("start"),
-                "end": candidate.get("end"),
-                "label": candidate.get("kind"),
-                "confidence": candidate.get("confidence"),
-                "values": {
-                    key: candidate[key]
-                    for key in (
-                        "duration",
-                        "reset_strength",
-                        "reentry_strength",
-                        "mean_rms_energy",
-                        "mean_surface_density",
-                        "min_loudness_lufs",
-                    )
-                    if key in candidate
-                },
-            })
+        section_arc = derive_section_arc_events(stream)
+        for event in (
+            *(section_arc.get("arc_spans") or []),
+            *(section_arc.get("acoustic_boundaries") or []),
+            *(section_arc.get("reset_points") or []),
+        ):
+            timeline.append(_section_arc_timeline_item(event))
 
         for frame in stream:
             event = frame.get("event")

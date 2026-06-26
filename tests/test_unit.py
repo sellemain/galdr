@@ -2369,6 +2369,62 @@ def test_packet_builds_generic_evidence_container(tmp_path):
     assert packet["views"] == {}
 
 
+def test_packet_timeline_uses_section_arc_structural_events(tmp_path):
+    from galdr.packet import build_packet_from_disk
+
+    slug = "packet-section-arc-track"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_report.json").write_text(json.dumps({
+        "track": slug,
+        "duration_seconds": 36.0,
+    }))
+    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
+        "track": slug,
+        "summary": {"mean_attention": 0.72, "mean_pattern": 0.81},
+    }))
+
+    stream = []
+    for t in range(0, 6):
+        stream.append(_boundary_frame(t, pressure=0.05, density=0.7))
+    for t in range(6, 12):
+        stream.append(
+            _boundary_frame(
+                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
+                density=0.0, rms=0.001, lufs=-68.0
+            )
+        )
+    for t in range(12, 20):
+        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+    for t in range(20, 28):
+        stream.append(
+            _boundary_frame(t, attention=0.9, pattern=0.96, pressure=-0.08, body=0.43, weight=0.88,
+                            density=0.06, rms=0.07, lufs=-24.0)
+        )
+    for t in range(28, 36):
+        stream.append(
+            _boundary_frame(t, attention=0.97, pattern=0.99, pressure=0.08, body=0.72, weight=0.55,
+                            density=0.31, rms=0.16, lufs=-19.0)
+        )
+
+    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
+        "schema_version": "listener_state_v1",
+        "stream": stream,
+    }))
+    (track_dir / "context.json").write_text(json.dumps({"slug": slug}))
+
+    packet = build_packet_from_disk(slug, tmp_path)
+    structural = [item for item in packet["timeline"] if item["source_ref"] == "perception.stream"]
+
+    assert any(item["kind"] == "arc_span" for item in structural)
+    boundaries = [item for item in structural if item["kind"] == "boundary_candidate"]
+    resets = [item for item in structural if item["kind"] == "reset_point"]
+    assert [(item["start"], item["end"], item["label"]) for item in boundaries] == [(6.0, 12.0, "probable_boundary")]
+    assert [(item["start"], item["end"], item["label"]) for item in resets] == [(22.0, 22.0, "reset_point")]
+    starts = [item["start"] for item in structural]
+    assert starts == sorted(starts)
+
+
 def test_packet_cli_writes_json_file(tmp_path):
     from galdr import cli
 
