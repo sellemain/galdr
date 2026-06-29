@@ -2271,6 +2271,41 @@ def test_section_arc_events_split_acoustic_boundary_from_reset_point():
     assert reset_events["reset_points"][0]["source"] == "reset_point"
 
 
+def test_section_arc_events_caps_packet_facing_reset_points(monkeypatch):
+    import galdr.section_arc as section_arc
+
+    stream = [_boundary_frame(t, pressure=0.04, body=0.64, density=0.55) for t in range(0, 16)]
+    reset_candidates = [
+        {
+            "kind": "reset_point",
+            "start": float(t),
+            "end": float(t),
+            "confidence": 0.7,
+            "state_reset": 0.4,
+            "acoustic_reset": 0.2,
+            "rank_score": 0.5,
+        }
+        for t in range(10, 110, 10)
+    ]
+
+    def fake_derive_boundary_candidates(*args, **kwargs):
+        if kwargs.get("include_reset_points"):
+            return reset_candidates
+        return []
+
+    def fake_rank_reset_candidates(candidates, *, top_n, **kwargs):
+        assert top_n == 3
+        return candidates[:top_n]
+
+    monkeypatch.setattr(section_arc, "derive_boundary_candidates", fake_derive_boundary_candidates)
+    monkeypatch.setattr(section_arc, "rank_reset_candidates", fake_rank_reset_candidates)
+
+    events = section_arc.derive_section_arc_events(stream, max_reset_points=3)
+
+    assert [event["start"] for event in events["reset_points"]] == [10.0, 20.0, 30.0]
+    assert all(event["source"] == "reset_point" for event in events["reset_points"])
+
+
 def test_section_arc_events_align_declared_sections_without_merging_lanes():
     from galdr.section_arc import derive_section_arc_events
 
