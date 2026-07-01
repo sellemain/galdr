@@ -79,6 +79,7 @@ def derive_section_arc_events(
     *,
     include_reset_points: bool = True,
     max_events: int = 24,
+    max_reset_points: int = 6,
 ) -> dict[str, Any]:
     """Compose section/arc evidence without collapsing sources into labels.
 
@@ -89,6 +90,8 @@ def derive_section_arc_events(
     stream, hop_sec = _unwrap_stream_payload(stream_payload)
     if max_events < 1:
         max_events = 1
+    if max_reset_points < 0:
+        max_reset_points = 0
 
     scales = derive_arc_scales(stream)
     selected_scale, scale_reason = select_arc_scale(scales)
@@ -102,7 +105,7 @@ def derive_section_arc_events(
     ]
 
     reset_points: list[dict[str, Any]] = []
-    if include_reset_points:
+    if include_reset_points and max_reset_points:
         candidates_with_resets = derive_boundary_candidates(
             stream_payload,
             hop_sec=hop_sec,
@@ -110,7 +113,7 @@ def derive_section_arc_events(
         )
         reset_points = [
             _boundary_event(candidate, source="reset_point")
-            for candidate in rank_reset_candidates(candidates_with_resets, top_n=max_events)
+            for candidate in rank_reset_candidates(candidates_with_resets, top_n=max_reset_points)
         ]
 
     declared_alignment = None
