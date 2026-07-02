@@ -131,7 +131,7 @@ Build a model prompt from analysis data. Template controls voice/format instruct
 galdr fetch <url> [--name NAME] [--analyze]
 ```
 
-Download audio and context via yt-dlp. With `--analyze`, runs the full analysis pipeline after download. Audio and captions are downloaded separately, so caption failures do not block audio analysis.
+Download audio and context via yt-dlp. With `--analyze`, runs the full analysis pipeline after download. Audio, YouTube Music timed lyrics, and captions are fetched separately, so lyric/caption failures do not block audio analysis.
 
 ### frames — extract video frames at structural moments
 

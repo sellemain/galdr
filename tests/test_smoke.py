@@ -124,6 +124,7 @@ def test_yt_dlp_dependency_includes_reliability_extras():
 
     pyproject = Path("pyproject.toml").read_text()
     assert '"yt-dlp[default,curl-cffi]>=2026.3.17"' in pyproject
+    assert '"ytmusicapi>=1.12.1"' in pyproject
 
 
 def test_yt_dlp_reliability_extras_importable():

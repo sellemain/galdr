@@ -517,6 +517,25 @@ class TestAssemblePrompt:
         assert "## Lyrics — autocaptions (coarse timing; text may contain mishears)" in result
         assert "timestamps accurate" not in result
 
+    def test_youtube_music_timed_lyrics_are_labeled_separately(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "genius+youtube-music-timed-lyrics",
+                "genius_url": "https://genius.example/song",
+                "genius_text": "clean lyric text",
+                "full_text": "clean lyric text",
+                "timed_lyrics_source": {"provider_source": "Source: Musixmatch"},
+                "timed_lines": [{"ts": "0:10.65", "text": "provider timed words"}],
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "## Lyrics — YouTube Music timed lyrics (provider line timing; verify central words)" in result
+        assert "Source: Genius (https://genius.example/song) + YouTube Music timed lyrics (Source: Musixmatch)" in result
+        assert "[0:10.65]  provider timed words" in result
+        assert "## Lyrics — autocaptions" not in result
+        assert "clean lyric text" in result
+
     def test_low_confidence_context_excluded_from_prompt(self):
         analysis = self._minimal_analysis()
         context = {
@@ -2610,6 +2629,186 @@ def test_fetch_does_not_promote_rejected_autocaptions_to_lyric_timestamps(tmp_pa
     assert context["lyrics"]["source"] == "genius"
     assert context["lyrics"]["genius_text"] == "Hey you, big star\nShove it aside"
     assert context["lyrics"]["caption_lines"] == []
+
+
+def test_fetch_stores_youtube_music_timed_lyrics_with_genius(tmp_path, monkeypatch):
+    from galdr import fetch
+
+    audio_dir = tmp_path / "audio"
+    analysis_dir = tmp_path / "analysis"
+
+    def fake_download_youtube(url, audio_dir_arg, slug):
+        audio_dir_arg.mkdir(parents=True, exist_ok=True)
+        return {
+            "audio_file": str(audio_dir_arg / f"{slug}.mp3"),
+            "captions_file": None,
+            "downloaded_at": "2026-01-01T00:00:00Z",
+            "audio_sha256": "fake",
+        }
+
+    def fake_youtube_music(video_id):
+        return {
+            "found": True,
+            "source": "youtube-music-timed-lyrics",
+            "provider": "youtube-music",
+            "provider_source": "Source: Musixmatch",
+            "lyrics_browse_id": "MPLYt_demo",
+            "video_id": video_id,
+            "has_timestamps": True,
+            "line_count": 1,
+            "timed_lines": [
+                {
+                    "start": 10.65,
+                    "end": 15.1,
+                    "ts": "0:10.65",
+                    "text": "provider timed words",
+                    "source": "youtube-music-timed-lyrics",
+                    "confidence": "provider-timed",
+                }
+            ],
+        }
+
+    def fake_genius_lyrics(artist, title):
+        return {
+            "found": True,
+            "url": "https://genius.example/demo",
+            "lines": ["Clean lyric text"],
+            "confidence": "high",
+            "match_score": 1.0,
+            "match_reasons": [],
+            "use_in_prompt": True,
+            "candidate_title": title,
+            "candidate_artist": artist,
+        }
+
+    monkeypatch.setattr(fetch, "download_youtube", fake_download_youtube)
+    monkeypatch.setattr(fetch, "fetch_youtube_music_timed_lyrics", fake_youtube_music)
+    monkeypatch.setattr(fetch, "fetch_genius_lyrics", fake_genius_lyrics)
+
+    context = fetch.fetch_track(
+        "demo-song",
+        "Demo Artist",
+        "Demo Song",
+        analysis_dir,
+        audio_dir,
+        url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        skip_wikipedia=True,
+    )
+
+    assert context["lyrics"]["source"] == "genius+youtube-music-timed-lyrics"
+    assert context["lyrics"]["timed_lines"][0]["ts"] == "0:10.65"
+    assert context["lyrics"]["timed_lyrics_source"]["provider_source"] == "Source: Musixmatch"
+    assert context["lyrics"]["caption_lines"] == []
+    assert context["lyrics"]["genius_text"] == "Clean lyric text"
+
+
+def test_fetch_uses_youtube_music_timed_lyrics_when_genius_missing(tmp_path, monkeypatch):
+    from galdr import fetch
+
+    audio_dir = tmp_path / "audio"
+    analysis_dir = tmp_path / "analysis"
+
+    def fake_download_youtube(url, audio_dir_arg, slug):
+        audio_dir_arg.mkdir(parents=True, exist_ok=True)
+        return {
+            "audio_file": str(audio_dir_arg / f"{slug}.mp3"),
+            "captions_file": None,
+            "downloaded_at": "2026-01-01T00:00:00Z",
+            "audio_sha256": "fake",
+        }
+
+    monkeypatch.setattr(fetch, "download_youtube", fake_download_youtube)
+    monkeypatch.setattr(
+        fetch,
+        "fetch_youtube_music_timed_lyrics",
+        lambda video_id: {
+            "found": True,
+            "source": "youtube-music-timed-lyrics",
+            "provider": "youtube-music",
+            "provider_source": "Source: LyricFind",
+            "lyrics_browse_id": "MPLYt_demo",
+            "video_id": video_id,
+            "has_timestamps": True,
+            "line_count": 1,
+            "timed_lines": [{"ts": "0:01.00", "text": "timed only", "start": 1.0, "end": 2.0}],
+        },
+    )
+    monkeypatch.setattr(
+        fetch,
+        "fetch_genius_lyrics",
+        lambda artist, title: {"found": False, "reason": "no match"},
+    )
+
+    context = fetch.fetch_track(
+        "demo-song",
+        "Demo Artist",
+        "Demo Song",
+        analysis_dir,
+        audio_dir,
+        url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        skip_wikipedia=True,
+    )
+
+    assert context["lyrics"]["source"] == "youtube-music-timed-lyrics"
+    assert context["lyrics"]["timed_lines"][0]["text"] == "timed only"
+    assert context["lyrics"]["full_text"] == "timed only"
+    assert context["lyrics"]["genius_text"] is None
+
+
+def test_youtube_music_timed_lyrics_normalizes_provider_lines(monkeypatch):
+    from galdr import youtube_music
+
+    class FakeYTMusic:
+        def get_watch_playlist(self, videoId):
+            assert videoId == "DO0yaw3Wj1A"
+            return {"lyrics": "MPLYt_demo"}
+
+        def get_lyrics(self, browse_id, timestamps=False):
+            assert browse_id == "MPLYt_demo"
+            assert timestamps is True
+            return {
+                "hasTimestamps": True,
+                "source": "Source: Musixmatch",
+                "lyrics": [
+                    {"text": "♪", "start_time": 0, "end_time": 1000, "id": 0},
+                    {"text": "Timed words", "start_time": 10650, "end_time": 15100, "id": 1},
+                ],
+            }
+
+    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+
+    result = youtube_music.fetch_youtube_music_timed_lyrics("DO0yaw3Wj1A")
+
+    assert result["found"] is True
+    assert result["provider_source"] == "Source: Musixmatch"
+    assert result["line_count"] == 1
+    assert result["timed_lines"] == [
+        {
+            "start": 10.65,
+            "end": 15.1,
+            "ts": "0:10.65",
+            "text": "Timed words",
+            "source": "youtube-music-timed-lyrics",
+            "confidence": "provider-timed",
+            "line_id": 1,
+        }
+    ]
+
+
+def test_youtube_music_timed_lyrics_fails_soft_on_provider_error(monkeypatch):
+    from galdr import youtube_music
+
+    class FakeYTMusic:
+        def get_watch_playlist(self, videoId):
+            raise KeyError("cueRange")
+
+    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+
+    result = youtube_music.fetch_youtube_music_timed_lyrics("dQw4w9WgXcQ")
+
+    assert result["found"] is False
+    assert result["reason"] == "YouTube Music timed lyrics fetch failed"
+    assert "KeyError" in result["error"]
 
 
 class TestSurfaceFeatureBank:

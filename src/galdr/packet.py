@@ -341,7 +341,15 @@ def _build_claims(context: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _lyrics_text(lyrics: dict[str, Any]) -> str:
-    return (lyrics.get("full_text") or lyrics.get("genius_text") or "").strip()
+    text = (lyrics.get("full_text") or lyrics.get("genius_text") or "").strip()
+    if text:
+        return text
+    timed_lines = lyrics.get("timed_lines") or []
+    return "\n".join(
+        str(line.get("text") or "").strip()
+        for line in timed_lines
+        if isinstance(line, dict) and str(line.get("text") or "").strip()
+    ).strip()
 
 
 def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
@@ -364,6 +372,8 @@ def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
                 }
             ] if text else [],
         }
+        if lyrics.get("timed_lines"):
+            collections["lyrics"]["timed_lines"] = lyrics["timed_lines"]
         if lyrics.get("caption_lines"):
             collections["lyrics"]["caption_lines"] = lyrics["caption_lines"]
 

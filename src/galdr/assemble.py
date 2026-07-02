@@ -8,7 +8,7 @@ Output structure (controlled by mode):
   [Template instructions]  <- prepended when --template is not "none"
   [Background]             <- artist/song Wikipedia context  (full, context)
   [Galdr analysis]         <- metrics, events, melody        (all modes)
-  [Lyrics]                 <- timestamped caption segments   (full, lyrics)
+  [Lyrics]                 <- timed lyrics / captions         (full, lyrics)
   [Frame descriptions]     <- vision descriptions at events  (full, if present)
 
 Modes:
@@ -152,6 +152,8 @@ def _has_lyrics(context: dict) -> bool:
         return False
     if isinstance(lyrics, str):
         return bool(lyrics.strip())
+    if lyrics.get("timed_lines"):
+        return True
     if lyrics.get("caption_lines"):
         return True
     if (lyrics.get("genius_text") or "").strip():
@@ -213,6 +215,16 @@ def _lyrics_source_label(lyrics: dict) -> str | None:
         return f"local VTT captions ({path})" if path else "local VTT captions"
     if source == "youtube-auto-captions":
         return "YouTube auto-captions"
+    if source == "youtube-music-timed-lyrics":
+        timed_source = lyrics.get("timed_lyrics_source") or {}
+        provider = timed_source.get("provider_source")
+        return f"YouTube Music timed lyrics ({provider})" if provider else "YouTube Music timed lyrics"
+    if source == "genius+youtube-music-timed-lyrics":
+        timed_source = lyrics.get("timed_lyrics_source") or {}
+        provider = timed_source.get("provider_source")
+        suffix = f" + YouTube Music timed lyrics ({provider})" if provider else " + YouTube Music timed lyrics"
+        url = lyrics.get("genius_url")
+        return f"Genius ({url}){suffix}" if url else f"Genius lyrics{suffix}"
     if source == "genius+autocaptions":
         return "Genius lyrics + YouTube auto-captions"
     if source == "genius":
@@ -926,12 +938,11 @@ def _build_metrics(analysis: dict) -> str:
 def _build_lyrics(context: dict) -> str | None:
     """Build lyrics section(s) from context.json.
 
-    When both Genius and autocaptions are available, renders two sections:
-      1. Timestamped autocaption lines (coarse timing, may have ASR mishears)
-      2. Clean Genius text (correct words, no timestamps)
+    When multiple lyric evidence sources are available, renders separate
+    sections for provider-timed lyric lines, autocaptions, and clean Genius text.
 
-    The model uses captions for coarse orientation only and Genius as the
-    reference for what was actually sung.
+    Provider-timed lines carry line-level timing evidence. Autocaptions remain
+    coarse orientation only; Genius is clean text without timing.
 
     Falls back to a single section if only one source is available.
     """
@@ -946,9 +957,22 @@ def _build_lyrics(context: dict) -> str | None:
     source_line = f"Source: {source_label}" if source_label else None
     lyrics_usable = lyrics.get("use_in_prompt", True)
     genius_text = (lyrics.get("genius_text") or "") if lyrics_usable else ""
+    timed_lines = lyrics.get("timed_lines") or []
     caption_lines = lyrics.get("caption_lines") or []
 
     sections: list[str] = []
+
+    if timed_lines:
+        timed_section = [
+            "## Lyrics — YouTube Music timed lyrics (provider line timing; verify central words)\n"
+        ]
+        if source_line:
+            timed_section.append(source_line)
+        for entry in timed_lines:
+            ts = entry.get("ts", "?")
+            text = entry.get("text", "")
+            timed_section.append(f"[{ts}]  {text}")
+        sections.append("\n".join(timed_section))
 
     if caption_lines:
         cap_section = ["## Lyrics — autocaptions (coarse timing; text may contain mishears)\n"]

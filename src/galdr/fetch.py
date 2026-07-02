@@ -25,6 +25,7 @@ from .captions import (
     timed_lyric_segments,
 )
 from .provenance import file_sha256, utc_now_iso
+from .youtube_music import extract_youtube_video_id, fetch_youtube_music_timed_lyrics
 
 
 _CONTEXT_CONFIDENCE_MINIMUM = {"high": 3, "medium": 2, "low": 1, "rejected": 0}
@@ -948,7 +949,7 @@ def fetch_track(
             else:
                 print("  Captions: VTT file missing")
 
-    # 2. Genius lyrics + captions — stored separately, merged in assemble
+    # 2. Lyrics sources — stored separately, merged in assemble
     if not skip_lyrics:
         caption_lines: list[dict] = []
         if timed_caption_lines:
@@ -957,16 +958,59 @@ def fetch_track(
         elif caption_segments:
             print("  Caption lines: none accepted as timed lyric evidence")
 
+        timed_lines: list[dict] = []
+        timed_lyrics_source: dict | None = None
+        if url:
+            video_id = extract_youtube_video_id(url)
+            if video_id:
+                print(f"\n[fetch] YouTube Music timed lyrics: {video_id}")
+                ytmusic = fetch_youtube_music_timed_lyrics(video_id)
+                if ytmusic.get("found"):
+                    timed_lines = ytmusic.get("timed_lines", [])
+                    timed_lyrics_source = {
+                        "source": ytmusic.get("source"),
+                        "provider": ytmusic.get("provider"),
+                        "provider_source": ytmusic.get("provider_source"),
+                        "lyrics_browse_id": ytmusic.get("lyrics_browse_id"),
+                        "video_id": ytmusic.get("video_id"),
+                        "has_timestamps": ytmusic.get("has_timestamps"),
+                        "line_count": ytmusic.get("line_count"),
+                    }
+                    print(
+                        f"  YouTube Music: {len(timed_lines)} timed lines"
+                        + (
+                            f" ({ytmusic.get('provider_source')})"
+                            if ytmusic.get("provider_source")
+                            else ""
+                        )
+                    )
+                else:
+                    print(
+                        "  YouTube Music: "
+                        f"{ytmusic.get('reason') or ytmusic.get('error') or 'not found'}"
+                    )
+
         print(f"\n[fetch] Genius: {artist} — {title}")
         genius = fetch_genius_lyrics(artist, title)
 
         if genius["found"]:
             genius_lines = genius["lines"]
             print(f"  Genius: {len(genius_lines)} lines ({genius['url']})")
-            source = "genius+autocaptions" if caption_lines else "genius"
+            if timed_lines:
+                source = "genius+youtube-music-timed-lyrics"
+            elif caption_lines:
+                source = "genius+autocaptions"
+            else:
+                source = "genius"
             genius_text = "\n".join(genius_lines)
             if censor:
                 genius_text = censor_lyrics(genius_text)
+                timed_lines = [
+                    {**line, "text": censor_lyrics(line["text"])}
+                    if isinstance(line, dict)
+                    else censor_lyrics(line)
+                    for line in timed_lines
+                ]
                 caption_lines = [
                     {**cl, "text": censor_lyrics(cl["text"])} if isinstance(cl, dict) else censor_lyrics(cl)
                     for cl in caption_lines
@@ -982,22 +1026,39 @@ def fetch_track(
                 "candidate_title": genius.get("candidate_title"),
                 "candidate_artist": genius.get("candidate_artist"),
                 "genius_text": genius_text,
+                "timed_lines": timed_lines,              # provider-timed line evidence
+                "timed_lyrics_source": timed_lyrics_source,
                 "caption_lines": caption_lines,          # timestamped, may have ASR errors
                 "full_text": genius_text,                # backward compat for assemble.py
             }
 
-        elif caption_lines:
-            full_text = dedup_rolling_captions(caption_segments)
+        elif timed_lines or caption_lines:
+            if timed_lines:
+                full_text = "\n".join(line["text"] for line in timed_lines)
+            else:
+                full_text = dedup_rolling_captions(caption_segments)
             if censor:
                 full_text = censor_lyrics(full_text)
+                timed_lines = [
+                    {**line, "text": censor_lyrics(line["text"])}
+                    if isinstance(line, dict)
+                    else censor_lyrics(line)
+                    for line in timed_lines
+                ]
                 caption_lines = [
                     {**cl, "text": censor_lyrics(cl["text"])} if isinstance(cl, dict) else censor_lyrics(cl)
                     for cl in caption_lines
                 ]
                 print("  Lyrics censored (--censor)")
-            print(f"  Genius failed ({genius.get('reason') or genius.get('error', 'not found')}) — captions only")
+            source = "youtube-music-timed-lyrics" if timed_lines else "youtube-auto-captions"
+            print(
+                f"  Genius failed ({genius.get('reason') or genius.get('error', 'not found')})"
+                f" — {'YouTube Music timed lyrics' if timed_lines else 'captions'} only"
+            )
             context["lyrics"] = {
-                "source": "youtube-auto-captions",
+                "source": source,
+                "timed_lines": timed_lines,
+                "timed_lyrics_source": timed_lyrics_source,
                 "caption_lines": caption_lines,
                 "full_text": full_text,
                 "genius_text": None,
