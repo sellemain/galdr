@@ -85,7 +85,7 @@ If captions fail but audio succeeds, analysis can still continue. If audio canno
 galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --no-download --name queen-bohemian-rhapsody --artist "Queen" --title "Bohemian Rhapsody"
 ```
 
-Genius and YouTube autocaptions are useful but not exhaustive. For release-quality listening prose, manually verify lyrics when the words appear central or when galdr reports no lyrics for an obviously vocal track.
+Genius, YouTube Music timed lyrics, and YouTube autocaptions are useful but not exhaustive. For release-quality listening prose, manually verify lyrics when the words appear central or when galdr reports no lyrics for an obviously vocal track.
 
 ---
 
