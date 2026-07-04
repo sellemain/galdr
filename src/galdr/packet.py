@@ -352,6 +352,46 @@ def _lyrics_text(lyrics: dict[str, Any]) -> str:
     ).strip()
 
 
+def _lyrics_timing_surface(lyrics: dict[str, Any]) -> dict[str, Any]:
+    timed_lines = lyrics.get("timed_lines") or []
+    caption_lines = lyrics.get("caption_lines") or []
+    source = lyrics.get("source")
+    timing: dict[str, Any] = {
+        "kind": "none",
+        "confidence": "missing",
+        "line_count": 0,
+    }
+    if timed_lines:
+        timing = {
+            "kind": "provider_timed_lyrics",
+            "surface": "timed_lines",
+            "confidence": "provider",
+            "line_count": len(timed_lines),
+        }
+        timed_source = lyrics.get("timed_lyrics_source")
+        if isinstance(timed_source, dict):
+            if timed_source.get("provider_source"):
+                timing["provider_source"] = timed_source["provider_source"]
+            if timed_source.get("lyrics_browse_id"):
+                timing["provider_ref"] = timed_source["lyrics_browse_id"]
+        return timing
+    if caption_lines:
+        kind = "caption_timing"
+        confidence = "coarse"
+        if source == "youtube-auto-captions":
+            kind = "youtube_autocaption_timing"
+            confidence = "coarse_asr"
+        elif source == "local-vtt-captions":
+            kind = "local_caption_timing"
+        return {
+            "kind": kind,
+            "surface": "caption_lines",
+            "confidence": confidence,
+            "line_count": len(caption_lines),
+        }
+    return timing
+
+
 def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
     collections: dict[str, Any] = {}
     lyrics = context.get("lyrics") if isinstance(context.get("lyrics"), dict) else {}
@@ -364,6 +404,7 @@ def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
         collections["lyrics"] = {
             "status": status,
             "source_ref": "lyrics",
+            "timing": _lyrics_timing_surface(lyrics),
             "items": [
                 {
                     "kind": "text",

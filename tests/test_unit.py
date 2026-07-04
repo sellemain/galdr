@@ -2423,6 +2423,73 @@ def test_packet_builds_generic_evidence_container(tmp_path):
     assert packet["views"] == {}
 
 
+def test_packet_marks_provider_timed_lyrics_as_distinct_timing_surface(tmp_path):
+    from galdr.packet import build_packet_from_disk
+
+    slug = "packet-provider-timed-lyrics"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_report.json").write_text(json.dumps({"track": slug, "duration_seconds": 8.0}))
+    (track_dir / "context.json").write_text(json.dumps({
+        "slug": slug,
+        "lyrics": {
+            "source": "genius+youtube-music-timed-lyrics",
+            "confidence": "high",
+            "genius_text": "clean text",
+            "full_text": "clean text",
+            "timed_lyrics_source": {
+                "provider_source": "Source: Musixmatch",
+                "lyrics_browse_id": "MPLYt_demo",
+            },
+            "timed_lines": [{"ts": "0:10.65", "start": 10.65, "text": "provider timed words"}],
+            "caption_lines": [],
+        },
+    }))
+
+    packet = build_packet_from_disk(slug, tmp_path)
+    lyrics = packet["collections"]["lyrics"]
+
+    assert lyrics["timing"] == {
+        "kind": "provider_timed_lyrics",
+        "surface": "timed_lines",
+        "confidence": "provider",
+        "line_count": 1,
+        "provider_source": "Source: Musixmatch",
+        "provider_ref": "MPLYt_demo",
+    }
+    assert lyrics["timed_lines"][0]["text"] == "provider timed words"
+    assert "caption_lines" not in lyrics
+
+
+def test_packet_marks_autocaptions_as_coarse_timing_surface(tmp_path):
+    from galdr.packet import build_packet_from_disk
+
+    slug = "packet-autocaption-lyrics"
+    track_dir = tmp_path / slug
+    track_dir.mkdir()
+    (track_dir / f"{slug}_report.json").write_text(json.dumps({"track": slug, "duration_seconds": 8.0}))
+    (track_dir / "context.json").write_text(json.dumps({
+        "slug": slug,
+        "lyrics": {
+            "source": "youtube-auto-captions",
+            "confidence": "high",
+            "full_text": "caption words",
+            "caption_lines": [{"ts": "0:01", "start": 1.0, "text": "caption words"}],
+        },
+    }))
+
+    packet = build_packet_from_disk(slug, tmp_path)
+    lyrics = packet["collections"]["lyrics"]
+
+    assert lyrics["timing"] == {
+        "kind": "youtube_autocaption_timing",
+        "surface": "caption_lines",
+        "confidence": "coarse_asr",
+        "line_count": 1,
+    }
+    assert lyrics["caption_lines"][0]["text"] == "caption words"
+
+
 def test_packet_timeline_uses_section_arc_structural_events(tmp_path):
     from galdr.packet import build_packet_from_disk
 
