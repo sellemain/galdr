@@ -501,8 +501,10 @@ class TestAssemblePrompt:
             }
         }
         result = self.fn(analysis, context=context, mode="lyrics")
+        assert "## Lyrics — local VTT captions (coarse timing; text may contain transcription or alignment errors)" in result
         assert "Source: local VTT captions (/tmp/song.en.vtt)" in result
         assert "[0:01]  caption words" in result
+        assert "## Lyrics — autocaptions" not in result
 
     def test_autocaption_lyrics_are_labeled_as_coarse_timing(self):
         analysis = self._minimal_analysis()
@@ -535,6 +537,32 @@ class TestAssemblePrompt:
         assert "[0:10.65]  provider timed words" in result
         assert "## Lyrics — autocaptions" not in result
         assert "clean lyric text" in result
+
+    def test_genius_only_lyrics_are_labeled_without_timestamps(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "genius",
+                "genius_url": "https://genius.example/song",
+                "genius_text": "clean lyric text",
+                "full_text": "clean lyric text",
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "## Lyrics — Genius (clean text, no timestamps)" in result
+        assert "clean lyric text" in result
+
+    def test_legacy_full_text_lyrics_keep_plain_heading(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "lyrics": {
+                "source": "legacy-import",
+                "full_text": "legacy lyric text",
+            }
+        }
+        result = self.fn(analysis, context=context, mode="lyrics")
+        assert "## Lyrics\n\nSource: legacy-import\nlegacy lyric text" in result
+        assert "clean text, no timestamps" not in result
 
     def test_low_confidence_context_excluded_from_prompt(self):
         analysis = self._minimal_analysis()

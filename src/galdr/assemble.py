@@ -233,6 +233,42 @@ def _lyrics_source_label(lyrics: dict) -> str | None:
     return source if isinstance(source, str) and source.strip() and source != "none" else None
 
 
+def _lyrics_timing_verdict(lyrics: dict) -> dict[str, str]:
+    """Return assemble-facing labels for lyric timing confidence."""
+    if lyrics.get("timed_lines"):
+        return {
+            "surface": "timed_lines",
+            "heading": "YouTube Music timed lyrics",
+            "confidence_note": "provider line timing; verify central words",
+        }
+
+    if lyrics.get("caption_lines"):
+        source = lyrics.get("source")
+        if source == "youtube-auto-captions":
+            return {
+                "surface": "caption_lines",
+                "heading": "autocaptions",
+                "confidence_note": "coarse timing; text may contain mishears",
+            }
+        if source == "local-vtt-captions":
+            return {
+                "surface": "caption_lines",
+                "heading": "local VTT captions",
+                "confidence_note": "coarse timing; text may contain transcription or alignment errors",
+            }
+        return {
+            "surface": "caption_lines",
+            "heading": "captions",
+            "confidence_note": "coarse timing; verify text and alignment",
+        }
+
+    return {
+        "surface": "none",
+        "heading": "Genius",
+        "confidence_note": "clean text, no timestamps",
+    }
+
+
 # ─── Section builders ─────────────────────────────────────────────────────────
 
 def _context_is_prompt_usable(ctx_value) -> bool:
@@ -959,12 +995,13 @@ def _build_lyrics(context: dict) -> str | None:
     genius_text = (lyrics.get("genius_text") or "") if lyrics_usable else ""
     timed_lines = lyrics.get("timed_lines") or []
     caption_lines = lyrics.get("caption_lines") or []
+    timing_verdict = _lyrics_timing_verdict(lyrics)
 
     sections: list[str] = []
 
     if timed_lines:
         timed_section = [
-            "## Lyrics — YouTube Music timed lyrics (provider line timing; verify central words)\n"
+            f"## Lyrics — {timing_verdict['heading']} ({timing_verdict['confidence_note']})\n"
         ]
         if source_line:
             timed_section.append(source_line)
@@ -975,7 +1012,7 @@ def _build_lyrics(context: dict) -> str | None:
         sections.append("\n".join(timed_section))
 
     if caption_lines:
-        cap_section = ["## Lyrics — autocaptions (coarse timing; text may contain mishears)\n"]
+        cap_section = [f"## Lyrics — {timing_verdict['heading']} ({timing_verdict['confidence_note']})\n"]
         if source_line:
             cap_section.append(source_line)
         for entry in caption_lines:
