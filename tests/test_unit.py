@@ -684,6 +684,7 @@ class TestAssemblePrompt:
         assert "Do not use a fixed lyric quota" in prompt
         assert "Treat lyrics as sung words, not supplied text" in prompt
         assert "Write as if the words arrive through the performance" in prompt
+        assert "A lyric timestamp is the start of a sung line or phrase" in prompt
         assert "Failure case: do not make up exact entrances for words" in prompt
         assert "Galdr stream/event timestamps are authoritative for sound and structure" in prompt
         assert "provider-timed, manual, verified" in prompt
@@ -691,6 +692,10 @@ class TestAssemblePrompt:
         assert "Use Galdr/audio-state timestamps freely" in prompt
         assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "audio-state timestamp pretend to be a lyric start" in prompt
+        assert "first sustained arrival" in prompt
+        assert "Do not expose lyric provenance in public prose" in prompt
+        assert "Do not default to triads" in prompt
+        assert "do not amputate the arrangement" in prompt
         assert "not as a claimed second-by-second alignment" in prompt
         assert "galdr assemble <slug>" not in prompt
         assert "Pipe the output to any model" not in prompt
