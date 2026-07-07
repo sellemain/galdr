@@ -686,7 +686,11 @@ class TestAssemblePrompt:
         assert "Write as if the words arrive through the performance" in prompt
         assert "Failure case: do not make up exact entrances for words" in prompt
         assert "Galdr stream/event timestamps are authoritative for sound and structure" in prompt
+        assert "provider-timed, manual, verified" in prompt
+        assert "primary clock for lyric, vocal, verse, chorus" in prompt
+        assert "Use Galdr/audio-state timestamps freely" in prompt
         assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
+        assert "audio-state timestamp pretend to be a lyric start" in prompt
         assert "not as a claimed second-by-second alignment" in prompt
         assert "galdr assemble <slug>" not in prompt
         assert "Pipe the output to any model" not in prompt
