@@ -441,14 +441,18 @@ def cmd_assemble(args):
 
     analysis_dir = Path(args.analysis_dir)
     docs_dir = analysis_dir.parent / "docs"
+    template = args.template
+    if args.lens and template == "none":
+        template = "arc-family"
 
     try:
         prompt = assemble_prompt_from_disk(
             slug=_validate_slug(args.slug),
             analysis_dir=analysis_dir,
             mode=args.mode,
-            template=args.template,
+            template=template,
             docs_dir=docs_dir if docs_dir.exists() else None,
+            lens=args.lens,
         )
         if args.output:
             Path(args.output).write_text(prompt)
@@ -799,10 +803,18 @@ Templates prepend instruction rules to the data block:
   none     Data block only — add your own instructions (DEFAULT)
   arc      Listening experience template (body, attention, time — first sound to last)
   first    Alias for arc
+  arc-family Shared ARC prompt-family base, usually paired with --lens
+
+Prompt-family lenses:
+  default       Public lyric/pop/general listening page
+  structure     Compact audit/debug witness
+  lyrics-study  Private lyric/music study before public quote reduction
+  classical     Instrumental/classical/large-form listening page
 
 Examples:
   galdr assemble 7-helvegen                              # full data, no instructions
   galdr assemble 7-helvegen --template arc               # full listening experience
+  galdr assemble 7-helvegen --template arc-family --lens default
   galdr assemble 7-helvegen --mode blind --template arc  # structure only, no context
   galdr assemble 7-helvegen --mode blind > blind.md && galdr assemble 7-helvegen > full.md
 """,
@@ -812,7 +824,9 @@ Examples:
     assemble_parser.add_argument("--mode", default="full", choices=["full", "lyrics", "context", "blind"],
                                   help="What context to include (default: full)")
     assemble_parser.add_argument("--template", default="none",
-                                  help="Instructions to prepend: none, arc, first, or a file path (default: none)")
+                                  help="Instructions to prepend: none, arc, first, arc-family, arc-* lens alias, or a file path (default: none)")
+    assemble_parser.add_argument("--lens", choices=["default", "structure", "lyrics-study", "classical"],
+                                  help="Prompt-family lens to append; implies arc-family when --template is omitted")
     assemble_parser.add_argument("--output", "-o", help="Write prompt to file instead of stdout")
 
     # packet

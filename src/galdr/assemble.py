@@ -21,6 +21,7 @@ Templates:
   none     — data block only, user adds their own instructions. (DEFAULT)
   arc      — prepends ARC-PROMPT.md (listening experience: body, attention, time)
   first    — alias for arc
+  arc-family — prepends the shared ARC prompt-family base, optionally with a lens
   <path>   — any file path, read directly
 
 Default mode is full (graceful degradation — missing sections silently omitted).
@@ -51,54 +52,114 @@ MODES = {
 DEFAULT_MODE = "full"
 DEFAULT_TEMPLATE = "none"
 
-BUNDLED_TEMPLATES = {"arc": "ARC-PROMPT.md", "first": "ARC-PROMPT.md"}  # "first" aliased to "arc"
+BUNDLED_TEMPLATES = {
+    "arc": "ARC-PROMPT.md",
+    "first": "ARC-PROMPT.md",  # "first" aliased to "arc"
+    "arc-family": "ARC-FAMILY-BASE.md",
+}
+ARC_LENS_TEMPLATES = {
+    "default": "ARC-LENS-DEFAULT.md",
+    "structure": "ARC-LENS-STRUCTURE.md",
+    "lyrics-study": "ARC-LENS-LYRICS-STUDY.md",
+    "classical": "ARC-LENS-CLASSICAL.md",
+}
+ARC_LENS_ALIASES = {
+    "arc-default": "default",
+    "arc-structure": "structure",
+    "arc-lyrics-study": "lyrics-study",
+    "arc-classical": "classical",
+}
+
+
+def _read_bundled_template(filename: str) -> str | None:
+    try:
+        ref = pkg_resources.files("galdr.templates") / filename
+        return ref.read_text(encoding="utf-8")
+    except Exception:
+        # Fallback for editable installs: templates/ sibling to this file
+        local_path = Path(__file__).parent / "templates" / filename
+        if local_path.exists():
+            return local_path.read_text()
+    return None
 
 
 # ─── Template resolution ──────────────────────────────────────────────────────
 
-def resolve_template(name: str, docs_dir: Path | None = None) -> str | None:
+def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None = None) -> str | None:
     """Resolve a template name or path to its text content.
 
     Resolution order:
       1. "none"            -> returns None (no template)
       2. File path         -> used directly (absolute or relative)
       3. docs_dir/{name}.md -> user's local override (e.g. custom-template.md)
-      4. Bundled package templates via importlib.resources (arc, first)
+      4. Bundled package templates via importlib.resources (arc, first, arc-family)
 
     Bundled templates live in galdr/templates/ and are shipped with the package,
     so they work after pip install without needing the source repo present.
     """
+    if name in ARC_LENS_ALIASES:
+        alias_lens = ARC_LENS_ALIASES[name]
+        if lens and lens != alias_lens:
+            raise ValueError(f"Template '{name}' already selects lens '{alias_lens}', got '{lens}'")
+        name = "arc-family"
+        lens = alias_lens
+
+    if lens and lens not in ARC_LENS_TEMPLATES:
+        raise ValueError(
+            f"Unknown lens '{lens}'. Choose from: {', '.join(ARC_LENS_TEMPLATES)}"
+        )
+
     if name == "none":
-        return None
+        if lens:
+            name = "arc-family"
+        else:
+            return None
 
     # Explicit file path
     p = Path(name)
     if p.exists():
-        return p.read_text()
+        base = p.read_text()
+        if lens:
+            return _append_lens(base, lens, docs_dir)
+        return base
 
     # Local docs override (dev workflow — docs/ takes precedence over bundled)
     if docs_dir:
         local = docs_dir / f"{name}.md"
         if local.exists():
-            return local.read_text()
+            base = local.read_text()
+            if lens:
+                return _append_lens(base, lens, docs_dir)
+            return base
 
     # Bundled package templates (works after pip install)
     if name in BUNDLED_TEMPLATES:
         filename = BUNDLED_TEMPLATES[name]
-        try:
-            ref = pkg_resources.files("galdr.templates") / filename
-            return ref.read_text(encoding="utf-8")
-        except Exception:
-            # Fallback for editable installs: templates/ sibling to this file
-            local_path = Path(__file__).parent / "templates" / filename
-            if local_path.exists():
-                return local_path.read_text()
+        base = _read_bundled_template(filename)
+        if base is not None:
+            if lens:
+                return _append_lens(base, lens, docs_dir)
+            return base
 
     raise ValueError(
         f"Template '{name}' not found. "
-        f"Use 'none', 'arc', 'first', or a file path. "
-        f"Known templates: {', '.join(BUNDLED_TEMPLATES)}"
+        f"Use 'none', 'arc', 'first', 'arc-family', an arc-* lens alias, or a file path. "
+        f"Known templates: {', '.join([*BUNDLED_TEMPLATES, *ARC_LENS_ALIASES])}"
     )
+
+
+def _append_lens(base: str, lens: str, docs_dir: Path | None = None) -> str:
+    """Append a prompt-family lens to resolved base instructions."""
+    lens_text = None
+    if docs_dir:
+        local = docs_dir / f"arc-lens-{lens}.md"
+        if local.exists():
+            lens_text = local.read_text()
+    if lens_text is None:
+        lens_text = _read_bundled_template(ARC_LENS_TEMPLATES[lens])
+    if lens_text is None:
+        raise ValueError(f"Lens template for '{lens}' not found")
+    return f"{base.strip()}\n\n---\n\n{lens_text.strip()}\n"
 
 
 # ─── Loaders ──────────────────────────────────────────────────────────────────
@@ -1095,6 +1156,7 @@ def assemble_prompt(
     mode: str = DEFAULT_MODE,
     template: str = DEFAULT_TEMPLATE,
     docs_dir: Path | None = None,
+    lens: str | None = None,
 ) -> str:
     """Assemble a model prompt from analysis data and optional context.
 
@@ -1105,8 +1167,9 @@ def assemble_prompt(
         context:  dict from load_context() or fetch pipeline — keys: artist_context,
                   song_context, lyrics, frame_descriptions. None = empty context.
         mode:     "full" | "lyrics" | "context" | "blind" (default: "full")
-        template: "none" | "arc" | "first" | file path (default: "none")
+        template: "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir: optional path to docs/ directory for local template overrides
+        lens:     optional prompt-family lens: default, structure, lyrics-study, classical
 
     Returns:
         Complete prompt string ready to send to a model.
@@ -1120,8 +1183,8 @@ def assemble_prompt(
     sections = []
 
     # Template instructions
-    if template != "none":
-        tmpl = resolve_template(template, docs_dir)
+    if template != "none" or lens:
+        tmpl = resolve_template(template, docs_dir, lens=lens)
         if tmpl:
             sections.append(tmpl.strip())
             sections.append("\n---\n")
@@ -1162,6 +1225,7 @@ def assemble_prompt_from_disk(
     mode: str = DEFAULT_MODE,
     template: str = DEFAULT_TEMPLATE,
     docs_dir: Path | None = None,
+    lens: str | None = None,
 ) -> str:
     """Assemble a prompt by loading data from disk for a given slug.
 
@@ -1171,8 +1235,9 @@ def assemble_prompt_from_disk(
         slug:         track slug (e.g. "7-helvegen", "tool-lateralus")
         analysis_dir: path to the analysis/ directory
         mode:         "full" | "lyrics" | "context" | "blind" (default: "full")
-        template:     "none" | "arc" | "first" | file path (default: "none")
+        template:     "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir:     optional path to docs/ for local template overrides
+        lens:         optional prompt-family lens: default, structure, lyrics-study, classical
 
     Returns:
         Complete prompt string ready to send to a model.
@@ -1185,4 +1250,4 @@ def assemble_prompt_from_disk(
         raise ValueError(
             f"No analysis or context found for slug '{slug}' in {analysis_dir / slug}"
         )
-    return assemble_prompt(analysis, context, mode=mode, template=template, docs_dir=docs_dir)
+    return assemble_prompt(analysis, context, mode=mode, template=template, docs_dir=docs_dir, lens=lens)

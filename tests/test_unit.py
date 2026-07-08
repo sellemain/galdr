@@ -702,6 +702,65 @@ class TestAssemblePrompt:
         assert "~150 words per minute" in prompt
         assert "900-1,300" in prompt
 
+    def test_arc_family_default_lens_renders_base_and_lens(self):
+        analysis = {
+            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        prompt = self.fn(analysis, mode="blind", template="arc-family", lens="default")
+
+        assert "ARC Prompt Family Base" in prompt
+        assert "Sound Translation Test" in prompt
+        assert "Default Lens" in prompt
+        assert "lyric/music relationship" in prompt
+        assert "## Galdr Analysis" in prompt
+
+    def test_arc_family_lens_implies_template_when_omitted(self):
+        analysis = {
+            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        prompt = self.fn(analysis, mode="blind", lens="structure")
+
+        assert "ARC Prompt Family Base" in prompt
+        assert "Structure Lens" in prompt
+        assert "compact structural witness" in prompt
+
+    def test_arc_family_lens_alias_selects_lens(self):
+        analysis = {
+            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        prompt = self.fn(analysis, mode="blind", template="arc-classical")
+
+        assert "ARC Prompt Family Base" in prompt
+        assert "Classical Lens" in prompt
+        assert "Do not force verse/chorus/hook/lyric-persona logic" in prompt
+
+    def test_arc_family_rejects_unknown_lens(self):
+        analysis = {
+            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        with pytest.raises(ValueError, match="Unknown lens"):
+            self.fn(analysis, mode="blind", template="arc-family", lens="wrong")
+
 
 # ── SM-308 Perception surface demotion ───────────────────────────────────────
 
