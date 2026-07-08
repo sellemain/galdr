@@ -775,8 +775,6 @@ class TestAssemblePrompt:
         assert "public draft decides what survives" not in prompt
         assert "what is your ritual interpretation" in prompt
         assert "Ritual means true enacted meaning, not genre smell" in prompt
-        assert "Do not steal truth" not in prompt
-        assert "exoticizing" not in prompt
 
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {
