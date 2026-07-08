@@ -102,6 +102,21 @@ def test_templates_declared_as_package_data():
     assert 'galdr = ["templates/*.md"]' in pyproject
 
 
+def test_arc_family_templates_exist():
+    """Bundled prompt-family templates should be available in source checkouts."""
+    from pathlib import Path
+
+    templates = Path("src/galdr/templates")
+    for name in [
+        "ARC-FAMILY-BASE.md",
+        "ARC-LENS-DEFAULT.md",
+        "ARC-LENS-STRUCTURE.md",
+        "ARC-LENS-LYRICS-STUDY.md",
+        "ARC-LENS-CLASSICAL.md",
+    ]:
+        assert (templates / name).exists()
+
+
 def test_skill_bundle_declared_in_sdist_manifest():
     """The canonical agent skill bundle should ship in source distributions."""
     from pathlib import Path

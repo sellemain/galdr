@@ -24,6 +24,12 @@ prompt = analysis.to_prompt(template="arc", mode="full")
 `listen()` writes the same analysis files as `galdr listen` and returns an
 `Analysis` object pointing at those files.
 
+To use the ARC prompt-family lenses:
+
+```python
+prompt = analysis.to_prompt(template="arc-family", lens="default", mode="full")
+```
+
 ## Load existing analysis
 
 ```python
@@ -65,6 +71,7 @@ perception = load_stream_df("analysis/helvegen/helvegen_stream.json")
 from galdr import assemble
 
 prompt = assemble("helvegen", analysis_dir="analysis", template="arc")
+prompt = assemble("helvegen", analysis_dir="analysis", lens="structure")
 ```
 
 For advanced callers that already have dicts:

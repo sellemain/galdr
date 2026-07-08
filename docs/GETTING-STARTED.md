@@ -68,6 +68,15 @@ That produces something like this: **[Queen — Bohemian Rhapsody](bohemian-rhap
 
 The assembled prompt includes an advisory **perceptual salience guide**. It keeps the raw metrics visible, then factorizes the dominant contract, secondary contracts, primitive force axes, prose hints, headline forces, supporting forces, technical underlayers, and low-confidence readings. This keeps the prose aimed at the experience of the music without flattening different tracks into compound labels. Hints such as `mass lock` name the felt holding force, not genre or loudness.
 
+For the newer ARC prompt-family shape, select a lens:
+
+```bash
+galdr assemble queen-bohemian-rhapsody --template arc-family --lens default --mode full > prompt.txt
+galdr assemble bach-chaconne --template arc-family --lens classical --mode blind > prompt.txt
+```
+
+Available lenses are `default`, `structure`, `lyrics-study`, and `classical`. If `--lens` is supplied without `--template`, galdr uses `arc-family`.
+
 For a 5-minute track, `fetch --analyze` takes 60–90 seconds.
 
 **If YouTube blocks the download** (rate limit, JS challenge, JS runtime missing), run:

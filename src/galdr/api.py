@@ -108,13 +108,14 @@ class Analysis:
         """Load ``context.json`` for this track, returning ``{}`` when absent."""
         return load_context(self.slug, self.analysis_dir)
 
-    def to_prompt(self, mode: str = "full", template: str = "none") -> str:
+    def to_prompt(self, mode: str = "full", template: str = "none", lens: str | None = None) -> str:
         """Assemble this analysis into a model prompt."""
         return assemble_prompt_from_disk(
             self.slug,
             self.analysis_dir,
             mode=mode,
             template=template,
+            lens=lens,
         )
 
     def to_dataframes(self) -> dict[str, Any]:
@@ -194,13 +195,14 @@ def assemble(
     analysis_dir: str | Path = "analysis",
     mode: str = "full",
     template: str = "none",
+    lens: str | None = None,
 ) -> str:
     """Assemble a prompt from an ``Analysis``, raw data dict, or slug."""
     if isinstance(analysis, Analysis):
-        return analysis.to_prompt(mode=mode, template=template)
+        return analysis.to_prompt(mode=mode, template=template, lens=lens)
     if isinstance(analysis, str):
-        return assemble_prompt_from_disk(analysis, Path(analysis_dir), mode=mode, template=template)
-    return assemble_prompt(analysis, context=context or {}, mode=mode, template=template)
+        return assemble_prompt_from_disk(analysis, Path(analysis_dir), mode=mode, template=template, lens=lens)
+    return assemble_prompt(analysis, context=context or {}, mode=mode, template=template, lens=lens)
 
 
 def _require_pandas():
