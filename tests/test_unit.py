@@ -693,6 +693,14 @@ class TestAssemblePrompt:
         assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "audio-state timestamp pretend to be a lyric start" in prompt
         assert "first sustained arrival" in prompt
+        assert "Output only the listening experience body" in prompt
+        assert "private scaffolding" in prompt
+        assert "Start with the first sentence of prose" in prompt
+        assert "Do not begin with `Source:`" not in prompt
+        assert "Analysis slug:" not in prompt
+        assert "provenance label" not in prompt
+        assert "Source: <url>" not in prompt
+        assert "Include the source, then start the experience" not in prompt
         assert "Do not expose lyric provenance in public prose" in prompt
         assert "Do not default to triads" in prompt
         assert "do not amputate the arrangement" in prompt

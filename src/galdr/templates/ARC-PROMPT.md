@@ -28,7 +28,7 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
 **Rules:**
 
-1. **Include the source, then start the experience.** If the track data includes a source URL, begin the output document with exactly one source line: `Source: <url>`, followed by a blank line. Do not invent a source URL, and do not include `Analysis slug:` or other metadata. After the source line, the listening experience starts with the first sentence of prose.
+1. **Output only the listening experience body.** The track header, source URL, lyric source lines, context labels, and evidence headings are private scaffolding. Use them to understand what you are hearing, but do not reproduce them. Start with the first sentence of prose.
 
 2. **Timestamps — structural moments only. Lyrics are their own anchor.**
 
