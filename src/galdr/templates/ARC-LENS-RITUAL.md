@@ -1,6 +1,6 @@
 # Ritual Lens
 
-Write a private ritual reading pass. This is not the final public article voice. It is a safe exploratory chamber for finding what the music makes real before a public draft decides what survives.
+Write a private ritual reading pass. This is not the final prose voice. It is a safe exploratory chamber for finding what the music makes real before any later draft decides what to keep.
 
 Tell the truth of the experience as strongly as you can. Speak openly about what the music seems to enact. Do not sand the reading down out of fear, and do not turn ritual into mere atmosphere.
 
