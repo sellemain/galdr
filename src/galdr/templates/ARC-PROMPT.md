@@ -28,7 +28,7 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
 **Rules:**
 
-1. **Output only the listening experience body.** The track header, source URL, lyric source lines, context labels, and evidence headings are private scaffolding. Use them to understand what you are hearing, but do not reproduce them. Do not begin with `Source:`, `Analysis slug:`, track metadata, a citation line, or any other provenance label. Start with the first sentence of prose.
+1. **Output only the listening experience body.** The track header, source URL, lyric source lines, context labels, and evidence headings are private scaffolding. Use them to understand what you are hearing, but do not reproduce them. Start with the first sentence of prose.
 
 2. **Timestamps — structural moments only. Lyrics are their own anchor.**
 

@@ -694,7 +694,11 @@ class TestAssemblePrompt:
         assert "audio-state timestamp pretend to be a lyric start" in prompt
         assert "first sustained arrival" in prompt
         assert "Output only the listening experience body" in prompt
-        assert "Do not begin with `Source:`" in prompt
+        assert "private scaffolding" in prompt
+        assert "Start with the first sentence of prose" in prompt
+        assert "Do not begin with `Source:`" not in prompt
+        assert "Analysis slug:" not in prompt
+        assert "provenance label" not in prompt
         assert "Source: <url>" not in prompt
         assert "Include the source, then start the experience" not in prompt
         assert "Do not expose lyric provenance in public prose" in prompt
