@@ -73,9 +73,10 @@ For the newer ARC prompt-family shape, select a lens:
 ```bash
 galdr assemble queen-bohemian-rhapsody --template arc-family --lens default --mode full > prompt.txt
 galdr assemble bach-chaconne --template arc-family --lens classical --mode blind > prompt.txt
+galdr assemble 7-helvegen --template arc-family --lens ritual --mode full > ritual-reading.txt
 ```
 
-Available lenses are `default`, `structure`, `lyrics-study`, and `classical`. If `--lens` is supplied without `--template`, galdr uses `arc-family`.
+Available lenses are `default`, `structure`, `lyrics-study`, `classical`, and `ritual`. If `--lens` is supplied without `--template`, galdr uses `arc-family`.
 
 For a 5-minute track, `fetch --analyze` takes 60–90 seconds.
 

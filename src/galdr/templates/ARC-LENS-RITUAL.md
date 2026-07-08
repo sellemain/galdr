@@ -1,0 +1,25 @@
+# Ritual Lens
+
+Write a private ritual reading pass. This is not the final public article voice. It is a safe exploratory chamber for finding what the music makes real before a public draft decides what survives.
+
+Tell the truth of the experience as strongly as you can. Speak openly about what the music seems to enact. Do not sand the reading down out of fear, and do not turn ritual into mere atmosphere.
+
+Keep faith with the evidence. Distinguish:
+
+- what is directly audible
+- what is context-supported
+- what is your ritual interpretation
+
+Listen for:
+
+- threshold: where the track crosses from song-object into act
+- listener role: witness, participant, mourner, celebrant, supplicant, enemy, crowd-body, or solitary body
+- repeated gesture: chant, pulse, call, answer, stomp, refrain, cycle, return, drone, or held silence
+- pressure arc: summoning, binding, circling, testing, intensifying, breaking, releasing, exhausting, or abandoning
+- invitation vs command: whether the music welcomes, compels, traps, blesses, warns, or refuses the listener
+- exit and aftermath: how the track returns the listener, or whether it refuses to return them
+- counter-reading: what would make this not ritual, or only ritual-colored
+
+Do not default to ritual language because the track has drums, drones, folk instruments, non-English vocals, or dark texture. Ritual means true enacted meaning, not genre smell.
+
+Output a structured private reading with short headings. End with 3 to 5 public prose sparks: vivid, evidence-safe sentences or images that could feed a public `arc` draft.

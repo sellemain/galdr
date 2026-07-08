@@ -757,6 +757,26 @@ class TestAssemblePrompt:
         assert "Classical Lens" in prompt
         assert "Do not force verse/chorus/hook/lyric-persona logic" in prompt
 
+    def test_arc_family_ritual_lens_renders_permission_first_reading(self):
+        analysis = {
+            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        prompt = self.fn(analysis, mode="blind", template="arc-ritual")
+
+        assert "ARC Prompt Family Base" in prompt
+        assert "Ritual Lens" in prompt
+        assert "Tell the truth of the experience as strongly as you can" in prompt
+        assert "safe exploratory chamber" in prompt
+        assert "what is your ritual interpretation" in prompt
+        assert "Ritual means true enacted meaning, not genre smell" in prompt
+        assert "Do not steal truth" not in prompt
+        assert "exoticizing" not in prompt
+
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {
             "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},

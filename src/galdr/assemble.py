@@ -62,12 +62,14 @@ ARC_LENS_TEMPLATES = {
     "structure": "ARC-LENS-STRUCTURE.md",
     "lyrics-study": "ARC-LENS-LYRICS-STUDY.md",
     "classical": "ARC-LENS-CLASSICAL.md",
+    "ritual": "ARC-LENS-RITUAL.md",
 }
 ARC_LENS_ALIASES = {
     "arc-default": "default",
     "arc-structure": "structure",
     "arc-lyrics-study": "lyrics-study",
     "arc-classical": "classical",
+    "arc-ritual": "ritual",
 }
 
 
