@@ -775,6 +775,8 @@ class TestAssemblePrompt:
         assert "Use exact ritual names when the experience earns them" in prompt
         assert "Then prove the name" in prompt
         assert "recurrence, phrase extension, harmonic delay" in prompt
+        assert "recognizable to another careful listener" in prompt
+        assert "If the name would sound silly" in prompt
         assert "formal proof" in prompt
         assert "public draft decides what survives" not in prompt
         assert "what is your ritual interpretation" in prompt
