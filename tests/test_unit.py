@@ -780,6 +780,31 @@ class TestAssemblePrompt:
         assert "made believable by sound" in prompt
         assert "do not write a lyric essay" in prompt
 
+    def test_arc_family_prompts_avoid_public_banned_body_lock_language(self):
+        analysis = {
+            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        for lens in [
+            "default",
+            "sound",
+            "structure",
+            "meaning",
+            "lyrics-study",
+            "classical",
+            "ritual",
+        ]:
+            prompt = self.fn(analysis, mode="full", template="arc-family", lens=lens)
+
+            assert "body-lock" not in prompt
+            assert "body lock" not in prompt.lower()
+            assert "mass lock" not in prompt
+            assert "Primary contract: lock" not in prompt
+
     def test_arc_family_lens_alias_selects_lens(self):
         analysis = {
             "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
