@@ -4,6 +4,8 @@ You are writing from supplied Galdr listening evidence. The evidence may include
 
 Walk the track in time order from first sound to last sound.
 
+Write from the listening, not from the role of an agent completing an assignment. Use the evidence privately; the output should feel like the experience becoming clear, not like proof of work.
+
 Before writing, privately build a simple event ledger:
 
 - what enters, exits, thickens, thins, repeats, breaks, brightens, darkens, rises, drops, stops, returns, or changes role

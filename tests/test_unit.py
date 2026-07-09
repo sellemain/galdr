@@ -678,6 +678,8 @@ class TestAssemblePrompt:
         assert "Surface discipline is not a command to flatten" in prompt
         assert "Treat anti-pattern warnings as guardrails" in prompt
         assert "sound natural, specific, and alive" in prompt
+        assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
+        assert "not like proof of work" in prompt
         assert "Protect major form turns" in prompt
         assert "late groove turn" in prompt
         assert "private transition map" in prompt
@@ -724,6 +726,8 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Sound Translation Test" in prompt
         assert "Default Lens" in prompt
+        assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
+        assert "not like proof of work" in prompt
         assert "lyric/music relationship" in prompt
         assert "## Galdr Analysis" in prompt
 
