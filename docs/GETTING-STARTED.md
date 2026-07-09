@@ -6,13 +6,11 @@ Galdr analyzes a piece of music and produces structured data about what it does 
 
 This is what comes back:
 
-> *The voices arrive before anything else—unaccompanied, stacked in close harmony, asking questions that float without a floor beneath them. "Is this the real life? Is this just fantasy?" The absence of instruments makes the air feel pressurized. You're waiting for something to catch you, and nothing does. Just voices in the dark, layered and intimate, until a piano enters and suddenly there's ground.*
+> *The first sound arrives without a floor beneath it: close voices, suspended harmony, and enough empty space to make the room feel larger than it is. Nothing catches the body yet. Attention hangs in the air, waiting for a pulse or a chord to decide where the ground is.*
 >
-> *Around 2:37, the guitar enters—not suddenly, but like a door opening into a different room. The solo doesn't comment on the lyrics; it extends the ache into wordless space, bending notes that feel like questions without answers.*
+> *Around the middle, a new lead line opens the space. It does not arrive as decoration. It takes over the emotional function the voice had been carrying, stretching the song outward without breaking its frame.*
 >
-> *Then the storm breaks. The piano comes back alone, and the voice re-enters softened, exhausted: "Nothing really matters, anyone can see." The final phrase floats, untethered again, back to where the song began: voices without ground. Around 5:44, small pattern breaks ripple through—the structure loosening, letting go. Eight seconds of nothing close the piece, the sound decaying into stillness.*
-
-— Queen, *Bohemian Rhapsody*
+> *Then the pressure breaks. The arrangement thins, the pulse loosens, and the last return no longer feels like arrival. It feels like the structure spending the last of its grip. The ending does not explain the journey; it lets the sound decay until attention has to release it.*
 
 That's the first use. Give galdr a track. Give an AI the output. Get that back.
 
@@ -50,21 +48,21 @@ Point galdr at a YouTube URL. The slug is auto-derived from the video title.
 
 ```bash
 # 1. Fetch audio + context and analyze
-galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --analyze
+galdr fetch '<youtube-url>' --analyze
 
 # galdr prints the slug at the end:
-#   Slug : queen-bohemian-rhapsody
-#   Next : galdr assemble queen-bohemian-rhapsody --template arc --mode full
+#   Slug : my-track
+#   Next : galdr assemble my-track --template arc --mode full
 
 # 2. Assemble a structured prompt
-galdr assemble queen-bohemian-rhapsody --template arc --mode full > prompt.txt
+galdr assemble my-track --template arc --mode full > prompt.txt
 
 # 3. Send to a model
 cat prompt.txt | claude
 cat prompt.txt | llm
 ```
 
-That produces something like this: **[Queen — Bohemian Rhapsody](bohemian-rhapsody.md)**
+That produces a listening document: prose grounded in measured audio evidence rather than memory or genre guesswork.
 
 The assembled prompt includes an advisory **perceptual salience guide**. It keeps the raw metrics visible, then factorizes the dominant contract, secondary contracts, primitive force axes, prose hints, headline forces, supporting forces, technical underlayers, and low-confidence readings. This keeps the prose aimed at the experience of the music without flattening different tracks into compound labels. Hints such as `mass hold` name the felt holding force, not genre or loudness.
 
@@ -94,7 +92,7 @@ galdr update-deps
 If captions fail but audio succeeds, analysis can still continue. If audio cannot be downloaded, `galdr fetch --analyze` fails: the music is the analysis surface, while lyrics and Wikipedia context are optional context. To intentionally fetch context without audio analysis, use `--no-download`:
 
 ```bash
-galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --no-download --name queen-bohemian-rhapsody --artist "Queen" --title "Bohemian Rhapsody"
+galdr fetch '<youtube-url>' --no-download --name my-track --artist "Artist Name" --title "Track Title"
 ```
 
 Genius, YouTube Music timed lyrics, and YouTube autocaptions are useful but not exhaustive. For release-quality listening prose, manually verify lyrics when the words appear central or when galdr reports no lyrics for an obviously vocal track.

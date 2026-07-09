@@ -1799,10 +1799,10 @@ class TestContextConfidenceScoring:
         from galdr.fetch import _is_genius_translation_hit
 
         hit = {
-            "title": "Wardruna - Helvegen (English Translation)",
+            "title": "Reference Artist - Long Road (English Translation)",
             "artist": "Genius English Translations",
-            "full_title": "Wardruna - Helvegen (English Translation) by Genius English Translations",
-            "url": "https://genius.com/Genius-english-translations-wardruna-helvegen-english-translation-lyrics",
+            "full_title": "Reference Artist - Long Road (English Translation) by Genius English Translations",
+            "url": "https://genius.com/Genius-english-translations-reference-artist-long-road-english-translation-lyrics",
         }
         is_trans, reason = _is_genius_translation_hit(hit)
         assert is_trans is True
@@ -1812,10 +1812,10 @@ class TestContextConfidenceScoring:
         from galdr.fetch import _is_genius_translation_hit
 
         hit = {
-            "title": "Helvegen",
+            "title": "Long Road",
             "artist": "Genius English Translations",
-            "full_title": "Wardruna - Helvegen (English Translation) by Genius English Translations",
-            "url": "https://genius.com/Genius-english-translations-wardruna-helvegen-english-translation-lyrics",
+            "full_title": "Reference Artist - Long Road (English Translation) by Genius English Translations",
+            "url": "https://genius.com/Genius-english-translations-reference-artist-long-road-english-translation-lyrics",
         }
         is_trans, reason = _is_genius_translation_hit(hit)
         assert is_trans is True
@@ -1825,10 +1825,10 @@ class TestContextConfidenceScoring:
         from galdr.fetch import _is_genius_translation_hit
 
         hit = {
-            "title": "Helvegen",
-            "artist": "Wardruna",
-            "full_title": "Wardruna - Helvegen",
-            "url": "https://genius.com/Wardruna-helvegen-lyrics",
+            "title": "Long Road",
+            "artist": "Reference Artist",
+            "full_title": "Reference Artist - Long Road",
+            "url": "https://genius.com/Reference-artist-long-road-lyrics",
         }
         is_trans, reason = _is_genius_translation_hit(hit)
         assert is_trans is False
@@ -1846,18 +1846,18 @@ class TestContextConfidenceScoring:
                     "hits": [
                         {
                             "result": {
-                                "path": "/Genius-english-translations-wardruna-helvegen-english-translation-lyrics",
-                                "title": "Wardruna - Helvegen (English Translation)",
-                                "full_title": "Wardruna - Helvegen (English Translation) by Genius English Translations",
+                                "path": "/Genius-english-translations-reference-artist-long-road-english-translation-lyrics",
+                                "title": "Reference Artist - Long Road (English Translation)",
+                                "full_title": "Reference Artist - Long Road (English Translation) by Genius English Translations",
                                 "primary_artist": {"name": "Genius English Translations"},
                             }
                         },
                         {
                             "result": {
-                                "path": "/Wardruna-helvegen-lyrics",
-                                "title": "Helvegen",
-                                "full_title": "Wardruna - Helvegen",
-                                "primary_artist": {"name": "Wardruna"},
+                                "path": "/Reference-artist-long-road-lyrics",
+                                "title": "Long Road",
+                                "full_title": "Reference Artist - Long Road",
+                                "primary_artist": {"name": "Reference Artist"},
                             }
                         },
                     ]
@@ -1866,10 +1866,10 @@ class TestContextConfidenceScoring:
 
         fetch.urllib.request.urlopen = fake_urlopen
         try:
-            result = _genius_search("Wardruna", "Helvegen")
+            result = _genius_search("Reference Artist", "Long Road")
             assert result is not None
-            assert result["artist"] == "Wardruna"
-            assert result["url"] == "https://genius.com/Wardruna-helvegen-lyrics"
+            assert result["artist"] == "Reference Artist"
+            assert result["url"] == "https://genius.com/Reference-artist-long-road-lyrics"
             assert len(result.get("rejected_translation_hits", [])) == 1
             assert "translation marker" in result["rejected_translation_hits"][0]["reason"]
         finally:
