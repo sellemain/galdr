@@ -772,6 +772,10 @@ class TestAssemblePrompt:
         assert "Ritual Lens" in prompt
         assert "Tell the truth of the experience as strongly as you can" in prompt
         assert "safe exploratory chamber" in prompt
+        assert "Use exact ritual names when the experience earns them" in prompt
+        assert "Then prove the name" in prompt
+        assert "recurrence, phrase extension, harmonic delay" in prompt
+        assert "formal proof" in prompt
         assert "public draft decides what survives" not in prompt
         assert "what is your ritual interpretation" in prompt
         assert "Ritual means true enacted meaning, not genre smell" in prompt
