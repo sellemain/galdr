@@ -678,6 +678,8 @@ class TestAssemblePrompt:
         assert "Surface discipline is not a command to flatten" in prompt
         assert "Treat anti-pattern warnings as guardrails" in prompt
         assert "sound natural, specific, and alive" in prompt
+        assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
+        assert "not like proof of work" in prompt
         assert "Protect major form turns" in prompt
         assert "late groove turn" in prompt
         assert "private transition map" in prompt
@@ -724,6 +726,8 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Sound Translation Test" in prompt
         assert "Default Lens" in prompt
+        assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
+        assert "not like proof of work" in prompt
         assert "lyric/music relationship" in prompt
         assert "## Galdr Analysis" in prompt
 
@@ -756,6 +760,31 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Classical Lens" in prompt
         assert "Do not force verse/chorus/hook/lyric-persona logic" in prompt
+
+    def test_arc_family_ritual_lens_renders_permission_first_reading(self):
+        analysis = {
+            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "perception": {
+                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
+                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+            },
+        }
+
+        prompt = self.fn(analysis, mode="blind", template="arc-ritual")
+
+        assert "ARC Prompt Family Base" in prompt
+        assert "Ritual Lens" in prompt
+        assert "Tell the truth of the experience as strongly as you can" in prompt
+        assert "safe exploratory chamber" in prompt
+        assert "Use exact ritual names when the experience earns them" in prompt
+        assert "Then prove the name" in prompt
+        assert "recurrence, phrase extension, harmonic delay" in prompt
+        assert "recognizable to another careful listener" in prompt
+        assert "If the name would sound silly" in prompt
+        assert "formal proof" in prompt
+        assert "public draft decides what survives" not in prompt
+        assert "what is your ritual interpretation" in prompt
+        assert "Ritual means true enacted meaning, not genre smell" in prompt
 
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {

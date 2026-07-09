@@ -810,6 +810,7 @@ Prompt-family lenses:
   structure     Compact audit/debug witness
   lyrics-study  Private lyric/music study before public quote reduction
   classical     Instrumental/classical/large-form listening page
+  ritual        Private ritual reading: threshold, repeated gesture, listener role
 
 Examples:
   galdr assemble 7-helvegen                              # full data, no instructions
@@ -825,7 +826,7 @@ Examples:
                                   help="What context to include (default: full)")
     assemble_parser.add_argument("--template", default="none",
                                   help="Instructions to prepend: none, arc, first, arc-family, arc-* lens alias, or a file path (default: none)")
-    assemble_parser.add_argument("--lens", choices=["default", "structure", "lyrics-study", "classical"],
+    assemble_parser.add_argument("--lens", choices=["default", "structure", "lyrics-study", "classical", "ritual"],
                                   help="Prompt-family lens to append; implies arc-family when --template is omitted")
     assemble_parser.add_argument("--output", "-o", help="Write prompt to file instead of stdout")
 

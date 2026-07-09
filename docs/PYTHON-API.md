@@ -72,6 +72,7 @@ from galdr import assemble
 
 prompt = assemble("helvegen", analysis_dir="analysis", template="arc")
 prompt = assemble("helvegen", analysis_dir="analysis", lens="structure")
+prompt = assemble("helvegen", analysis_dir="analysis", lens="ritual")
 ```
 
 For advanced callers that already have dicts:

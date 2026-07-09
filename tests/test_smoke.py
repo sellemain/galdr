@@ -113,6 +113,7 @@ def test_arc_family_templates_exist():
         "ARC-LENS-STRUCTURE.md",
         "ARC-LENS-LYRICS-STUDY.md",
         "ARC-LENS-CLASSICAL.md",
+        "ARC-LENS-RITUAL.md",
     ]:
         assert (templates / name).exists()
 
