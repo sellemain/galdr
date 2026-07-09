@@ -101,7 +101,7 @@ EVENT_ATTENTION_FLOATING = 0.2
 EVENT_ATTENTION_FLOAT_RESET = 0.35
 EVENT_ATTENTION_MIN_GAP_SEC = 6.0
 
-# Body-lock events should describe sustained arrival/recession, not one-frame
+# Motor-entrainment events should describe sustained arrival/recession, not one-frame
 # label crossings around the weak/emerging boundary.
 EVENT_BODY_LOCK_DWELL_SEC = 2.0
 EVENT_BODY_UNLOCK_DWELL_SEC = 2.0

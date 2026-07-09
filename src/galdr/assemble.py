@@ -586,8 +586,8 @@ def _arc_archetype(summary: dict) -> tuple[str, str]:
     if held_pct >= 0.60 and longest >= 0.08:
         if held_pct >= 0.90 and span_count <= 8 and mean_body >= 0.62 and transition_rate <= 0.03:
             return (
-                "martial/body lock",
-                "a stable pulse and body capture dominate; write sustained forward motion as the dramatic argument.",
+                "martial/motor command",
+                "a stable pulse and motor capture dominate; write sustained forward motion as the dramatic argument.",
             )
         if span_count <= 12 and final_label in {"emptying", "returning"}:
             return (
@@ -906,7 +906,7 @@ def _build_metrics(analysis: dict) -> str:
         "Treat these as evidence of felt experience, not detector facts to recite."
     )
     lines.append(
-        "Macro events change the listening landscape: attention, body lock, weight, "
+        "Macro events change the listening landscape: attention, motor entrainment, weight, "
         "surface change, pressure movement, pattern break, and silence. Phrase events "
         "are local motion inside that landscape and usually become surface balance within a paragraph."
     )

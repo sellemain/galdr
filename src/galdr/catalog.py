@@ -256,7 +256,7 @@ class CatalogState:
             ("pressure_sustaining_pct", "Pressure Sustaining", "fraction of track holding pressure steady"),
             ("pattern_break_count", "Structural Breaks", "count of silence, attention shifts, and pattern ruptures"),
             ("pulse", display_name("pulse"), "higher = steadier measured pulse"),
-            ("body", display_name("body"), "higher = stronger felt body-lock"),
+            ("body", display_name("body"), "higher = stronger motor entrainment"),
             ("weight", display_name("weight"), "higher = stronger hold from weight, drag, or suspended sway"),
             ("surface_balance", display_name("surface_balance"), "negative = harmonic weight, positive = percussive weight"),
             ("mean_harmonic_pull", display_name("harmonic_pull"), "higher = more harmonic pull, motion, or refusal to settle"),

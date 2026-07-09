@@ -95,7 +95,7 @@ Deep negative values often feel like voice, drone, strings, choir, or tonal atmo
 
 `body_comfort` measures whether the captured body can settle. A pocket groove can have high capture and high comfort. Punishing, stiff, pressurized, or hostile music can have high capture and low comfort. That distinction matters: Meshuggah and James Brown may both seize the body, but they do not give the body the same kind of seat.
 
-`groove_comfort` is the local stream form of that comfort reading. It blends body-lock and pattern, then reduces comfort when pressure and accent drift make the groove harder to inhabit.
+`groove_comfort` is the local stream form of that comfort reading. It blends motor entrainment and pattern, then reduces comfort when pressure and accent drift make the groove harder to inhabit.
 
 In prose, use capture language for seizure and motor grip; use comfort language for pocket, ease, seat, bracing, or withheld comfort.
 
@@ -108,7 +108,7 @@ In prose, use capture language for seizure and motor grip; use comfort language 
 
 Tempo evidence should be translated before it reaches listening prose. Do not write raw BPM values in an experience. Write the felt pulse instead: slow, fast, dragging, rushing, steady, doubled, halved, leaning forward, or pulling against the main grid. Raw BPM belongs in debugging, comparison packets, and regression notes.
 
-This is deliberately conservative language. `metric_tension` is not a full polyrhythm detector. Treat it as cross-rhythm pressure evidence. If the dominant experience is body/pressure lock, the prompt may keep metric tension as a technical underlayer rather than making it the headline.
+This is deliberately conservative language. `metric_tension` is not a full polyrhythm detector. Treat it as cross-rhythm pressure evidence. If the dominant experience is motor capture or pressure hold, the prompt may keep metric tension as a technical underlayer rather than making it the headline.
 
 ---
 
@@ -122,7 +122,7 @@ These are not claims about composer intent. They are evidence about whether the 
 ---
 
 ### `section_gravity` and `surface_density`
-`section_gravity` measures whether a moment feels like an anchor rather than passage material. It combines local pattern, attention, body-lock, and beat-grid stability. High section gravity is not automatically a chorus or formal section; it means the listener has a floor.
+`section_gravity` measures whether a moment feels like an anchor rather than passage material. It combines local pattern, attention, motor entrainment, and beat-grid stability. High section gravity is not automatically a chorus or formal section; it means the listener has a floor.
 
 `surface_density` measures local detail-load independent of raw loudness. High density means busy, particulate, detailed, or texturally loaded. Low density means sparse, smooth, sustained, or wall-like. Density is not heaviness: a loud sustained wall can be low-density, and a quiet texture can be dense.
 
@@ -194,13 +194,13 @@ Display name: **Weight arc**. The track divided into segments with mean and peak
 | `attention` | Beat regularity × beat density in rolling windows | How strongly attention is carried forward |
 | `pressure` / `pressure_state` | Short-term LUFS movement | Whether pressure builds, releases, sustains, or empties |
 | `pattern` | `1.0 - disruption`; disruption = beat + spectral + energy expectation failures | How intact the musical pattern feels |
-| `body_capture` | Local body-lock before comfort penalties | Whether rhythm seizes motor attention |
+| `body_capture` | Local motor capture before comfort penalties | Whether rhythm seizes motor attention |
 | `body_comfort` / `groove_comfort` | Body capture reduced by pressure and accent phase drift | Whether the captured body can settle into the pulse |
 | `accent_phase_drift` | Circular phase dispersion of onsets against beat positions | Whether attacks sit on the grid or lean around it |
 | `metric_tension` | Trusted pulse plus competing non-simple tempo/grid evidence | Whether the pulse is being pressured by another metric layer |
 | `expectation_debt` | Accumulated disruption, pressure, drift, and low comfort | Whether unresolved expectation is being carried forward |
 | `release_force` | Negative pressure weighted by prior debt | Whether a drop or opening pays back accumulated pressure |
-| `section_gravity` | Attention, pattern, body-lock, and grid stability | Whether a moment feels like a local anchor |
+| `section_gravity` | Attention, pattern, motor entrainment, and grid stability | Whether a moment feels like a local anchor |
 | `surface_density` | Onset density plus spectral/energy surface motion | How busy or sparse the surface feels |
 | `surface_balance` / Surface balance | Harmonic/percussive separated energy | Whether weight sits in sustained tone or attack |
 | `pitch_grid` | Chroma concentration in equal-tempered pitch classes | How centered or outside-the-grid the pitch world feels |
@@ -236,7 +236,7 @@ Stream values are time-indexed listener-state samples. Read them as motion:
 - **high `surface_evidence.band_pressure` / `pressure_state: pressurized`** → low/body-band weight is present; confirm with loudness motion and body evidence before writing that the track feels pressurized
 - **high `surface_evidence.punch`** → peak snap rises above local body; confirm with loudness/body context before writing impact, because quiet attacks can be numerically punchy
 
-Events are narrative anchors derived from the stream. Macro events (`attention_arrives`, `body_lock_arrives`, `surface_hardens`, `weight_arrives`) describe major state changes. Phrase events (`phrase_lift`, `phrase_drop`, `ornamental_flash`) describe smaller local gestures inside a stable state. Events are not a checklist to recite. They are signposts for where prose should slow down and listen more closely.
+Events are narrative anchors derived from the stream. Macro events (`attention_arrives`, `body_lock_arrives`, `surface_hardens`, `weight_arrives`) describe major state changes; the historical `body_lock_*` event names refer to motor entrainment arriving or receding. Phrase events (`phrase_lift`, `phrase_drop`, `ornamental_flash`) describe smaller local gestures inside a stable state. Events are not a checklist to recite. They are signposts for where prose should slow down and listen more closely.
 
 The right reading order is:
 
@@ -277,15 +277,15 @@ Meaning lives in the relationships between metrics, not individual values.
 
 The guide is factorized so the vocabulary does not flatten different musical situations into one compound label. It has these parts:
 
-- **Primary contract** — a compact dominant listener state: `pocket`, `grid`, `lock`, `field`, `pattern_hold`, or `balanced_listener_state`. These are intentionally small words. They do not imply genre.
-- **Secondary contracts** — other contracts that are real but should not necessarily lead the prose. A mass lock can still have metric grid pressure underneath it.
+- **Primary contract** — a compact dominant listener state: `pocket`, `grid`, `motor_capture`, `field`, `pattern_hold`, or `balanced_listener_state`. These are intentionally small words. They do not imply genre.
+- **Secondary contracts** — other contracts that are real but should not necessarily lead the prose. A mass hold can still have metric grid pressure underneath it.
 - **Force axes** — reusable primitive descriptors such as body relation, comfort relation, weight, surface, pressure, and grid relation. This is where modifiers like captured/resisted/heavy/sparse/drifting live.
-- **Prose hints** — downstream language suggestions such as "tight minimal grid", "mass lock", "braced mass lock", or "force without motor lock". These are not canonical metrics; they are vocabulary aids. `mass lock` means weight, gravity, or section pressure is doing the holding; it does not necessarily mean loudness, metal heaviness, or impact.
+- **Prose hints** — downstream language suggestions such as "tight minimal grid", "mass hold", "braced mass hold", or "force without motor capture". These are not canonical metrics; they are vocabulary aids. `mass hold` means weight, gravity, or section pressure is doing the holding; it does not necessarily mean loudness, metal heaviness, or impact.
 - **Headline/supporting/technical/low-confidence forces** — ranked evidence that should stay visible without forcing the prose to headline every technically interesting reading.
 
 This matters because technically interesting structure is not always the felt face of the music. A track can contain metric tension while the dominant experience is body capture by weight or pressure. Ambient music can produce suspicious metric readings from weak pulse evidence; those readings should be named as low-confidence rather than turned into false claims. Conversely, groove music may be technically simple and still perceptually strong because the body is fully settled.
 
-The key rule: do not bake multiple forces into one category when the same axes can explain the track. `lock + mass + resisted` is not the same as `grid + dry + resisted`, even if both have high body capture and low comfort. Keep raw metrics visible, keep axes separable, and let prose choose the human phrase.
+The key rule: do not bake multiple forces into one category when the same axes can explain the track. `motor_capture + mass + resisted` is not the same as `grid + dry + resisted`, even if both have high body capture and low comfort. Keep raw metrics visible, keep axes separable, and let prose choose the human phrase.
 
 ---
 

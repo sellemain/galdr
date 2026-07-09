@@ -419,7 +419,7 @@ def test_arc_archetype_splits_plateau_subtypes():
         "final_label": "emptying",
     }
 
-    assert _arc_archetype(martial)[0] == "martial/body lock"
+    assert _arc_archetype(martial)[0] == "martial/motor command"
     assert _arc_archetype(narrative)[0] == "suspended narrative gravity"
 
 # ── assemble_prompt (pipeline) ───────────────────────────────────────
@@ -1355,7 +1355,7 @@ def test_cli_plot_index_lists_png_artifacts(tmp_path):
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 
 
-def test_compute_body_separates_body_lock_from_raw_tempo():
+def test_compute_body_separates_motor_entrainment_from_raw_tempo():
     from galdr.analyze import compute_body
 
     locked = compute_body(
@@ -1449,7 +1449,7 @@ def test_assembled_metrics_include_body_language():
             "pulse": 0.93,
             "body": 0.81,
             "body_state": "locked",
-            "entrainment_note": "strong body-lock with real percussive support",
+            "entrainment_note": "strong motor capture with real percussive support",
             "weight": 0.22,
             "weight_state": "light",
             "metric_tension": 0.61,
@@ -1462,7 +1462,7 @@ def test_assembled_metrics_include_body_language():
     prompt = assemble_prompt(analysis, mode="blind")
 
     assert "Body: 0.810 (locked)" in prompt
-    assert "strong body-lock" in prompt
+    assert "strong motor capture" in prompt
     assert "Weight: 0.220 (light)" in prompt
     assert "Metric tension: 0.610 (high)" in prompt
     assert "competing metric evidence" in prompt
@@ -1856,7 +1856,7 @@ def test_salience_guide_is_advisory_and_preserves_metric_detail():
     assert "Metric tension: 0.360 (present)" in prompt
     assert "Local stream metrics:" in prompt
     assert "Perceptual salience guide (advisory, not a filter):" in prompt
-    assert "Primary contract: lock" in prompt
+    assert "Primary contract: motor_capture" in prompt
     assert "Secondary contracts: grid" in prompt
     assert "Force axes:" in prompt
     assert "body_relation=captured" in prompt
@@ -1937,7 +1937,7 @@ def test_salience_factorizes_ambient_field_as_force_without_motor_lock():
     assert salience["force_axes"]["body_relation"]["value"] == "absent"
     assert salience["force_axes"]["weight"]["value"] == "heavy"
     assert "held field" in salience["prose_hints"]
-    assert "force without motor lock" in salience["prose_hints"]
+    assert "force without motor capture" in salience["prose_hints"]
 
 
 def test_salience_distinguishes_braced_mass_from_impact_mass_lock():
@@ -1969,10 +1969,10 @@ def test_salience_distinguishes_braced_mass_from_impact_mass_lock():
 
     impact = synthesize_salience(base_analysis)
 
-    assert impact["primary_contract"] == "lock"
-    assert "mass lock" in impact["prose_hints"]
-    assert "impact mass lock" in impact["prose_hints"]
-    assert "braced mass lock" not in impact["prose_hints"]
+    assert impact["primary_contract"] == "motor_capture"
+    assert "mass hold" in impact["prose_hints"]
+    assert "impact mass hold" in impact["prose_hints"]
+    assert "braced mass hold" not in impact["prose_hints"]
 
     braced_analysis = {
         **base_analysis,
@@ -1990,10 +1990,10 @@ def test_salience_distinguishes_braced_mass_from_impact_mass_lock():
 
     braced = synthesize_salience(braced_analysis)
 
-    assert braced["primary_contract"] == "lock"
-    assert "mass lock" in braced["prose_hints"]
-    assert "braced mass lock" in braced["prose_hints"]
-    assert "impact mass lock" not in braced["prose_hints"]
+    assert braced["primary_contract"] == "motor_capture"
+    assert "mass hold" in braced["prose_hints"]
+    assert "braced mass hold" in braced["prose_hints"]
+    assert "impact mass hold" not in braced["prose_hints"]
 
 
 def test_assemble_renders_salience_axes_without_headline_forces():
@@ -2094,11 +2094,11 @@ def test_salience_labels_soft_mass_lock_without_promoting_to_new_contract():
 
     salience = synthesize_salience(analysis)
 
-    assert salience["primary_contract"] == "lock"
-    assert "mass lock" in salience["prose_hints"]
-    assert "soft mass lock" in salience["prose_hints"]
-    assert "braced mass lock" not in salience["prose_hints"]
-    assert "impact mass lock" not in salience["prose_hints"]
+    assert salience["primary_contract"] == "motor_capture"
+    assert "mass hold" in salience["prose_hints"]
+    assert "soft mass hold" in salience["prose_hints"]
+    assert "braced mass hold" not in salience["prose_hints"]
+    assert "impact mass hold" not in salience["prose_hints"]
 
 
 # ── Boundary Candidates ──────────────────────────────────────────────────────

@@ -429,8 +429,8 @@ def test_attention_events_use_hysteresis_not_threshold_chatter(monkeypatch):
     assert events.count("attention_releases") == 1
 
 
-def test_body_lock_events_require_sustained_dwell(monkeypatch):
-    """Body-lock prose events should wait for sustained state, not one-frame crossings."""
+def test_motor_entrainment_events_require_sustained_dwell(monkeypatch):
+    """Motor-entrainment prose events should wait for sustained state, not one-frame crossings."""
     import galdr.perceive as perceive
     from galdr.perceive import compute_perception
 
@@ -474,7 +474,7 @@ def test_body_lock_events_require_sustained_dwell(monkeypatch):
     monkeypatch.setattr(perceive, "compute_attention", fake_attention)
     monkeypatch.setattr(perceive, "compute_body", fake_body)
 
-    result = compute_perception(y, sr, "body-lock-dwell", hop_sec=1.0)
+    result = compute_perception(y, sr, "motor-entrainment-dwell", hop_sec=1.0)
     events = [entry["event"] for entry in result["stream"] if entry.get("event")]
 
     assert events.count("body_lock_arrives") == 1
