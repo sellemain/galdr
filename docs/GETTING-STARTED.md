@@ -66,7 +66,7 @@ cat prompt.txt | llm
 
 That produces something like this: **[Queen — Bohemian Rhapsody](bohemian-rhapsody.md)**
 
-The assembled prompt includes an advisory **perceptual salience guide**. It keeps the raw metrics visible, then factorizes the dominant contract, secondary contracts, primitive force axes, prose hints, headline forces, supporting forces, technical underlayers, and low-confidence readings. This keeps the prose aimed at the experience of the music without flattening different tracks into compound labels. Hints such as `mass lock` name the felt holding force, not genre or loudness.
+The assembled prompt includes an advisory **perceptual salience guide**. It keeps the raw metrics visible, then factorizes the dominant contract, secondary contracts, primitive force axes, prose hints, headline forces, supporting forces, technical underlayers, and low-confidence readings. This keeps the prose aimed at the experience of the music without flattening different tracks into compound labels. Hints such as `mass hold` name the felt holding force, not genre or loudness.
 
 For the newer ARC prompt-family shape, select a lens:
 

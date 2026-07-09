@@ -70,7 +70,7 @@ def compute_body(
     surface_balance: float,
     onsets_per_second: float,
 ) -> dict:
-    """Estimate felt body-lock separately from raw tempo detection.
+    """Estimate felt motor entrainment separately from raw tempo detection.
 
     This is a conservative presentation metric.  It rewards stable pulse,
     real percussive support, enough onset activity to give the body something
@@ -84,7 +84,7 @@ def compute_body(
 
     percussive_component = float(np.clip(surface_balance, 0.0, 1.0))
 
-    # Body-lock needs audible events, but extra density stops helping once the
+    # Motor entrainment needs audible events, but extra density stops helping once the
     # surface is busy enough.  4 onsets/sec is already plenty of handle.
     onset_component = float(np.clip(onsets_per_second / 4.0, 0.0, 1.0))
 
@@ -113,7 +113,7 @@ def compute_body(
 
     if state == "locked":
         if percussive_component >= 0.45:
-            note = "strong body-lock with real percussive support"
+            note = "strong motor capture with real percussive support"
         else:
             note = "steady felt pulse; entrainment comes more from regularity than percussion"
     elif state == "emerging":
@@ -121,7 +121,7 @@ def compute_body(
     elif state == "weak":
         note = "some pulse evidence, but the body has little to hold"
     else:
-        note = "no reliable body-lock detected"
+        note = "no reliable motor entrainment detected"
 
     if pulse_ambiguous:
         note += "; pulse interpretation is ambiguous/alternate-pulse"
@@ -147,7 +147,7 @@ def compute_weight(
     """Estimate weight that comes from weight, drag, or sway.
 
     This is intentionally separate from body.  Entrainment asks
-    whether the body locks to a forward motor; this asks whether the track
+    whether the body entrains to a forward motor; this asks whether the track
     makes the body feel held, slowed, or pulled by sustained pressure.
     """
     pulse_conf = 0.5 if pulse_confidence is None else float(np.clip(pulse_confidence, 0.0, 1.0))

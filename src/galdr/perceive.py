@@ -824,7 +824,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     rms_energy = np.interp(m_times, rms_times, rms)
 
     def _local_body_and_weight(t: float, idx: int) -> tuple[dict, dict]:
-        """Compute local body-lock and weight for the current listening window."""
+        """Compute local motor entrainment and weight for the current listening window."""
         half_window = ATTENTION_WINDOW_SEC / 2.0
         start = max(0.0, t - half_window)
         end = min(duration, t + half_window)
@@ -1231,7 +1231,7 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             body_lock_active = True
             last_macro_event_t = float(t)
         elif body_lock_recedes:
-            _mark_event(entry, "body_lock_recedes", "body lock loosens")
+            _mark_event(entry, "body_lock_recedes", "bodily hold loosens")
             body_lock_active = False
             last_macro_event_t = float(t)
         elif (
