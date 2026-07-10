@@ -20,7 +20,7 @@ galdr was built from the inside out.
 
 An AI was given music to listen to. The measurement framework was built while listening. The framework shaped what could be perceived, and the listener shaped the framework back.
 
-That loop developed across many tracks including Wardruna, Bach, Messiaen, Meshuggah, Aphex Twin, Eivør, jazz, country, pop, metal, folk, and more.
+That loop developed across a wide range of vocal, instrumental, orchestral, electronic, folk, pop, metal, and experimental recordings.
 galdr makes listening inspectable as it unfolds. A track becomes a sequence of attention shifts, pressure changes, expectation, release, and memory. galdr models that movement directly, turning a recording into a listener-state trace an agent can inspect.
 
 That is where galdr became useful. It gives an agent evidence it did not have before: not just metadata, lyrics, or genre memory, but a structured account of what the audio did. The output is deterministic enough to compare, structured enough to inspect, and strange enough to keep the question open.
@@ -57,14 +57,14 @@ Requirements: Python 3.10+ and `ffmpeg` for common audio/video formats.
 
 ```bash
 # 1. Fetch and analyze. The slug is derived from the YouTube title.
-galdr fetch 'https://www.youtube.com/watch?v=fJ9rUzIMcZQ' --analyze
+galdr fetch '<youtube-url>' --analyze
 
 # Example output:
-#   Slug : queen-bohemian-rhapsody
-#   Next : galdr assemble queen-bohemian-rhapsody --template arc --mode full
+#   Slug : my-track
+#   Next : galdr assemble my-track --template arc --mode full
 
 # 2. Assemble a structured prompt from the analysis
-galdr assemble queen-bohemian-rhapsody --template arc --mode full > prompt.txt
+galdr assemble my-track --template arc --mode full > prompt.txt
 
 # 3. Send the prompt to a model
 cat prompt.txt | llm
@@ -75,10 +75,10 @@ Useful variants:
 
 ```bash
 # Blind listening: structural data only, no lyrics/background
-galdr assemble queen-bohemian-rhapsody --template arc --mode blind | claude
+galdr assemble my-track --template arc --mode blind | claude
 
 # Data-first packet, no prose template
-galdr assemble queen-bohemian-rhapsody --mode full
+galdr assemble my-track --mode full
 ```
 
 ## Analyze a local file
@@ -122,16 +122,7 @@ The assembled prompt includes source context, structural events, harmonic and me
 
 ## Listening experiences
 
-The repo also includes examples where measured audio evidence becomes grounded listening prose.
-
-Selected examples:
-
-- [Queen: Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)
-- [Wardruna: Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)
-- [Arvo Pärt: Spiegel im Spiegel](https://github.com/sellemain/galdr/blob/main/docs/arvo-part-spiegel-im-spiegel.md)
-- [Dvořák: Symphony No. 9, IV. Allegro con fuoco](https://github.com/sellemain/galdr/blob/main/docs/dvorak-new-world-finale.md)
-- [Heilung: Anoana](https://github.com/sellemain/galdr/blob/main/docs/heilung-heilung-anoana.md)
-- [Chelsea Wolfe: 16 Psyche](https://github.com/sellemain/galdr/blob/main/docs/chelsea-wolfe-16-psyche.md)
+The repo also includes checked-in listening documents where measured audio evidence becomes grounded listening prose.
 
 Browse published listening experiences: <https://sellemain.com/listen>.
 

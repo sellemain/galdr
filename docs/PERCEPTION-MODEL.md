@@ -93,7 +93,7 @@ Deep negative values often feel like voice, drone, strings, choir, or tonal atmo
 
 `body_capture` measures whether the rhythm has seized motor attention. It can be high in dance music, funk, metal, minimalism, ritual music, or anything where the pulse takes the body. It does not mean the listener is comfortable.
 
-`body_comfort` measures whether the captured body can settle. A pocket groove can have high capture and high comfort. Punishing, stiff, pressurized, or hostile music can have high capture and low comfort. That distinction matters: Meshuggah and James Brown may both seize the body, but they do not give the body the same kind of seat.
+`body_comfort` measures whether the captured body can settle. A pocket groove can have high capture and high comfort. Punishing, stiff, pressurized, or hostile music can have high capture and low comfort. That distinction matters: two tracks may both seize the body, but they may not give the body the same kind of seat.
 
 `groove_comfort` is the local stream form of that comfort reading. It blends motor entrainment and pattern, then reduces comfort when pressure and accent drift make the groove harder to inhabit.
 
@@ -289,13 +289,13 @@ The key rule: do not bake multiple forces into one category when the same axes c
 
 ---
 
-## Worked Example: Helvegen — Wardruna
+## Worked Example: Long Ritual Track
 
-7 minutes 6 seconds. The track opens with 7 seconds of true silence. When sound arrives, attention stays at `0.000` for 30 seconds — typical tracks lock in 4–7 seconds. Helvegen takes thirty. Then between t=30s and t=60s, resonance locks: attention jumps from `0.000` to `0.974` and holds between 0.96–0.98 for five and a half minutes.
+7 minutes 6 seconds. The track opens with 7 seconds of true silence. When sound arrives, attention stays at `0.000` for 30 seconds — typical tracks lock in 4–7 seconds. This track takes thirty. Then between t=30s and t=60s, resonance locks: attention jumps from `0.000` to `0.974` and holds between 0.96–0.98 for five and a half minutes.
 
 At the end, seven silences cluster. Each longer and deeper: `1.0s → 1.2s → 0.5s → 0.5s → 1.5s → 1.5s → 9.5s`, descending from -60dB to -80dB. After each silence, the voice returns. Resonance re-establishes — attention returns above 0.93 each time. The listener keeps re-engaging because the music keeps coming back at full conviction. Until the seventh silence, when the voice doesn't return.
 
-The road to Hel is not a fall. It is a series of departures and returns where the departures gradually win.
+The ending is not a fall. It is a series of departures and returns where the departures gradually win.
 
 ---
 

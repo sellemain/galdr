@@ -87,11 +87,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.2] - 2026-05-08
 
 ### Added
-- Public listening examples for Dvořák's _Symphony No. 9_, fourth movement, and Wardruna/Aurora's _Helvegen_.
+- Public listening examples for long-form instrumental and ritual/vocal material.
 - README links for the new classical and ritual listening examples.
 
 ### Changed
-- Polished the Helvegen and Dvořák example prose for public release, with source/performance context and less release-note framing.
+- Polished example prose for public release, with source/performance context and less release-note framing.
 - Bumped the bundled OpenClaw skill metadata to 0.2.2 for ClawHub/package consumers.
 
 ## [0.2.1] - 2026-05-07
@@ -154,7 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.7] - 2026-04-22
 
 ### Added
-- Public example listening doc for AURORA — `docs/aurora-runaway.md`
+- Public example listening doc added under `docs/`.
 
 ### Changed
 - CI now installs and runs through `uv` with locked dependencies to match the documented repo workflow

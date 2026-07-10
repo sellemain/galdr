@@ -36,7 +36,7 @@ All metrics come from `report.json` and the perception/harmony/melody/overtone s
 | 0.60–0.80 | Fluctuating. Energy ebbs and flows. |
 | <0.60 | Low continuity. Listener may disengage. |
 
-After a silence, attention re-locking above 0.93 signals the listener has been re-engaged. Multiple re-lock events with deepening silences = structured withdrawal (Helvegen pattern).
+After a silence, attention re-locking above 0.93 signals the listener has been re-engaged. Multiple re-lock events with deepening silences can indicate structured withdrawal.
 
 ---
 
@@ -139,7 +139,7 @@ Do not read low pitch_grid as a defect by itself. Some traditions deliberately l
 | 0.40–0.55 | Significant tension. Unresolved, complex harmonically. |
 | >0.55 | High dissonance. Deliberately unsettled. |
 
-Catalog note: Teardrop (Massive Attack) has the highest cataloged tension at 0.421.
+Catalog note: the highest cataloged tension in the local reference set is 0.421.
 
 ---
 
