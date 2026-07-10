@@ -829,7 +829,7 @@ Examples:
                                   help="What context to include (default: full)")
     assemble_parser.add_argument("--template", default="none",
                                   help="Instructions to prepend: none, arc, first, arc-family, arc-* lens alias, or a file path (default: none)")
-    assemble_parser.add_argument("--lens", choices=["default", "sound", "dance", "dancefloor", "structure", "meaning", "lyrics-study", "classical", "ritual"],
+    assemble_parser.add_argument("--lens", choices=["default", "sound", "dance", "structure", "meaning", "lyrics-study", "classical", "ritual"],
                                   help="Prompt-family lens to append; implies arc-family when --template is omitted")
     assemble_parser.add_argument("--output", "-o", help="Write prompt to file instead of stdout")
 

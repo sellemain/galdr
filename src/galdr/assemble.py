@@ -67,14 +67,10 @@ ARC_LENS_TEMPLATES = {
     "classical": "ARC-LENS-CLASSICAL.md",
     "ritual": "ARC-LENS-RITUAL.md",
 }
-ARC_LENS_NAME_ALIASES = {
-    "dancefloor": "dance",
-}
 ARC_LENS_ALIASES = {
     "arc-default": "default",
     "arc-sound": "sound",
     "arc-dance": "dance",
-    "arc-dancefloor": "dance",
     "arc-structure": "structure",
     "arc-meaning": "meaning",
     "arc-lyrics-study": "lyrics-study",
@@ -111,13 +107,11 @@ def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None =
     """
     if name in ARC_LENS_ALIASES:
         alias_lens = ARC_LENS_ALIASES[name]
-        lens = ARC_LENS_NAME_ALIASES.get(lens, lens)
         if lens and lens != alias_lens:
             raise ValueError(f"Template '{name}' already selects lens '{alias_lens}', got '{lens}'")
         name = "arc-family"
         lens = alias_lens
 
-    lens = ARC_LENS_NAME_ALIASES.get(lens, lens)
     if lens and lens not in ARC_LENS_TEMPLATES:
         raise ValueError(
             f"Unknown lens '{lens}'. Choose from: {', '.join(ARC_LENS_TEMPLATES)}"
@@ -164,7 +158,6 @@ def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None =
 
 def _append_lens(base: str, lens: str, docs_dir: Path | None = None) -> str:
     """Append a prompt-family lens to resolved base instructions."""
-    lens = ARC_LENS_NAME_ALIASES.get(lens, lens)
     lens_text = None
     if docs_dir:
         local = docs_dir / f"arc-lens-{lens}.md"

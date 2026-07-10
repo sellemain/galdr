@@ -781,20 +781,6 @@ class TestAssemblePrompt:
         assert "Pressure belongs here only when it changes movement" in prompt
         assert "Do not force dance language onto a track that only has a beat" in prompt
 
-    def test_arc_family_dancefloor_alias_still_selects_dance_lens(self):
-        analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 128.0, "felt_pulse_bpm": 128.0},
-            "perception": {
-                "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
-            },
-        }
-
-        prompt = self.fn(analysis, mode="blind", template="arc-dancefloor")
-
-        assert "ARC Prompt Family Base" in prompt
-        assert "Dance Lens" in prompt
-
     def test_arc_family_meaning_lens_renders_human_situation_instructions(self):
         analysis = {
             "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
