@@ -584,6 +584,42 @@ class TestAssemblePrompt:
         assert "WRONG_ARTIST_CONTEXT" not in result
         assert "GOOD_SONG_CONTEXT" in result
 
+    def test_structured_song_context_includes_evidence_not_constraints(self):
+        analysis = self._minimal_analysis()
+        context = {
+            "song_context": {
+                "summary": "Breakup context directly tied to the track.",
+                "claims": [
+                    {
+                        "claim": "The writer described it as a breakup song.",
+                        "source_type": "artist_interview",
+                        "source_url": "https://example.test/interview",
+                        "confidence": "high",
+                    }
+                ],
+                "lyric_references": [
+                    {
+                        "reference": "the named character",
+                        "meaning": "a sourced person from the artist's life",
+                        "source_url": "https://example.test/annotation",
+                    }
+                ],
+                "source_notes": ["Interview happened after the album cycle."],
+                "constraints": ["Do not quote lyrics directly."],
+            }
+        }
+        result = self.fn(analysis, context=context, mode="full")
+        assert "Song context: Breakup context directly tied to the track." in result
+        assert "Song context claim: The writer described it as a breakup song." in result
+        assert "artist_interview" in result
+        assert "https://example.test/interview" in result
+        assert (
+            "Song lyric reference: the named character: a sourced person from the artist's life"
+            in result
+        )
+        assert "Song context source note: Interview happened after the album cycle." in result
+        assert "Do not quote lyrics directly." not in result
+
     def test_low_confidence_genius_text_excluded_but_captions_remain(self):
         analysis = self._minimal_analysis()
         context = {
@@ -2609,6 +2645,26 @@ def test_packet_builds_generic_evidence_container(tmp_path):
             "use_in_prompt": True,
             "extract": "Packet Artist is a test fixture.",
         },
+        "song_context": {
+            "summary": "The song context is directly tied to the track.",
+            "claims": [
+                {
+                    "claim": "The artist described this as a breakup song.",
+                    "source_type": "artist_interview",
+                    "source_url": "https://example.test/song-interview",
+                    "confidence": "high",
+                }
+            ],
+            "lyric_references": [
+                {
+                    "reference": "the named character",
+                    "meaning": "a person in the artist's life",
+                    "source_url": "https://example.test/annotation",
+                }
+            ],
+            "source_notes": ["This source note is evidence context, not policy."],
+            "constraints": ["Do not quote lyrics directly."],
+        },
     }))
 
     packet = build_packet_from_disk(slug, tmp_path)
@@ -2639,6 +2695,22 @@ def test_packet_builds_generic_evidence_container(tmp_path):
     assert packet["collections"]["lyrics"]["status"] == "verified"
     assert packet["collections"]["lyrics"]["items"][0]["line_count"] == 2
     assert packet["collections"]["background"]["items"][0]["source_ref"] == "artist_context"
+    assert any(
+        claim["kind"] == "song_context_claim"
+        and claim["text"] == "The artist described this as a breakup song."
+        for claim in packet["claims"]
+    )
+    assert any(
+        claim["kind"] == "song_context_lyric_reference"
+        and claim["text"] == "the named character: a person in the artist's life"
+        for claim in packet["claims"]
+    )
+    assert any(
+        item["kind"] == "song_context_source_notes"
+        and item["items"] == ["This source note is evidence context, not policy."]
+        for item in packet["collections"]["background"]["items"]
+    )
+    assert "Do not quote lyrics directly." not in json.dumps(packet)
     assert packet["views"] == {}
 
 

@@ -91,6 +91,10 @@ def _source(kind: str, *, label: str | None = None, url: str | None = None, payl
     return source
 
 
+def _source_ref_for_item(item: dict[str, Any], fallback: str) -> str:
+    return str(item.get("source_url") or item.get("url") or fallback)
+
+
 def _build_subject(slug: str, context: dict[str, Any], analysis: dict[str, Any]) -> dict[str, Any]:
     report = analysis.get("report") or {}
     title = context.get("title") or report.get("title")
@@ -317,16 +321,51 @@ def _build_claims(context: dict[str, Any]) -> list[dict[str, Any]]:
     claims: list[dict[str, Any]] = []
     for key, subject in (("artist_context", "artist"), ("song_context", "track")):
         value = context.get(key)
-        if not isinstance(value, dict) or not value.get("extract"):
+        if not isinstance(value, dict):
             continue
-        claims.append({
-            "kind": "context_extract",
-            "subject": subject,
-            "text": value.get("extract"),
-            "source_ref": key,
-            "confidence": value.get("confidence", "unknown"),
-            "use_in_prompt": value.get("use_in_prompt"),
-        })
+        if value.get("extract"):
+            claims.append({
+                "kind": "context_extract",
+                "subject": subject,
+                "text": value.get("extract"),
+                "source_ref": key,
+                "confidence": value.get("confidence", "unknown"),
+                "use_in_prompt": value.get("use_in_prompt"),
+            })
+        if key == "song_context":
+            if value.get("summary"):
+                claims.append({
+                    "kind": "song_context_summary",
+                    "subject": "track",
+                    "text": value.get("summary"),
+                    "source_ref": key,
+                })
+            for item in value.get("claims") or []:
+                if not isinstance(item, dict) or not item.get("claim"):
+                    continue
+                claims.append({
+                    "kind": "song_context_claim",
+                    "subject": "track",
+                    "text": item.get("claim"),
+                    "source_ref": _source_ref_for_item(item, key),
+                    "source_type": item.get("source_type"),
+                    "confidence": item.get("confidence", "unknown"),
+                })
+            for item in value.get("lyric_references") or []:
+                if not isinstance(item, dict):
+                    continue
+                reference = item.get("reference")
+                meaning = item.get("meaning")
+                if not reference and not meaning:
+                    continue
+                text = f"{reference}: {meaning}" if reference and meaning else reference or meaning
+                claims.append({
+                    "kind": "song_context_lyric_reference",
+                    "subject": "lyrics",
+                    "text": text,
+                    "source_ref": _source_ref_for_item(item, key),
+                    "confidence": item.get("confidence", "unknown"),
+                })
     lyrics = context.get("lyrics") if isinstance(context.get("lyrics"), dict) else {}
     if lyrics:
         claims.append({
@@ -429,6 +468,24 @@ def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
                 "confidence": value.get("confidence", "unknown"),
                 "use_in_prompt": value.get("use_in_prompt"),
             })
+        if key == "song_context" and isinstance(value, dict):
+            if value.get("summary"):
+                background_items.append({
+                    "kind": "song_context_summary",
+                    "source_ref": key,
+                    "text": value.get("summary"),
+                })
+            notes = [
+                str(note).strip()
+                for note in value.get("source_notes") or []
+                if str(note).strip()
+            ]
+            if notes:
+                background_items.append({
+                    "kind": "song_context_source_notes",
+                    "source_ref": key,
+                    "items": notes,
+                })
     if background_items:
         collections["background"] = {"items": background_items}
     return collections
