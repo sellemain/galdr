@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-10
+
+### Added
+- ARC prompt-family assembly with reusable lenses for `default`, `sound`, `dancefloor`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual` readings.
+- Lens aliases such as `arc-sound`, `arc-dancefloor`, and `arc-meaning` for compact prompt assembly.
+- Section-arc events and packet integration so reset points, section motion, and terminal boundaries can be carried into agent-facing evidence.
+- YouTube Music timed lyric support through `ytmusicapi`, with provider timing kept separate from captions and unverified lyric text.
+- Classical/instrumental listening examples for Philip Glass, Samuel Barber, and Tchaikovsky.
+
+### Changed
+- Tightened ARC prompt guidance around lyric timing, source leakage, body-language vocabulary, and terminal silence interpretation.
+- Refined public-facing prompt lenses: `sound` now emphasizes physical shape and pressure, `meaning` keeps human situation grounded in sound, `ritual` uses explicit weak-fit boundaries, and `classical` avoids forcing song-form logic onto large-form music.
+- Refreshed checked-in listening examples with lower lyric-quote exposure and clearer public prose.
+- Neutralized general docs so named copyrighted-work examples are limited to standalone listening write-ups.
+- Clarified that the PyPI wheel contains the runtime CLI/library and bundled prompt templates, while the OpenClaw skill is distributed separately through ClawHub.
+
+### Fixed
+- Removed old body-lock/mass-lock wording from ARC family prompt output in favor of public-safe motor-capture language.
+- Stopped ARC prompts from encouraging generated prose to expose source mechanics or model-facing assembly instructions.
+
 ## [0.5.2] - 2026-06-23
 
 ### Added

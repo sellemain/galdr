@@ -1,7 +1,7 @@
 ---
 name: galdr
 description: OpenClaw skill for using galdr's ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, surface balance/evidence, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
-version: "0.5.2"
+version: "0.6.0"
 author: Sellemain
 license: MIT
 platforms: [linux, macos]
@@ -23,6 +23,8 @@ openclaw skills install galdr
 ClawHub may display an owner-qualified command such as `openclaw skills install @sellemain/galdr`. As of OpenClaw `2026.6.8`, the released CLI expects the bare skill slug `galdr`.
 
 Installing this skill teaches OpenClaw how to use galdr. It does **not** install the `galdr` command itself.
+
+The PyPI wheel contains the runtime CLI/library and bundled prompt templates. The OpenClaw skill is distributed separately through ClawHub so agent instructions can stay a clean skill artifact instead of being installed as Python package data.
 
 Before starting:
 
@@ -76,6 +78,27 @@ Default sequence:
 5. Write the listening experience yourself or pass the prompt to the requested model.
 
 The stream is evidence. Walk the track through time before summarizing. Do not invent emotional claims that the structure does not support.
+
+Use the ARC prompt family when the user asks for a specific reading mode:
+
+```bash
+galdr assemble my-track --template arc-family --lens sound --mode blind > sound.txt
+galdr assemble my-track --template arc-family --lens dancefloor --mode blind > dancefloor.txt
+galdr assemble my-track --template arc-family --lens meaning --mode full > meaning.txt
+galdr assemble my-track --template arc-family --lens structure --mode blind > structure.txt
+galdr assemble my-track --template arc-family --lens classical --mode blind > classical.txt
+galdr assemble my-track --template arc-family --lens ritual --mode full > ritual.txt
+```
+
+Lens guide:
+- `default` — general public listening page
+- `sound` — sound as physical shape, pressure, density, space, body, and motion
+- `dancefloor` — movement contract: groove, repetition, build/drop, and bodily use
+- `structure` — compact mechanical/form witness
+- `meaning` — human situation carried by sound
+- `lyrics-study` — private lyric/music adapter fuel, not raw public prose
+- `classical` — instrumental/classical/large-form attention over time
+- `ritual` — private ritual reading with weak-fit boundary behavior
 
 ## Core Workflows
 
@@ -194,7 +217,7 @@ prompt = subprocess.run(
 | `context` | metrics + background |
 | `blind` | metrics only (structural, no cultural context) |
 
-`--template arc` prepends the default listening-experience rules: tone, format, interpretation bounds, and the instruction to walk the track through time. Omit it only when you want a raw data block.
+`--template arc` prepends the default listening-experience rules: tone, format, interpretation bounds, and the instruction to walk the track through time. `--template arc-family --lens <name>` uses the shared prompt-family base plus one deliberate reading lens. Omit templates only when you want a raw data block.
 
 ## Interpreting galdr output
 

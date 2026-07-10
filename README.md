@@ -37,6 +37,8 @@ Using OpenClaw? Install the agent skill from ClawHub:
 openclaw skills install galdr
 ```
 
+The PyPI package installs the `galdr` CLI and Python library. The OpenClaw skill is a separate ClawHub artifact that teaches agents how to use that CLI.
+
 From source:
 
 ```bash
@@ -77,9 +79,20 @@ Useful variants:
 # Blind listening: structural data only, no lyrics/background
 galdr assemble my-track --template arc --mode blind | claude
 
+# Sound as physical shape, pressure, density, space, body, and motion
+galdr assemble my-track --template arc-family --lens sound --mode blind | claude
+
+# Movement contract for dancefloor-aware tracks
+galdr assemble my-track --template arc-family --lens dancefloor --mode blind | claude
+
+# Human situation carried by sound, lyrics, and arrangement
+galdr assemble my-track --template arc-family --lens meaning --mode full | claude
+
 # Data-first packet, no prose template
 galdr assemble my-track --mode full
 ```
+
+The ARC prompt family shares one grounding contract and then applies a lens. Available lenses are `default`, `sound`, `dancefloor`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual`. Use `arc` for the standard listening-experience prompt; use `arc-family` when you want a deliberate reading mode.
 
 ## Analyze a local file
 
@@ -174,7 +187,7 @@ If captions fail but audio succeeds, analysis can still continue. If audio fails
 
 ## Agent skill
 
-The distributable agent skill lives at `galdr-skill/galdr/SKILL.md`. It teaches OpenClaw and compatible agent runtimes how to use galdr. Install the `galdr` command separately.
+The distributable agent skill lives at `galdr-skill/galdr/SKILL.md` and is published through ClawHub. It teaches OpenClaw and compatible agent runtimes how to use galdr. Install the `galdr` command separately with `pip install galdr` or from source.
 
 For OpenClaw users, galdr is published on ClawHub: <https://clawhub.ai/sellemain/galdr>.
 
