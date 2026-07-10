@@ -60,6 +60,7 @@ BUNDLED_TEMPLATES = {
 ARC_LENS_TEMPLATES = {
     "default": "ARC-LENS-DEFAULT.md",
     "sound": "ARC-LENS-SOUND.md",
+    "dancefloor": "ARC-LENS-DANCEFLOOR.md",
     "structure": "ARC-LENS-STRUCTURE.md",
     "meaning": "ARC-LENS-MEANING.md",
     "lyrics-study": "ARC-LENS-LYRICS-STUDY.md",
@@ -69,6 +70,7 @@ ARC_LENS_TEMPLATES = {
 ARC_LENS_ALIASES = {
     "arc-default": "default",
     "arc-sound": "sound",
+    "arc-dancefloor": "dancefloor",
     "arc-structure": "structure",
     "arc-meaning": "meaning",
     "arc-lyrics-study": "lyrics-study",
@@ -1175,7 +1177,7 @@ def assemble_prompt(
         mode:     "full" | "lyrics" | "context" | "blind" (default: "full")
         template: "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir: optional path to docs/ directory for local template overrides
-        lens:     optional prompt-family lens: default, sound, structure, meaning, lyrics-study, classical, ritual
+        lens:     optional prompt-family lens: default, sound, dancefloor, structure, meaning, lyrics-study, classical, ritual
 
     Returns:
         Complete prompt string ready to send to a model.
@@ -1243,7 +1245,7 @@ def assemble_prompt_from_disk(
         mode:         "full" | "lyrics" | "context" | "blind" (default: "full")
         template:     "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir:     optional path to docs/ for local template overrides
-        lens:         optional prompt-family lens: default, sound, structure, meaning, lyrics-study, classical, ritual
+        lens:         optional prompt-family lens: default, sound, dancefloor, structure, meaning, lyrics-study, classical, ritual
 
     Returns:
         Complete prompt string ready to send to a model.
