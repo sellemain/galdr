@@ -48,11 +48,14 @@ Use reliable aligned lyric timing as the clock for lyric, vocal, verse, chorus, 
 
 ## Public Hygiene
 
+Write in the publication's public voice when one is supplied: evidence-bound, vivid, direct, and continuous with the surrounding corpus. Keep editorial judgment in the prose, but publish only the public surface. Do not mention prompts, agents, private memory, or internal process.
+
 Unless the selected lens explicitly says otherwise:
 
 - quote lyrics sparingly; quote only tiny fragments when exact words are the hinge
 - paraphrase lyric situation when exact wording is not needed
 - use timestamps only for major landmarks and only when they help the listener orient
+- integrate timestamps as natural orientation markers inside the prose; avoid making each paragraph begin with `0:17`, `At 0:49`, `By 1:12`, or another timestamp-first cadence
 - prefer section language when exact timing is not needed
 - do not quote raw metrics or numeric model values
 - do not mention prompt, model, packet, provider, source mechanics, captions, transcripts, or the task
