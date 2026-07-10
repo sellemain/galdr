@@ -110,7 +110,10 @@ def test_arc_family_templates_exist():
     for name in [
         "ARC-FAMILY-BASE.md",
         "ARC-LENS-DEFAULT.md",
+        "ARC-LENS-SOUND.md",
+        "ARC-LENS-DANCEFLOOR.md",
         "ARC-LENS-STRUCTURE.md",
+        "ARC-LENS-MEANING.md",
         "ARC-LENS-LYRICS-STUDY.md",
         "ARC-LENS-CLASSICAL.md",
         "ARC-LENS-RITUAL.md",
