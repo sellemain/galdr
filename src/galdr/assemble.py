@@ -6,7 +6,7 @@ Two entry points:
 
 Output structure (controlled by mode):
   [Template instructions]  <- prepended when --template is not "none"
-  [Background]             <- artist/song Wikipedia context  (full, context)
+  [Background]             <- artist background + song context (full, context)
   [Galdr analysis]         <- metrics, events, melody        (all modes)
   [Lyrics]                 <- timed lyrics / captions         (full, lyrics)
   [Frame descriptions]     <- vision descriptions at events  (full, if present)
@@ -363,6 +363,70 @@ def _extract_text(ctx_value) -> str:
     return str(ctx_value) if ctx_value else ""
 
 
+def _format_source_tail(item: dict) -> str:
+    """Format optional provenance details for a context claim."""
+    parts = []
+    source_type = item.get("source_type")
+    confidence = item.get("confidence")
+    source_url = item.get("source_url")
+    if source_type:
+        parts.append(str(source_type))
+    if confidence:
+        parts.append(f"confidence: {confidence}")
+    if source_url:
+        parts.append(str(source_url))
+    return f" ({'; '.join(parts)})" if parts else ""
+
+
+def _build_song_context(ctx_value) -> list[str]:
+    """Build song-specific context lines without treating it as policy."""
+    if not ctx_value:
+        return []
+    if not isinstance(ctx_value, dict):
+        text = str(ctx_value).strip()
+        return [f"Song context: {text}"] if text else []
+
+    lines = []
+
+    summary = str(ctx_value.get("summary") or "").strip()
+    if summary:
+        lines.append(f"Song context: {summary}")
+
+    extract = _extract_text(ctx_value).strip()
+    if extract and extract != summary:
+        lines.append(f"Song context: {extract}")
+
+    claims = ctx_value.get("claims")
+    if isinstance(claims, list):
+        for item in claims:
+            if not isinstance(item, dict):
+                continue
+            claim = str(item.get("claim") or "").strip()
+            if claim:
+                lines.append(f"Song context claim: {claim}{_format_source_tail(item)}")
+
+    lyric_references = ctx_value.get("lyric_references")
+    if isinstance(lyric_references, list):
+        for item in lyric_references:
+            if not isinstance(item, dict):
+                continue
+            reference = str(item.get("reference") or "").strip()
+            meaning = str(item.get("meaning") or "").strip()
+            if not reference and not meaning:
+                continue
+            text = f"{reference}: {meaning}" if reference and meaning else reference or meaning
+            lines.append(f"Song lyric reference: {text}{_format_source_tail(item)}")
+
+    source_notes = ctx_value.get("source_notes")
+    if isinstance(source_notes, list):
+        for note in source_notes:
+            note_text = str(note).strip()
+            if note_text:
+                lines.append(f"Song context source note: {note_text}")
+
+    return lines
+
+
 def _build_track_header(context: dict) -> str | None:
     """Build a brief track identity block: artist, title, source URL."""
     artist = context.get("artist", "")
@@ -383,15 +447,14 @@ def _build_track_header(context: dict) -> str | None:
 
 
 def _build_background(context: dict) -> str | None:
-    """Build background section from Wikipedia context."""
+    """Build background section from artist and song context."""
     artist_text = _extract_text(context.get("artist_context"))
-    song_text = _extract_text(context.get("song_context"))
+    song_context_lines = _build_song_context(context.get("song_context"))
 
     bg_parts = []
     if artist_text:
-        bg_parts.append(f"Artist: {artist_text}")
-    if song_text:
-        bg_parts.append(f"Track: {song_text}")
+        bg_parts.append(f"Artist background: {artist_text}")
+    bg_parts.extend(song_context_lines)
 
     if not bg_parts:
         return None

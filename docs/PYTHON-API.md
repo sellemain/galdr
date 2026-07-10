@@ -82,6 +82,36 @@ For advanced callers that already have dicts:
 prompt = assemble(analysis_dict, context=context_dict, mode="blind")
 ```
 
+`context_dict` may include structured song-specific evidence for Meaning and
+other full-context prompts:
+
+```python
+context_dict = {
+    "song_context": {
+        "summary": "Known context directly tied to this track.",
+        "claims": [
+            {
+                "claim": "The writer described the song as...",
+                "source_type": "artist_interview",
+                "source_url": "https://example.test/interview",
+                "confidence": "high",
+            }
+        ],
+        "lyric_references": [
+            {
+                "reference": "the named character",
+                "meaning": "who or what it refers to, if sourced",
+                "source_url": "https://example.test/annotation",
+            }
+        ],
+        "source_notes": ["This is a later interview; treat as retrospective."],
+    }
+}
+```
+
+Keep durable lyric/style policy in the prompt templates. `song_context` is for
+evidence, provenance, and source-specific caveats, not per-track safety rules.
+
 ## Web app shape
 
 See `examples/python_api.py` and `examples/notebooks/` for runnable API examples.
