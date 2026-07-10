@@ -60,17 +60,21 @@ BUNDLED_TEMPLATES = {
 ARC_LENS_TEMPLATES = {
     "default": "ARC-LENS-DEFAULT.md",
     "sound": "ARC-LENS-SOUND.md",
-    "dancefloor": "ARC-LENS-DANCEFLOOR.md",
+    "dance": "ARC-LENS-DANCE.md",
     "structure": "ARC-LENS-STRUCTURE.md",
     "meaning": "ARC-LENS-MEANING.md",
     "lyrics-study": "ARC-LENS-LYRICS-STUDY.md",
     "classical": "ARC-LENS-CLASSICAL.md",
     "ritual": "ARC-LENS-RITUAL.md",
 }
+ARC_LENS_NAME_ALIASES = {
+    "dancefloor": "dance",
+}
 ARC_LENS_ALIASES = {
     "arc-default": "default",
     "arc-sound": "sound",
-    "arc-dancefloor": "dancefloor",
+    "arc-dance": "dance",
+    "arc-dancefloor": "dance",
     "arc-structure": "structure",
     "arc-meaning": "meaning",
     "arc-lyrics-study": "lyrics-study",
@@ -107,11 +111,13 @@ def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None =
     """
     if name in ARC_LENS_ALIASES:
         alias_lens = ARC_LENS_ALIASES[name]
+        lens = ARC_LENS_NAME_ALIASES.get(lens, lens)
         if lens and lens != alias_lens:
             raise ValueError(f"Template '{name}' already selects lens '{alias_lens}', got '{lens}'")
         name = "arc-family"
         lens = alias_lens
 
+    lens = ARC_LENS_NAME_ALIASES.get(lens, lens)
     if lens and lens not in ARC_LENS_TEMPLATES:
         raise ValueError(
             f"Unknown lens '{lens}'. Choose from: {', '.join(ARC_LENS_TEMPLATES)}"
@@ -158,6 +164,7 @@ def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None =
 
 def _append_lens(base: str, lens: str, docs_dir: Path | None = None) -> str:
     """Append a prompt-family lens to resolved base instructions."""
+    lens = ARC_LENS_NAME_ALIASES.get(lens, lens)
     lens_text = None
     if docs_dir:
         local = docs_dir / f"arc-lens-{lens}.md"
@@ -1177,7 +1184,7 @@ def assemble_prompt(
         mode:     "full" | "lyrics" | "context" | "blind" (default: "full")
         template: "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir: optional path to docs/ directory for local template overrides
-        lens:     optional prompt-family lens: default, sound, dancefloor, structure, meaning, lyrics-study, classical, ritual
+        lens:     optional prompt-family lens: default, sound, dance, structure, meaning, lyrics-study, classical, ritual
 
     Returns:
         Complete prompt string ready to send to a model.
@@ -1245,7 +1252,7 @@ def assemble_prompt_from_disk(
         mode:         "full" | "lyrics" | "context" | "blind" (default: "full")
         template:     "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir:     optional path to docs/ for local template overrides
-        lens:         optional prompt-family lens: default, sound, dancefloor, structure, meaning, lyrics-study, classical, ritual
+        lens:         optional prompt-family lens: default, sound, dance, structure, meaning, lyrics-study, classical, ritual
 
     Returns:
         Complete prompt string ready to send to a model.
