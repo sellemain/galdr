@@ -124,6 +124,18 @@ The assembled prompt includes source context, structural events, harmonic and me
 
 The repo also includes checked-in listening documents where measured audio evidence becomes grounded listening prose.
 
+- Modern / vocal:
+  - [Queen - Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)
+  - [Aurora - Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)
+  - [Chelsea Wolfe - 16 Psyche](https://github.com/sellemain/galdr/blob/main/docs/chelsea-wolfe-16-psyche.md)
+- Folk / ritual:
+  - [Wardruna - Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)
+  - [Heilung - Anoana](https://github.com/sellemain/galdr/blob/main/docs/heilung-heilung-anoana.md)
+- Classical / instrumental:
+  - [Philip Glass - Opening](https://github.com/sellemain/galdr/blob/main/docs/philip-glass-opening.md)
+  - [Samuel Barber - Adagio for Strings](https://github.com/sellemain/galdr/blob/main/docs/samuel-barber-adagio-for-strings.md)
+  - [Tchaikovsky - Serenade for Strings, Elegie](https://github.com/sellemain/galdr/blob/main/docs/tchaikovsky-serenade-for-strings-elegie.md)
+
 Browse published listening experiences: <https://sellemain.com/listen>.
 
 ## Reading the data correctly
