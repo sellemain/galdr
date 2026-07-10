@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Renamed the ARC prompt-family `dancefloor` lens to `dance`, while keeping `dancefloor` as a compatibility alias.
+
 ## [0.6.0] - 2026-07-10
 
 ### Added

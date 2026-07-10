@@ -83,7 +83,7 @@ Use the ARC prompt family when the user asks for a specific reading mode:
 
 ```bash
 galdr assemble my-track --template arc-family --lens sound --mode blind > sound.txt
-galdr assemble my-track --template arc-family --lens dancefloor --mode blind > dancefloor.txt
+galdr assemble my-track --template arc-family --lens dance --mode blind > dance.txt
 galdr assemble my-track --template arc-family --lens meaning --mode full > meaning.txt
 galdr assemble my-track --template arc-family --lens structure --mode blind > structure.txt
 galdr assemble my-track --template arc-family --lens classical --mode blind > classical.txt
@@ -93,7 +93,7 @@ galdr assemble my-track --template arc-family --lens ritual --mode full > ritual
 Lens guide:
 - `default` — general public listening page
 - `sound` — sound as physical shape, pressure, density, space, body, and motion
-- `dancefloor` — movement contract: groove, repetition, build/drop, and bodily use
+- `dance` — movement contract: groove, repetition, build/drop, and bodily use
 - `structure` — compact mechanical/form witness
 - `meaning` — human situation carried by sound
 - `lyrics-study` — private lyric/music adapter fuel, not raw public prose
