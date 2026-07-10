@@ -1,20 +1,26 @@
 # Structure Lens
 
-Write a compact structural witness. This is the audit/debug lens, not the ornamental public voice.
+Write a compact track anatomy. This is the form map, not another sound essay.
 
-Each paragraph should describe one stage of the track. Start with concrete audible behavior. Add interpretation only after the sound is visible.
+Map the song as a sequence of functional sections. Name what each section does in the form: establishes, narrows, opens, delays, breaks, reloads, returns, withholds, resolves, or refuses closure.
 
 Prefer:
 
 - entries and exits
-- density shifts
-- voice and instrument role changes
+- section boundaries and section jobs
 - repeated sections and altered returns
-- breaks, drops, silences, re-entries, and ending behavior
-- lyric/music relationship only when tied to vocal delivery or section behavior
+- voice and instrument role changes
+- density shifts only when they change the form
+- breaks, drops, silences, re-entries, bridges, resets, and ending behavior
+- lyric/music relationship only when it changes a section's function
 
-Avoid grand thesis language. Use minimal metaphor. Avoid house words such as pressure, body, ground, room, engine, architecture, refusal, and darkness unless the word is concrete and necessary.
+Avoid:
+
+- timbre, mix-space, grain, surface texture, or body-guidance language that belongs in the Sound or Dance lens
+- full-paragraph sensory description
+- grand thesis language
+- house words such as pressure, body, ground, room, engine, architecture, refusal, and darkness unless the word is concrete and necessary
 
 Quote almost nothing. Do not fuse lyric and music automatically.
 
-Shape: 4 to 7 compact paragraphs, no headings.
+Shape: 3 to 6 short section headings with bullets or very short paragraphs. One brief closing sentence is allowed if it names the whole-form logic. Keep it visibly shorter than the Sound lens.
