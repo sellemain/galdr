@@ -728,6 +728,8 @@ class TestAssemblePrompt:
         assert "provider-timed, manual, verified" in prompt
         assert "primary clock for lyric, vocal, verse, chorus" in prompt
         assert "Use Galdr/audio-state timestamps freely" in prompt
+        assert "integrate timestamps as natural orientation markers inside the prose" in prompt
+        assert "avoid making each paragraph begin with `0:17`, `At 0:49`, `By 1:12`" in prompt
         assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "audio-state timestamp pretend to be a lyric start" in prompt
         assert "first sustained arrival" in prompt
@@ -765,6 +767,12 @@ class TestAssemblePrompt:
         assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
         assert "not like proof of work" in prompt
         assert "lyric/music relationship" in prompt
+        assert "Write in the publication's public voice" in prompt
+        assert "continuous with the surrounding corpus" in prompt
+        assert "Do not mention prompts, agents, private memory, or internal process" in prompt
+        assert "Sellemain" not in prompt
+        assert "Elizabeth" not in prompt
+        assert "Jason" not in prompt
         assert "## Galdr Analysis" in prompt
 
     def test_arc_family_lens_implies_template_when_omitted(self):
@@ -781,8 +789,17 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Structure Lens" in prompt
         assert "compact track anatomy" in prompt
+        assert "privately reconcile every available timing surface" in prompt
+        assert "Galdr stream events and structural events" in prompt
+        assert "reliable aligned lyric or caption timings" in prompt
+        assert "collapse that evidence into the cleanest major-section map" in prompt
+        assert "do not turn every event, lyric line, or micro-change into its own section" in prompt
+        assert "Account for the whole track" in prompt
+        assert "post-solo reset, reprise, or chorus return" in prompt
+        assert "prove the frame still works" in prompt
         assert "section boundaries and section jobs" in prompt
         assert "not another sound essay" in prompt
+        assert "treating a broad middle span as one section unless the evidence says it really is one sustained formal job" in prompt
         assert "3 to 6 short section headings" in prompt
         assert "visibly shorter than the Sound lens" in prompt
 
