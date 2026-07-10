@@ -744,7 +744,11 @@ class TestAssemblePrompt:
 
         assert "ARC Prompt Family Base" in prompt
         assert "Structure Lens" in prompt
-        assert "compact structural witness" in prompt
+        assert "compact track anatomy" in prompt
+        assert "section boundaries and section jobs" in prompt
+        assert "not another sound essay" in prompt
+        assert "3 to 6 short section headings" in prompt
+        assert "visibly shorter than the Sound lens" in prompt
 
     def test_arc_family_sound_lens_renders_shape_first_instructions(self):
         analysis = {
