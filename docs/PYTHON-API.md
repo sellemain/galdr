@@ -28,6 +28,7 @@ To use the ARC prompt-family lenses:
 
 ```python
 prompt = analysis.to_prompt(template="arc-family", lens="default", mode="full")
+prompt = analysis.to_prompt(template="arc-family", lens="dancefloor", mode="blind")
 ```
 
 ## Load existing analysis
