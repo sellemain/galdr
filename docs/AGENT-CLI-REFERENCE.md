@@ -99,23 +99,17 @@ galdr assemble my-track --template arc --mode full | claude
 galdr assemble my-track --template arc --mode full | llm
 ```
 
-### compare — contrast two analyzed tracks
+### catalog — local analysis index (operator tooling)
 
 ```bash
-galdr compare <track_a_name> <track_b_name> [--analysis-dir DIR]
-```
-
-Both tracks must already be analyzed. Outputs comparison across all shared metrics.
-
-### catalog — manage the track index
-
-```bash
-galdr catalog                      # list all indexed tracks
+galdr catalog                      # list indexed tracks
 galdr catalog --track NAME         # summary card for one track
 galdr catalog --rebuild            # rebuild index from analysis files
 ```
 
 Catalog state lives at `~/.galdr/catalog_state.json`.
+
+`listen` indexes tracks here by default. Treat catalog as local operator memory, not a primary product surface.
 
 ### assemble — build a model prompt from analysis data
 

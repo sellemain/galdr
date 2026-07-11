@@ -236,7 +236,7 @@ Stream values are time-indexed listener-state samples. Read them as motion:
 - **high `surface_evidence.band_pressure` / `pressure_state: pressurized`** → low/body-band weight is present; confirm with loudness motion and body evidence before writing that the track feels pressurized
 - **high `surface_evidence.punch`** → peak snap rises above local body; confirm with loudness/body context before writing impact, because quiet attacks can be numerically punchy
 
-Events are narrative anchors derived from the stream. Macro events (`attention_arrives`, `motor_capture_arrives`, `surface_hardens`, `weight_arrives`) describe major state changes; historical `body_lock_*` event names may still appear in old artifacts and should be read as motor-capture arrival or recession. Phrase events (`phrase_lift`, `phrase_drop`, `ornamental_flash`) describe smaller local gestures inside a stable state. Events are not a checklist to recite. They are signposts for where prose should slow down and listen more closely.
+Events are narrative anchors derived from the stream. Macro events (`attention_arrives`, `motor_capture_arrives`, `surface_hardens`, `weight_arrives`) describe major state changes. Phrase events (`phrase_lift`, `phrase_drop`, `ornamental_flash`) describe smaller local gestures inside a stable state. Events are not a checklist to recite. They are signposts for where prose should slow down and listen more closely. Old artifacts still using retired event names should be reprocessed rather than dual-interpreted.
 
 The right reading order is:
 

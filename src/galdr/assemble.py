@@ -528,8 +528,6 @@ def _event_rank(event: str, btype: str = "") -> int:
     if event in {
         "motor_capture_arrives",
         "motor_capture_recedes",
-        "body_lock_arrives",
-        "body_lock_recedes",
     }:
         return 20
     if event in {"weight_arrives", "weight_lifts", "surface_hardens"}:

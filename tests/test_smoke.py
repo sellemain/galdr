@@ -47,13 +47,6 @@ def test_import_overtone():
     assert abs(hz_to_cents(220, 440) - 1200.0) < 0.1
 
 
-def test_import_compare():
-    """compare module loads and exposes compare_tracks."""
-    from galdr.compare import compare_tracks, flatten_metrics
-    assert callable(compare_tracks)
-    assert callable(flatten_metrics)
-
-
 def test_import_catalog():
     """catalog module loads and CatalogState is constructable."""
     from galdr.catalog import CatalogState

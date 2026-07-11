@@ -88,78 +88,6 @@ class TestHzToCents:
         assert a == pytest.approx(-b, abs=0.01)
 
 
-# ── flatten_metrics ──────────────────────────────────────────────────
-
-
-class TestFlattenMetrics:
-    def setup_method(self):
-        from galdr.compare import flatten_metrics
-        self.fn = flatten_metrics
-
-    def test_empty_input(self):
-        assert self.fn({}) == {}
-
-    def test_report_section_extracted(self):
-        data = {"report": {"duration_seconds": 180.0, "detected_pulse_bpm": 120.0, "beat_count": 360}}
-        result = self.fn(data)
-        assert result["duration_seconds"] == 180.0
-        assert result["detected_pulse_bpm"] == 120.0
-        assert result["beat_count"] == 360
-
-    def test_non_numeric_values_skipped(self):
-        data = {"report": {"duration_seconds": 180.0, "track": "some-track", "detected_pulse_bpm": 120.0}}
-        result = self.fn(data)
-        assert "track" not in result
-        assert "duration_seconds" in result
-
-    def test_perception_section_extracted(self):
-        data = {
-            "perception": {
-                "summary": {
-                    "mean_attention": 0.85,
-                    "mean_pattern": 0.96,
-                    "total_silence_sec": 4.2,
-                    "pattern_break_count": 3,
-                }
-            }
-        }
-        result = self.fn(data)
-        assert result["mean_attention"] == pytest.approx(0.85)
-        assert result["mean_pattern"] == pytest.approx(0.96)
-        assert result["pattern_break_count"] == 3
-
-    def test_harmony_section_extracted(self):
-        data = {
-            "harmony": {
-                "mean_harmonic_pull": 0.35,
-                "key_confidence": 0.72,
-                "mean_chroma_motion": 0.21,
-            }
-        }
-        result = self.fn(data)
-        assert result["mean_harmonic_pull"] == pytest.approx(0.35)
-        assert result["key_confidence"] == pytest.approx(0.72)
-
-    def test_all_sections_combined(self):
-        data = {
-            "report": {"duration_seconds": 200.0, "detected_pulse_bpm": 100.0},
-            "perception": {"summary": {"mean_attention": 0.8, "pattern_break_count": 2}},
-            "harmony": {"mean_harmonic_pull": 0.4},
-            "melody": {"mean_direction": 0.1},
-        }
-        result = self.fn(data)
-        assert "duration_seconds" in result
-        assert "mean_attention" in result
-        assert "mean_harmonic_pull" in result
-        assert "mean_direction" in result
-
-    def test_missing_sections_dont_crash(self):
-        # Only harmony present — others absent
-        data = {"harmony": {"mean_harmonic_pull": 0.3}}
-        result = self.fn(data)
-        assert result == {"mean_harmonic_pull": 0.3}
-
-
 # ── arc helpers ───────────────────────────────────────────────────────
 
 
@@ -196,15 +124,6 @@ def test_normalize_stream_preserves_explicit_legacy_silence_bool():
     frames = normalize_stream(stream)
 
     assert [frame.silence for frame in frames] == [1.0, 0.0]
-
-
-def test_event_rank_keeps_legacy_body_lock_as_motor_capture():
-    from galdr.assemble import _event_rank
-
-    assert _event_rank("motor_capture_arrives") == 20
-    assert _event_rank("motor_capture_recedes") == 20
-    assert _event_rank("body_lock_arrives") == 20
-    assert _event_rank("body_lock_recedes") == 20
 
 
 def test_normalize_stream_preserves_listener_state_rows():
