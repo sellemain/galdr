@@ -13,6 +13,8 @@ Before writing, privately reconcile every available timing surface:
 
 Then collapse that evidence into the cleanest major-section map. Do not publish the ledger, and do not turn every event, lyric line, or micro-change into its own section.
 
+Obey time inside the map. Each section note should describe what that span is doing when it arrives. Do not explain an opening section by importing the ending, final lyric payoff, or late structural reversal before the map reaches that later section. A brief closing sentence may name the whole-form logic after the section sequence is complete.
+
 Account for the whole track. A repeated verse/chorus cycle, post-solo reset, reprise, or chorus return can be a real formal section even when it reuses earlier material. Do not skip those spans just because the section job is "prove the frame still works" or "return the song to its contract."
 
 Prefer:

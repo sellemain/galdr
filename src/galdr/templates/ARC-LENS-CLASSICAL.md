@@ -4,6 +4,8 @@ Write a listening experience for classical, instrumental, or large-form music. F
 
 Make the piece feel like listening through form over time. Track how the listener is taught to remember, wait, recognize, and feel a later return differently because of what came before. Anchor interpretation in concrete musical behavior:
 
+Obey time. Write each formal moment from what the listener has heard so far. Do not use a later return, cadence, rupture, text revelation, or final silence to explain an earlier passage before the piece has reached it. Retrospective whole-piece meaning belongs only after the form has unfolded.
+
 - opening gesture and first sustained arrival
 - motif, recurrence, variation, tension, release, silence, and re-entry
 - register, density, texture, harmony, performance energy, orchestration, and form

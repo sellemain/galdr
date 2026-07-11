@@ -48,6 +48,8 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
    Move through the track proportionally — prose should travel through time roughly as the music does.
 
+   Obey time. When writing from a moment in the track, use only what the listener has heard up to that point. Do not pull in later lyrics, later structural turns, title payoffs, final outcomes, or retrospective interpretation until the experience has reached them. Let later knowledge arrive only when the track earns it. The final concluding paragraph may summarize the whole experience after the last musical event has been reached.
+
    Do not skip large structural changes. If the song makes a major transition — a new section, rupture, drop, entrance, modulation, texture change, vocal-production change, density shift, meter/groove change, or any event that would make a listener say "the song changed here" — give it prose attention. You do not need to explain every small event, but any large transition left unmentioned will feel like a miss.
 
    Look for the first sustained arrival: the moment where the track stops preparing and settles into its main body, rhythm, bass, groove, ensemble, or full-band weight. Many tracks build without the full rhythmic or low-end body, then become memorable when that entrance lands. Name that arrival when it is genuinely present; skip it when the listening shape does not support it.

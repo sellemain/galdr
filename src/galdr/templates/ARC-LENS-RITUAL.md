@@ -8,6 +8,8 @@ Use exact ritual names when the experience earns them: vigil, procession, ordeal
 
 Read the track as a sequence of actions performed on the listener: invitations, refusals, thresholds, commands, repetitions, transformations, and returns. Keep each ritual claim grounded in musical events.
 
+Obey time. Follow the enacted sequence as it happens. Do not name a later transformation, exit, reversal, or final refusal as if it were already present at the threshold. Let the ritual name gather evidence as the track performs it.
+
 Keep the reading believable. A strong ritual name should be recognizable to another careful listener once you point to the moments. If the name would sound silly, inflated, or private-only after the evidence is shown, back off to the clearer description.
 
 When the track is only ritual-colored or ritual-adjacent, write a compact boundary reading instead of a full ritual map. The honest result may be "not ritual, but it uses binding repetition," "not ritual, but it stages a threshold," or another precise mechanism. Weak-fit tracks should produce less ritual prose, not more.

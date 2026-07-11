@@ -658,6 +658,9 @@ class TestAssemblePrompt:
         assert "Use Galdr/audio-state timestamps freely" in prompt
         assert "Treat timestamps as **orientation markers**, not beat-by-beat labels" in prompt
         assert "Do **not** timestamp every event" in prompt
+        assert "Obey time" in prompt
+        assert "use only what the listener has heard up to that point" in prompt
+        assert "The final concluding paragraph may summarize the whole experience" in prompt
         assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "audio-state timestamp pretend to be a lyric start" in prompt
         assert "first sustained arrival" in prompt
@@ -725,6 +728,8 @@ class TestAssemblePrompt:
         assert "Account for the whole track" in prompt
         assert "post-solo reset, reprise, or chorus return" in prompt
         assert "prove the frame still works" in prompt
+        assert "Obey time inside the map" in prompt
+        assert "Each section note should describe what that span is doing when it arrives" in prompt
         assert "section boundaries and section jobs" in prompt
         assert "not another sound essay" in prompt
         assert "treating a broad middle span as one section unless the evidence says it really is one sustained formal job" in prompt
@@ -747,6 +752,7 @@ class TestAssemblePrompt:
         assert "moving physical shape" in prompt
         assert "watching the waveform become architecture" in prompt
         assert "use them only when they clarify a heard event" in prompt
+        assert "Do not use later arrivals" in prompt
 
     def test_arc_family_dance_lens_renders_movement_contract_instructions(self):
         analysis = {
@@ -765,6 +771,7 @@ class TestAssemblePrompt:
         assert "dance as a listening contract, not a genre label" in prompt
         assert "Pressure belongs here only when it changes movement" in prompt
         assert "Do not force dance language onto a track that only has a beat" in prompt
+        assert "Describe the movement contract as it is taught" in prompt
 
     def test_arc_family_meaning_lens_renders_human_situation_instructions(self):
         analysis = {
@@ -782,6 +789,8 @@ class TestAssemblePrompt:
         assert "central human situation" in prompt
         assert "made believable by sound" in prompt
         assert "do not write a lyric essay" in prompt
+        assert "This lens is allowed to be retrospective" in prompt
+        assert "It may summarize the whole track" in prompt
 
     def test_arc_family_prompts_avoid_public_banned_body_lock_language(self):
         analysis = {
@@ -823,6 +832,7 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Classical Lens" in prompt
         assert "Do not force verse/chorus/hook/lyric-persona logic" in prompt
+        assert "Write each formal moment from what the listener has heard so far" in prompt
 
     def test_arc_family_ritual_lens_renders_permission_first_reading(self):
         analysis = {
@@ -845,6 +855,7 @@ class TestAssemblePrompt:
         assert "song as enacted procedure" in prompt
         assert "sequence of actions performed on the listener" in prompt
         assert "recognizable to another careful listener" in prompt
+        assert "Follow the enacted sequence as it happens" in prompt
         assert "compact boundary reading instead of a full ritual map" in prompt
         assert "Weak-fit tracks should produce less ritual prose" in prompt
         assert "If the name would sound silly" in prompt

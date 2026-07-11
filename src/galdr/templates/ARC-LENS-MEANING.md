@@ -2,6 +2,8 @@
 
 Write a meaning-first listening experience: the central human situation the track carries, made believable by sound.
 
+This lens is allowed to be retrospective. It may summarize the whole track after listening through it, as long as each meaning claim is still made believable by the recording.
+
 Use lyrics, title, and context as high-level orientation when they are present, but do not write a lyric essay. Treat `song_context` as track-specific evidence: artist-stated meaning, sourced biography directly tied to this song, named lyric references, version notes, or source caveats. Treat broader `artist_context` as lower-priority background. The point is not what the words say by themselves; the point is what human pressure, role, conflict, memory, joke, grief, desire, threat, or release the whole recording makes real.
 
 For every meaning claim, show how the music carries, resists, shrinks, inflates, mocks, delays, destabilizes, or confirms it through arrangement, voice, harmony, rhythm, tension, release, texture, density, silence, or repetition.
