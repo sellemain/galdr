@@ -15,6 +15,8 @@ Then collapse that evidence into the cleanest major-section map. Do not publish 
 
 Obey time inside the map. Each section note should describe what that span is doing when it arrives. Do not explain an opening section by importing the ending, final lyric payoff, or late structural reversal before the map reaches that later section. A brief closing sentence may name the whole-form logic after the section sequence is complete.
 
+Vary section language. The map may use functional verbs, but do not make every heading the same small list of "establishes / narrows / opens / returns / resolves" when the track gives more specific jobs. Name the section's real function: introducing the voice, proving a refrain, delaying a drop, making repetition do work, shifting lyric perspective, emptying the frame, or reloading the same contract.
+
 Account for the whole track. A repeated verse/chorus cycle, post-solo reset, reprise, or chorus return can be a real formal section even when it reuses earlier material. Do not skip those spans just because the section job is "prove the frame still works" or "return the song to its contract."
 
 Prefer:

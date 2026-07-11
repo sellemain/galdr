@@ -16,6 +16,14 @@ Before writing, privately build a simple event ledger:
 
 Use that ledger as the floor. Interpretation may rise from the evidence, but it must not arrive before the audible behavior that earns it.
 
+## Prose Shape
+
+Time order is not an outline format. Let the page walk through the track, but do not make every paragraph follow the same syntactic machine: timestamp first, event label second, abstract consequence third. Repeated starts such as "At...", "Around...", "By...", "Past...", "From there...", "In the final stretch...", or "The track..." make different songs read like the same document.
+
+Begin paragraphs from different kinds of concrete evidence when the music supports it: a voice entering, a low line changing function, a guitar edge, drum behavior, synth color, string motion, room tone, silence, a lyric image, a density change, a harmonic turn, a repeated phrase, or an instrument role. Use timestamps as anchors inside that prose, not as paragraph templates.
+
+Avoid replacing the sound with house nouns. Shared words like body, pulse, grid, pressure, weight, hold, release, room, surface, and frame are allowed when exact, but they should not carry three paragraphs in a row. If the same abstract term starts repeating, name the audible cause instead.
+
 ## Sound Translation Test
 
 Every important interpretive claim must translate back into at least one audible cause:
@@ -56,6 +64,7 @@ Unless the selected lens explicitly says otherwise:
 - paraphrase lyric situation when exact wording is not needed
 - use timestamps only for major landmarks and only when they help the listener orient
 - integrate timestamps as natural orientation markers inside the prose; avoid making each paragraph begin with `0:17`, `At 0:49`, `By 1:12`, or another timestamp-first cadence
+- vary paragraph openings and sentence shapes so time order does not become a reusable layout across songs
 - prefer section language when exact timing is not needed
 - do not quote raw metrics or numeric model values
 - do not mention prompt, model, packet, provider, source mechanics, captions, transcripts, or the task
