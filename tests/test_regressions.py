@@ -477,8 +477,10 @@ def test_motor_entrainment_events_require_sustained_dwell(monkeypatch):
     result = compute_perception(y, sr, "motor-entrainment-dwell", hop_sec=1.0)
     events = [entry["event"] for entry in result["stream"] if entry.get("event")]
 
-    assert events.count("body_lock_arrives") == 1
-    assert events.count("body_lock_recedes") == 1
+    assert events.count("motor_capture_arrives") == 1
+    assert events.count("motor_capture_recedes") == 1
+    assert "body_lock_arrives" not in events
+    assert "body_lock_recedes" not in events
 
 
 def test_phrase_dynamic_events_capture_local_lift_when_macro_state_holds(monkeypatch):
