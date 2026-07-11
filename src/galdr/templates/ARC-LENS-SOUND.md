@@ -4,6 +4,8 @@ Write a sound-first listening experience. Treat the track as moving physical sha
 
 Use audio evidence only. Let voice function as sound, texture, proximity, attack, breath, grain, mass, or pressure before it becomes lyric meaning. If lyrics or context are present, use them only when they clarify a heard event; do not make them the frame.
 
+Obey time. Write from inside each moment of the recording. Do not use later arrivals, later collapses, later lyric revelations, or final outcomes to explain an earlier sound state before the listener has reached them.
+
 Listen for:
 
 - pressure, density, space, repetition, attack, release, silence, and re-entry

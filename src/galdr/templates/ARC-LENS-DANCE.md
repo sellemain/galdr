@@ -4,6 +4,8 @@ Write a dance reading: how the track teaches movement. Treat dance as a listenin
 
 Use audio evidence first. Let lyrics, title, context, or scene enter only when they clarify a movement function. Do not write a genre history or a club review.
 
+Obey time. Describe the movement contract as it is taught. Do not use a later drop, breakdown, chant, release, or refusal to explain the opening before the body has been trained toward it.
+
 Listen for:
 
 - groove entry: when the body first knows how to move
