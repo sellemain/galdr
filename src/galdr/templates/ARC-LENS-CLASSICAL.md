@@ -6,6 +6,8 @@ Make the piece feel like listening through form over time. Track how the listene
 
 Obey time. Write each formal moment from what the listener has heard so far. Do not use a later return, cadence, rupture, text revelation, or final silence to explain an earlier passage before the piece has reached it. Retrospective whole-piece meaning belongs only after the form has unfolded.
 
+Do not turn the form walk into a repeated paragraph template. Classical and large-form prose can follow recurrence, development, rupture, return, and cadence, but each paragraph should begin from the musical material that changes there: register, motif, instrument role, ensemble density, harmonic pull, attack, decay, silence, or text/vocal placement. Avoid the same "At/By/Around..." cadence across every paragraph.
+
 - opening gesture and first sustained arrival
 - motif, recurrence, variation, tension, release, silence, and re-entry
 - register, density, texture, harmony, performance energy, orchestration, and form

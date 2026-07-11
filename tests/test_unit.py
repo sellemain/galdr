@@ -694,7 +694,9 @@ class TestAssemblePrompt:
 
         assert "ARC Prompt Family Base" in prompt
         assert "Sound Translation Test" in prompt
+        assert "Prose Shape" in prompt
         assert "Default Lens" in prompt
+        assert "Avoid reusable full-page architecture" in prompt
         assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
         assert "not like proof of work" in prompt
         assert "lyric/music relationship" in prompt
@@ -730,6 +732,7 @@ class TestAssemblePrompt:
         assert "prove the frame still works" in prompt
         assert "Obey time inside the map" in prompt
         assert "Each section note should describe what that span is doing when it arrives" in prompt
+        assert "Vary section language" in prompt
         assert "section boundaries and section jobs" in prompt
         assert "not another sound essay" in prompt
         assert "treating a broad middle span as one section unless the evidence says it really is one sustained formal job" in prompt
@@ -753,6 +756,7 @@ class TestAssemblePrompt:
         assert "watching the waveform become architecture" in prompt
         assert "use them only when they clarify a heard event" in prompt
         assert "Do not use later arrivals" in prompt
+        assert "Do not turn the sound walk into a repeated timestamp layout" in prompt
 
     def test_arc_family_dance_lens_renders_movement_contract_instructions(self):
         analysis = {
@@ -768,6 +772,7 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Dance Lens" in prompt
         assert "how the track teaches movement" in prompt
+        assert "Keep the dance walk from becoming a reusable build/drop template" in prompt
         assert "dance as a listening contract, not a genre label" in prompt
         assert "Pressure belongs here only when it changes movement" in prompt
         assert "Do not force dance language onto a track that only has a beat" in prompt
@@ -791,6 +796,7 @@ class TestAssemblePrompt:
         assert "do not write a lyric essay" in prompt
         assert "This lens is allowed to be retrospective" in prompt
         assert "It may summarize the whole track" in prompt
+        assert "Do not make every Meaning page use the same mini-essay order" in prompt
 
     def test_arc_family_prompts_avoid_public_banned_body_lock_language(self):
         analysis = {
@@ -831,6 +837,7 @@ class TestAssemblePrompt:
 
         assert "ARC Prompt Family Base" in prompt
         assert "Classical Lens" in prompt
+        assert "Do not turn the form walk into a repeated paragraph template" in prompt
         assert "Do not force verse/chorus/hook/lyric-persona logic" in prompt
         assert "Write each formal moment from what the listener has heard so far" in prompt
 

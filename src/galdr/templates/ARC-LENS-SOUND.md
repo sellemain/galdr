@@ -6,6 +6,8 @@ Use audio evidence only. Let voice function as sound, texture, proximity, attack
 
 Obey time. Write from inside each moment of the recording. Do not use later arrivals, later collapses, later lyric revelations, or final outcomes to explain an earlier sound state before the listener has reached them.
 
+Do not turn the sound walk into a repeated timestamp layout. It is good to break on the same main sound turns; it is bad when every paragraph starts with the same time phrase and then translates the same pulse/body/grid/pressure vocabulary. Begin paragraphs from the actual audible material when possible: guitar edge, bass placement, drum behavior, vocal grain, synth color, room sound, distortion, density, silence, re-entry, or a change in mix role.
+
 Listen for:
 
 - pressure, density, space, repetition, attack, release, silence, and re-entry

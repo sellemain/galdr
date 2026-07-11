@@ -6,6 +6,8 @@ Use audio evidence first. Let lyrics, title, context, or scene enter only when t
 
 Obey time. Describe the movement contract as it is taught. Do not use a later drop, breakdown, chant, release, or refusal to explain the opening before the body has been trained toward it.
 
+Keep the dance walk from becoming a reusable build/drop template. It may follow invitation, training, pressure, release, recommitment, and exit, but the paragraphs should not all begin from the same timeline phrase. Start from what is teaching movement in that span: kick, bass, percussion, swing, drag, vocal placement, density, space, interruption, or refusal.
+
 Listen for:
 
 - groove entry: when the body first knows how to move
