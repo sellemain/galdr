@@ -198,6 +198,15 @@ def test_normalize_stream_preserves_explicit_legacy_silence_bool():
     assert [frame.silence for frame in frames] == [1.0, 0.0]
 
 
+def test_event_rank_keeps_legacy_body_lock_as_motor_capture():
+    from galdr.assemble import _event_rank
+
+    assert _event_rank("motor_capture_arrives") == 20
+    assert _event_rank("motor_capture_recedes") == 20
+    assert _event_rank("body_lock_arrives") == 20
+    assert _event_rank("body_lock_recedes") == 20
+
+
 def test_normalize_stream_preserves_listener_state_rows():
     stream = [
         {
@@ -728,8 +737,8 @@ class TestAssemblePrompt:
         assert "provider-timed, manual, verified" in prompt
         assert "primary clock for lyric, vocal, verse, chorus" in prompt
         assert "Use Galdr/audio-state timestamps freely" in prompt
-        assert "integrate timestamps as natural orientation markers inside the prose" in prompt
-        assert "avoid making each paragraph begin with `0:17`, `At 0:49`, `By 1:12`" in prompt
+        assert "Treat timestamps as **orientation markers**, not beat-by-beat labels" in prompt
+        assert "Do **not** timestamp every event" in prompt
         assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "audio-state timestamp pretend to be a lyric start" in prompt
         assert "first sustained arrival" in prompt

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Renamed newly emitted stream events from `body_lock_arrives` / `body_lock_recedes` to `motor_capture_arrives` / `motor_capture_recedes`; old event labels are still understood when assembling legacy artifacts.
 - Renamed the ARC prompt-family `dancefloor` lens to `dance` and removed the old `dancefloor` / `arc-dancefloor` aliases from post-0.6 main.
 
 ## [0.6.0] - 2026-07-10

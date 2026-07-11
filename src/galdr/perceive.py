@@ -37,7 +37,7 @@ from .constants import (
     HP_BALANCE_MIN_ENERGY, HP_SMOOTH_SEC,
     EVENT_ATTENTION_LOCKED, EVENT_ATTENTION_LOCK_RESET,
     EVENT_ATTENTION_FLOATING, EVENT_ATTENTION_FLOAT_RESET, EVENT_ATTENTION_MIN_GAP_SEC,
-    EVENT_BODY_LOCK_DWELL_SEC, EVENT_BODY_UNLOCK_DWELL_SEC,
+    EVENT_MOTOR_CAPTURE_DWELL_SEC, EVENT_MOTOR_RELEASE_DWELL_SEC,
     EVENT_DISRUPTION_BREAK, EVENT_PRESSURE_BUILDING, EVENT_PRESSURE_RELEASING,
     EVENT_PRESSURE_BUILD_RESET, EVENT_PRESSURE_RELEASE_RESET, EVENT_PRESSURE_MIN_GAP_SEC,
     EVENT_WDS_SLOPE_WINDOW_SEC, EVENT_WDS_MIN_DELTA, EVENT_WDS_SILENCE_LUFS_CEILING,
@@ -1106,9 +1106,9 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
     attention_ready_to_grip = True
     attention_ready_to_release = False
     last_attention_event_t = -float("inf")
-    body_lock_active = False
-    body_lock_since = None
-    body_unlock_since = None
+    motor_capture_active = False
+    motor_capture_since = None
+    motor_release_since = None
     last_macro_event_t = -float("inf")
     last_phrase_event_t = -float("inf")
     expectation_debt = 0.0
@@ -1192,26 +1192,26 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
                     entry["reentry_force"] = reentry["reentry_force"]
                 break
 
-        body_is_locked = local_body_state in {"emerging", "locked"}
-        body_is_unlocked = local_body_state in {"absent", "weak"}
-        if body_is_locked:
-            if body_lock_since is None:
-                body_lock_since = float(t)
-            body_unlock_since = None
-        elif body_is_unlocked:
-            if body_unlock_since is None:
-                body_unlock_since = float(t)
-            body_lock_since = None
+        body_is_captured = local_body_state in {"emerging", "locked"}
+        body_is_released = local_body_state in {"absent", "weak"}
+        if body_is_captured:
+            if motor_capture_since is None:
+                motor_capture_since = float(t)
+            motor_release_since = None
+        elif body_is_released:
+            if motor_release_since is None:
+                motor_release_since = float(t)
+            motor_capture_since = None
 
-        body_lock_arrives = (
-            not body_lock_active
-            and body_lock_since is not None
-            and float(t) - body_lock_since >= EVENT_BODY_LOCK_DWELL_SEC
+        motor_capture_arrives = (
+            not motor_capture_active
+            and motor_capture_since is not None
+            and float(t) - motor_capture_since >= EVENT_MOTOR_CAPTURE_DWELL_SEC
         )
-        body_lock_recedes = (
-            body_lock_active
-            and body_unlock_since is not None
-            and float(t) - body_unlock_since >= EVENT_BODY_UNLOCK_DWELL_SEC
+        motor_capture_recedes = (
+            motor_capture_active
+            and motor_release_since is not None
+            and float(t) - motor_release_since >= EVENT_MOTOR_RELEASE_DWELL_SEC
         )
 
         # Narrative flags (for experience write-ups).  Surface-transform events
@@ -1221,18 +1221,18 @@ def compute_perception(y: np.ndarray, sr: int, track_name: str, hop_sec: float =
             _mark_event(entry, "surface_hardens", "surface hardens while the body current holds")
             last_surface_event_t = float(t)
             last_macro_event_t = float(t)
-        elif body_lock_arrives:
+        elif motor_capture_arrives:
             note = (
                 "body finds the pulse under weight"
                 if local_weight_state in {"suspended", "heavy"}
                 else "body finds the pulse"
             )
-            _mark_event(entry, "body_lock_arrives", note)
-            body_lock_active = True
+            _mark_event(entry, "motor_capture_arrives", note)
+            motor_capture_active = True
             last_macro_event_t = float(t)
-        elif body_lock_recedes:
-            _mark_event(entry, "body_lock_recedes", "bodily hold loosens")
-            body_lock_active = False
+        elif motor_capture_recedes:
+            _mark_event(entry, "motor_capture_recedes", "bodily hold loosens")
+            motor_capture_active = False
             last_macro_event_t = float(t)
         elif (
             local_weight_state in {"present", "suspended", "heavy"}
