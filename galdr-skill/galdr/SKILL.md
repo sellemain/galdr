@@ -1,6 +1,6 @@
 ---
 name: galdr
-description: OpenClaw skill for using galdr's ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, surface balance/evidence, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, compare tracks, or extract video frames from a music video.
+description: OpenClaw skill for using galdr's ARC workflow to turn YouTube URLs or local audio files into grounded, time-ordered listening-experience prompts backed by listener-state traces: pattern, attention, pulse, heard pressure, surface balance/evidence, harmony, melody, overtones, and silence/re-entry structure. Use when asked to analyze a song, explain what makes a track work structurally, generate a listening experience, or extract video frames from a music video.
 version: "0.6.0"
 author: Sellemain
 license: MIT
@@ -55,7 +55,6 @@ Use galdr when the user asks to:
 - analyze a song or music video
 - describe what makes a track work structurally
 - generate a grounded listening experience
-- compare two tracks
 - extract frames around structural moments in a music video
 - create an evidence packet for another model to write from
 
@@ -68,7 +67,7 @@ Do not use galdr for:
 
 ## OpenClaw agent contract
 
-Prefer the ARC path unless the user explicitly asks for raw metrics, comparison, debugging, or agent-internal traces.
+Prefer the ARC path unless the user explicitly asks for raw metrics, debugging, or agent-internal traces.
 
 Default sequence:
 1. Fetch or listen to the track.
@@ -246,12 +245,11 @@ When writing experience prose yourself from galdr evidence, prefer `galdr assemb
 ## Other commands
 
 ```bash
-galdr compare track-a track-b          # side-by-side structural comparison
 galdr frames slug                      # extract + describe video frames at structural moments
 galdr fetch "url" --no-download        # context only (Wikipedia + lyrics), no audio
 galdr fetch "url" --censor             # sanitize explicit lyrics before saving
 galdr doctor                           # inspect yt-dlp/media runtime health
 galdr update-deps                      # upgrade yt-dlp reliability extras
-galdr catalog                          # list all indexed tracks
+galdr catalog                          # local analysis index (operator tooling)
 galdr catalog --track NAME             # summary card for one track
 ```

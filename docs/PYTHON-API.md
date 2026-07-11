@@ -121,8 +121,7 @@ See `examples/python_api.py` and `examples/notebooks/` for runnable API examples
 Starter notebooks live in `examples/notebooks/`:
 
 - `first-listen.ipynb`
-- `compare-two-tracks.ipynb`
 - `catalog-exploration.ipynb`
 
 They are intentionally small. They show the shape without pretending to be a
-full product.
+full product. Catalog exploration is local index tooling, not the main ARC product path.

@@ -14,7 +14,7 @@ This is what comes back:
 
 That's the first use. Give galdr a track. Give an AI the output. Get that back.
 
-The second use is deeper: return to a track with a specific question. Focus on the chords. Focus on the silence structure. Focus on how two pieces compare. The data supports it.
+The second use is deeper: return to a track with a specific question. Focus on the chords. Focus on the silence structure. Focus on motor capture or surface balance. The data supports it.
 
 ---
 
@@ -191,18 +191,14 @@ galdr listen track.wav --name my-track --only report,harmony
 
 Pick a question — *why does this feel unresolved?* or *what is the chord doing at 2:30?* — and follow it into the data.
 
-**Build a catalog.** Analyze ten tracks and patterns emerge that single-track analysis can't surface:
+**Revisit with a specific question.** Ask about silence structure, motor capture, surface balance, or section resets, then reassemble with a focused lens:
 
 ```bash
-galdr catalog                        # list all indexed tracks
-galdr catalog --track my-track       # how this track compares to everything else
+galdr assemble my-track --template arc-family --lens structure
+galdr assemble my-track --template arc-family --lens dance
 ```
 
-**Compare two tracks directly:**
-
-```bash
-galdr compare track-a track-b
-```
+Local indexing still happens during `listen` so later operator tooling can list analyzed tracks, but the main product loop is one track at a time: fetch → listen → assemble/packet.
 
 ---
 

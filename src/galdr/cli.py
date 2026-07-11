@@ -3,7 +3,6 @@
 
 Usage:
     galdr listen <audio_file> [--name NAME] [--analysis-dir DIR] [--skip MODULES] [--only MODULES] [--no-catalog] [--catalog-dir DIR]
-    galdr compare <track_a> <track_b> [--analysis-dir DIR]
     galdr catalog [--catalog-dir DIR] [--analysis-dir DIR] [--rebuild] [--track NAME]
 """
 
@@ -346,12 +345,6 @@ def cmd_cache(args):
     else:
         state = artifact_state(_validate_slug(args.slug), args.analysis_dir)
     print(json.dumps(state, indent=2))
-
-
-def cmd_compare(args):
-    """Compare two tracks."""
-    from .compare import compare_tracks
-    compare_tracks(args.track_a, args.track_b, args.analysis_dir)
 
 
 def cmd_fetch(args):
@@ -888,12 +881,6 @@ Examples:
     frames_parser.add_argument("--dry-run", action="store_true",
                                 help="Show frame plan without extracting frames")
 
-    # compare
-    compare_parser = subparsers.add_parser("compare", help="Compare two tracks")
-    compare_parser.add_argument("track_a", help="First track name")
-    compare_parser.add_argument("track_b", help="Second track name")
-    compare_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory")
-
     # update-deps
     subparsers.add_parser(
         "update-deps",
@@ -907,7 +894,7 @@ Examples:
     )
 
     # catalog
-    catalog_parser = subparsers.add_parser("catalog", help="View catalog state")
+    catalog_parser = subparsers.add_parser("catalog", help="Local analysis index (operator tooling)")
     catalog_parser.add_argument("--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)")
     catalog_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory")
     catalog_parser.add_argument("--rebuild", action="store_true", help="Rebuild from analysis files")
@@ -927,8 +914,6 @@ Examples:
         cmd_packet(args)
     elif args.command == "frames":
         cmd_frames(args)
-    elif args.command == "compare":
-        cmd_compare(args)
     elif args.command == "catalog":
         cmd_catalog(args)
     elif args.command == "update-deps":

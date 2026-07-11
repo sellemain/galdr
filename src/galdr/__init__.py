@@ -38,7 +38,6 @@ from .perceive import generate_perception_stream, compute_attention, compute_per
 from .harmony import analyze_harmony, detect_key_kk
 from .melody import analyze_melody
 from .overtone import analyze_overtones
-from .compare import compare_tracks
 from .catalog import CatalogState
 
 # ─── Visual frame extraction ──────────────────────────────────────────────────
@@ -77,7 +76,6 @@ __all__ = [
     "detect_key_kk",
     "analyze_melody",
     "analyze_overtones",
-    "compare_tracks",
     "CatalogState",
     # Frame extraction
     "extract_visual_moments",
