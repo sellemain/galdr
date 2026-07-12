@@ -3116,6 +3116,144 @@ def test_youtube_music_timed_lyrics_normalizes_provider_lines(monkeypatch):
     ]
 
 
+def test_youtube_music_timed_lyrics_recovers_raw_rows_after_cuerange_error(monkeypatch):
+    from galdr import youtube_music
+
+    class MobileContext:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    class FakeYTMusic:
+        def get_watch_playlist(self, videoId):
+            assert videoId == "DO0yaw3Wj1A"
+            return {"lyrics": "MPLYt_demo"}
+
+        def get_lyrics(self, browse_id, timestamps=False):
+            assert browse_id == "MPLYt_demo"
+            assert timestamps is True
+            raise KeyError("cueRange")
+
+        def as_mobile(self):
+            return MobileContext()
+
+        def _send_request(self, endpoint, payload):
+            assert endpoint == "browse"
+            assert payload == {"browseId": "MPLYt_demo"}
+            return {
+                "contents": {
+                    "elementRenderer": {
+                        "newElement": {
+                            "type": {
+                                "componentType": {
+                                    "model": {
+                                        "timedLyricsModel": {
+                                            "lyricsData": {
+                                                "timedLyricsData": [
+                                                    {
+                                                        "lyricLine": "♪",
+                                                        "cueRange": {
+                                                            "startTimeMilliseconds": "0",
+                                                            "endTimeMilliseconds": "1000",
+                                                            "metadata": {"id": "0"},
+                                                        },
+                                                    },
+                                                    {
+                                                        "lyricLine": "Timed words",
+                                                        "cueRange": {
+                                                            "startTimeMilliseconds": "10650",
+                                                            "endTimeMilliseconds": "15100",
+                                                            "metadata": {"id": "1"},
+                                                        },
+                                                    },
+                                                ],
+                                                "sourceMessage": "Source: LyricFind",
+                                            },
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+
+    result = youtube_music.fetch_youtube_music_timed_lyrics("DO0yaw3Wj1A")
+
+    assert result["found"] is True
+    assert result["provider_source"] == "Source: LyricFind"
+    assert result["line_count"] == 1
+    assert result["timed_lines"][0]["text"] == "Timed words"
+    assert result["timed_lines"][0]["start"] == 10.65
+    assert result["timed_lines"][0]["end"] == 15.1
+
+
+def test_youtube_music_timed_lyrics_marks_cuerange_less_rows_as_untimed(monkeypatch):
+    from galdr import youtube_music
+
+    class MobileContext:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    class FakeYTMusic:
+        def get_watch_playlist(self, videoId):
+            assert videoId == "Tn7wvu8R4Wk"
+            return {"lyrics": "MPLYt_demo"}
+
+        def get_lyrics(self, browse_id, timestamps=False):
+            assert browse_id == "MPLYt_demo"
+            assert timestamps is True
+            raise KeyError("cueRange")
+
+        def as_mobile(self):
+            return MobileContext()
+
+        def _send_request(self, endpoint, payload):
+            assert endpoint == "browse"
+            assert payload == {"browseId": "MPLYt_demo"}
+            return {
+                "contents": {
+                    "elementRenderer": {
+                        "newElement": {
+                            "type": {
+                                "componentType": {
+                                    "model": {
+                                        "timedLyricsModel": {
+                                            "lyricsData": {
+                                                "timedLyricsData": [
+                                                    {"lyricLine": "La nuit comme une toile"},
+                                                    {"lyricLine": "Suspendue s'effondre"},
+                                                ],
+                                                "sourceMessage": "Source: LyricFind",
+                                            },
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+
+    result = youtube_music.fetch_youtube_music_timed_lyrics("Tn7wvu8R4Wk")
+
+    assert result["found"] is False
+    assert result["reason"] == "YouTube Music lyrics are not timed"
+    assert result["lyrics_available"] is True
+    assert result["untimed_line_count"] == 2
+    assert result["provider_source"] == "Source: LyricFind"
+    assert result["error"] == "KeyError: 'cueRange'"
+
+
 def test_youtube_music_timed_lyrics_fails_soft_on_provider_error(monkeypatch):
     from galdr import youtube_music
 
