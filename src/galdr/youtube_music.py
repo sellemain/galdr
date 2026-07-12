@@ -11,8 +11,12 @@ from .captions import fmt_ts
 
 try:  # pragma: no cover - exercised through monkeypatchable module global.
     from ytmusicapi import YTMusic
+    from ytmusicapi.mixins.browsing import TIMESTAMPED_LYRICS
+    from ytmusicapi.navigation import nav
 except Exception:  # pragma: no cover
     YTMusic = None
+    TIMESTAMPED_LYRICS = None
+    nav = None
 
 
 def extract_youtube_video_id(url: str | None) -> str | None:
@@ -70,6 +74,67 @@ def _normalize_timed_lines(lines: list) -> list[dict]:
     return normalized
 
 
+def _normalize_raw_timed_rows(rows: list) -> tuple[list[dict], int]:
+    normalized: list[dict] = []
+    lyric_row_count = 0
+    for idx, row in enumerate(rows):
+        if not isinstance(row, dict):
+            continue
+        text = str(row.get("lyricLine") or row.get("text") or "").strip()
+        if text and text not in {"♪", "♫"}:
+            lyric_row_count += 1
+        if not text or text in {"♪", "♫"}:
+            continue
+        cue_range = row.get("cueRange")
+        if not isinstance(cue_range, dict):
+            continue
+        start_ms = cue_range.get("startTimeMilliseconds")
+        if start_ms is None:
+            continue
+        try:
+            start = round(float(start_ms) / 1000.0, 2)
+            end_ms = cue_range.get("endTimeMilliseconds")
+            end = round(float(end_ms) / 1000.0, 2) if end_ms is not None else None
+        except (TypeError, ValueError):
+            continue
+        metadata = cue_range.get("metadata") if isinstance(cue_range.get("metadata"), dict) else {}
+        normalized.append(
+            {
+                "start": start,
+                "end": end,
+                "ts": fmt_ts(start),
+                "text": text,
+                "source": "youtube-music-timed-lyrics",
+                "confidence": "provider-timed",
+                "line_id": metadata.get("id", idx),
+            }
+        )
+    return normalized, lyric_row_count
+
+
+def _raw_timed_lyrics_payload(ytmusic, browse_id: str) -> dict | None:
+    if nav is None or TIMESTAMPED_LYRICS is None:
+        return None
+    with ytmusic.as_mobile():
+        response = ytmusic._send_request("browse", {"browseId": browse_id})
+    data = nav(response, TIMESTAMPED_LYRICS, True)
+    return data if isinstance(data, dict) else None
+
+
+def _timed_result(video_id: str, browse_id: str, provider_source: str | None, timed_lines: list[dict]) -> dict:
+    return {
+        "found": True,
+        "source": "youtube-music-timed-lyrics",
+        "provider": "youtube-music",
+        "provider_source": provider_source,
+        "lyrics_browse_id": browse_id,
+        "video_id": video_id,
+        "has_timestamps": True,
+        "line_count": len(timed_lines),
+        "timed_lines": timed_lines,
+    }
+
+
 def fetch_youtube_music_timed_lyrics(video_id: str) -> dict:
     """Fetch normalized timed lyrics for a YouTube video id.
 
@@ -85,7 +150,26 @@ def fetch_youtube_music_timed_lyrics(video_id: str) -> dict:
         browse_id = watch.get("lyrics") if isinstance(watch, dict) else None
         if not browse_id:
             return {"found": False, "reason": "no YouTube Music lyrics browse id"}
-        lyrics = ytmusic.get_lyrics(browse_id, timestamps=True)
+        try:
+            lyrics = ytmusic.get_lyrics(browse_id, timestamps=True)
+        except KeyError as exc:
+            if exc.args != ("cueRange",):
+                raise
+            data = _raw_timed_lyrics_payload(ytmusic, browse_id)
+            rows = data.get("timedLyricsData") if isinstance(data, dict) else []
+            timed_lines, lyric_row_count = _normalize_raw_timed_rows(rows or [])
+            if timed_lines:
+                return _timed_result(video_id, browse_id, data.get("sourceMessage"), timed_lines)
+            return {
+                "found": False,
+                "reason": "YouTube Music lyrics are not timed",
+                "lyrics_available": lyric_row_count > 0,
+                "untimed_line_count": lyric_row_count,
+                "provider_source": data.get("sourceMessage") if isinstance(data, dict) else None,
+                "lyrics_browse_id": browse_id,
+                "video_id": video_id,
+                "error": "KeyError: 'cueRange'",
+            }
         if not lyrics or not isinstance(lyrics, dict):
             return {"found": False, "reason": "no YouTube Music lyrics payload"}
         if not lyrics.get("hasTimestamps"):
@@ -93,17 +177,7 @@ def fetch_youtube_music_timed_lyrics(video_id: str) -> dict:
         timed_lines = _normalize_timed_lines(lyrics.get("lyrics") or [])
         if not timed_lines:
             return {"found": False, "reason": "no usable YouTube Music timed lyric lines"}
-        return {
-            "found": True,
-            "source": "youtube-music-timed-lyrics",
-            "provider": "youtube-music",
-            "provider_source": lyrics.get("source"),
-            "lyrics_browse_id": browse_id,
-            "video_id": video_id,
-            "has_timestamps": True,
-            "line_count": len(timed_lines),
-            "timed_lines": timed_lines,
-        }
+        return _timed_result(video_id, browse_id, lyrics.get("source"), timed_lines)
     except Exception as exc:
         return {
             "found": False,
