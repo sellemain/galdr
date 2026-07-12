@@ -791,9 +791,11 @@ class TestAssemblePrompt:
 
         assert "ARC Prompt Family Base" in prompt
         assert "Meaning Lens" in prompt
-        assert "central human situation" in prompt
-        assert "made believable by sound" in prompt
-        assert "do not write a lyric essay" in prompt
+        assert "what the song is saying" in prompt
+        assert "what the song is about" in prompt
+        assert "make the words a primary evidence layer" in prompt
+        assert "This lens is allowed to say what the song is about" in prompt
+        assert "Sound is the proof and complication layer" in prompt
         assert "This lens is allowed to be retrospective" in prompt
         assert "It may summarize the whole track" in prompt
         assert "Do not make every Meaning page use the same mini-essay order" in prompt
