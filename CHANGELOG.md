@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - `galdr compare` CLI command, `compare.py` helpers, and the compare-two-tracks notebook. Cross-track comparison is no longer a product surface; the one-track loop is fetch → listen → assemble/packet.
 - Legacy `body_lock_*` event-rank parachute in ARC assembly. New streams emit `motor_capture_*` only.
+- Checked-in standalone listening example docs. The README now links to published examples on Sellemain Listen instead.
 
 ### Changed
 - Renamed newly emitted stream events from `body_lock_arrives` / `body_lock_recedes` to `motor_capture_arrives` / `motor_capture_recedes`.
@@ -28,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Tightened ARC prompt guidance around lyric timing, source leakage, body-language vocabulary, and terminal silence interpretation.
 - Refined public-facing prompt lenses: `sound` now emphasizes physical shape and pressure, `meaning` keeps human situation grounded in sound, `ritual` uses explicit weak-fit boundaries, and `classical` avoids forcing song-form logic onto large-form music.
-- Refreshed checked-in listening examples with lower lyric-quote exposure and clearer public prose.
+- Refreshed public listening examples with lower lyric-quote exposure and clearer public prose.
 - Neutralized general docs so named copyrighted-work examples are limited to standalone listening write-ups.
 - Clarified that the PyPI wheel contains the runtime CLI/library and bundled prompt templates, while the OpenClaw skill is distributed separately through ClawHub.
 
@@ -67,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pressure pivot arc labels for short peak-release and rebound transitions.
 
 ### Changed
-- Simplified the public README and installation/getting-started flow, with selected checked-in listening examples and a link to the larger published listen archive.
+- Simplified the public README and installation/getting-started flow, with selected public listening examples and a link to the larger published listen archive.
 - Dense, high-contrast ARC traces now cap prompt-facing detail selection at standard scale when raw detail would over-segment the experience.
 
 ### Fixed

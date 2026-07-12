@@ -135,21 +135,22 @@ The assembled prompt includes source context, structural events, harmonic and me
 
 ## Listening experiences
 
-The repo also includes checked-in listening documents where measured audio evidence becomes grounded listening prose.
+Published listening experiences show how measured audio evidence becomes grounded listening prose.
 
 - Modern / vocal:
-  - [Queen - Bohemian Rhapsody](https://github.com/sellemain/galdr/blob/main/docs/bohemian-rhapsody.md)
-  - [Aurora - Runaway](https://github.com/sellemain/galdr/blob/main/docs/aurora-runaway.md)
-  - [Chelsea Wolfe - 16 Psyche](https://github.com/sellemain/galdr/blob/main/docs/chelsea-wolfe-16-psyche.md)
+  - [Queen - Bohemian Rhapsody](https://sellemain.com/listen/queen-bohemian-rhapsody)
+  - [Aurora - Runaway](https://sellemain.com/listen/aurora-runaway)
+  - [Chelsea Wolfe - 16 Psyche](https://sellemain.com/listen/chelsea-wolfe-16-psyche)
 - Folk / ritual:
-  - [Wardruna - Helvegen](https://github.com/sellemain/galdr/blob/main/docs/wardruna-helvegen.md)
-  - [Heilung - Anoana](https://github.com/sellemain/galdr/blob/main/docs/heilung-heilung-anoana.md)
+  - [Wardruna - Helvegen](https://sellemain.com/listen/wardruna-helvegen)
+  - [Heilung - Anoana](https://sellemain.com/listen/heilung-anoana)
 - Classical / instrumental:
-  - [Philip Glass - Opening](https://github.com/sellemain/galdr/blob/main/docs/philip-glass-opening.md)
-  - [Samuel Barber - Adagio for Strings](https://github.com/sellemain/galdr/blob/main/docs/samuel-barber-adagio-for-strings.md)
-  - [Tchaikovsky - Serenade for Strings, Elegie](https://github.com/sellemain/galdr/blob/main/docs/tchaikovsky-serenade-for-strings-elegie.md)
+  - [Philip Glass - Opening](https://sellemain.com/listen/philip-glass-opening)
+  - [Samuel Barber - Adagio for Strings](https://sellemain.com/listen/samuel-barber-adagio-for-strings)
+  - [Tchaikovsky - Serenade for Strings, Elegie](https://sellemain.com/listen/pyotr-ilyich-tchaikovsky-serenade-for-strings-elegie)
+  - [Arvo Part - Spiegel im Spiegel](https://sellemain.com/listen/arvo-part-spiegel-im-spiegel)
 
-Browse published listening experiences: <https://sellemain.com/listen>.
+Browse more published listening experiences: <https://sellemain.com/listen>.
 
 ## Reading the data correctly
 
