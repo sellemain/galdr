@@ -799,6 +799,10 @@ class TestAssemblePrompt:
         assert "This lens is allowed to be retrospective" in prompt
         assert "It may summarize the whole track" in prompt
         assert "Do not make every Meaning page use the same mini-essay order" in prompt
+        assert "Usually write 1 or 2 paragraphs around 100-180 words" in prompt
+        assert "Do not walk the whole song again in timeline order" in prompt
+        assert "use sound only as proof or complication" in prompt
+        assert "Shape: usually 4 to 7 paragraphs" not in prompt
 
     def test_arc_family_prompts_avoid_public_banned_body_lock_language(self):
         analysis = {

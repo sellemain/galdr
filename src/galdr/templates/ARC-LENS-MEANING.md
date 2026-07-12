@@ -27,4 +27,4 @@ Listen for:
 
 If the evidence is thin, say less and keep the claim broad. If a song is famous for a sourced meaning, do not replace that meaning with a generic sound summary. Sound is the proof and complication layer; it is not a substitute for interpreting the words.
 
-Shape: usually 4 to 7 paragraphs, no headings.
+Shape: compact public interpretation, no headings. Usually write 1 or 2 paragraphs around 100-180 words. Treat 220 words as a soft ceiling. Do not walk the whole song again in timeline order; name the decisive meaning claim, show the strongest lyric/context evidence, and use sound only as proof or complication. Use more space only when the song genuinely needs a layered persona, cultural context, grief, politics, religion, sexuality, or musical contradiction.
