@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-13
+
+### Added
+- Structured song-context evidence support for carrying track-specific public context, source caveats, and lens spines into ARC assembly.
+
 ### Removed
 - `galdr compare` CLI command, `compare.py` helpers, and the compare-two-tracks notebook. Cross-track comparison is no longer a product surface; the one-track loop is fetch → listen → assemble/packet.
 - Legacy `body_lock_*` event-rank parachute in ARC assembly. New streams emit `motor_capture_*` only.
@@ -15,7 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Renamed newly emitted stream events from `body_lock_arrives` / `body_lock_recedes` to `motor_capture_arrives` / `motor_capture_recedes`.
 - Renamed the ARC prompt-family `dancefloor` lens to `dance` and removed the old `dancefloor` / `arc-dancefloor` aliases from post-0.6 main.
+- Tightened Structure, Meaning, and temporal ARC prompt guidance for compact section anatomy, direct lyric meaning, and clearer chronological evidence.
 - Demoted `galdr catalog` wording to local analysis-index / operator tooling, not a primary product loop.
+
+### Fixed
+- Handled YouTube Music `cueRange` lyric payloads when extracting provider-timed lyrics.
+- Preferred manual English YouTube subtitles before translated auto-caption fallbacks.
 
 ## [0.6.0] - 2026-07-10
 
