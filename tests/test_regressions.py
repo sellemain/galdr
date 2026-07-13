@@ -776,13 +776,33 @@ def test_download_youtube_caption_failure_keeps_audio(monkeypatch, tmp_path):
         slug,
     )
 
-    assert len(calls) == 2
+    assert len(calls) == 3
     assert "--write-auto-sub" not in calls[0]
     assert "--skip-download" in calls[1]
+    assert "--write-subs" in calls[1]
+    assert "--sub-langs" in calls[1]
+    assert "all,-live_chat" in calls[1]
+    assert "--skip-download" in calls[2]
+    assert "--write-auto-subs" in calls[2]
+    assert "--sub-langs" in calls[2]
+    assert "en.*,en" in calls[2]
     assert result["download_ok"] is True
     assert result["audio_file"] == str(tmp_path / f"{slug}.mp3")
     assert result["captions_file"] is None
     assert "429" in result["captions_stderr"]
+
+
+def test_download_youtube_prefers_original_language_manual_caption(tmp_path):
+    """When manual English and original-language captions both land, use original."""
+    from galdr.fetch import _preferred_caption_file
+
+    slug = "caption-choice"
+    english = tmp_path / f"{slug}.en.vtt"
+    korean = tmp_path / f"{slug}.ko.vtt"
+    english.write_text("WEBVTT\n")
+    korean.write_text("WEBVTT\n")
+
+    assert _preferred_caption_file([english, korean], slug) == korean
 
 
 def test_run_yt_dlp_retries_remote_ejs_for_challenge_failure(monkeypatch):
