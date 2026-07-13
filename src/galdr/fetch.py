@@ -283,8 +283,34 @@ def derive_artist_title(yt_title: str, uploader: str) -> tuple[str, str]:
     return uploader, clean_title
 
 
+def _caption_language_tag(path: Path, slug: str) -> str:
+    stem = path.name
+    prefix = f"{slug}."
+    suffix = ".vtt"
+    if stem.startswith(prefix) and stem.endswith(suffix):
+        return stem[len(prefix) : -len(suffix)]
+    return ""
+
+
+def _preferred_caption_file(candidates: list[Path], slug: str) -> Path | None:
+    """Pick the most useful downloaded VTT for lyric timing.
+
+    Manual original-language captions often sit next to English translations.
+    Prefer a non-English manual track when one exists; otherwise fall back to
+    English/manual or English auto-caption tracks.
+    """
+    usable = [path for path in sorted(candidates) if "live_chat" not in path.name]
+    if not usable:
+        return None
+    for path in usable:
+        lang = _caption_language_tag(path, slug).lower()
+        if lang and not lang.startswith("en"):
+            return path
+    return usable[0]
+
+
 def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
-    """Download audio and auto-captions from a YouTube URL via yt-dlp.
+    """Download audio and captions from a YouTube URL via yt-dlp.
 
     Audio and captions are deliberately separate calls. YouTube caption requests
     can fail with rate limits or missing subtitles; that should not block audio
@@ -321,23 +347,38 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
 
     captions_stderr = None
     if audio_file.exists():
-        captions_args = [
+        manual_captions_args = [
             "--skip-download",
-            "--write-auto-sub",
-            "--sub-lang", "en",
+            "--write-subs",
+            "--sub-langs", "all,-live_chat",
             "--sub-format", "vtt",
             "--output", str(audio_out),
             "--no-playlist",
             url,
         ]
-        captions_result = _run_yt_dlp(captions_args, timeout=120)
+        captions_result = _run_yt_dlp(manual_captions_args, timeout=120)
         if captions_result.returncode != 0:
             captions_stderr = captions_result.stderr[:500]
-            print(f"  [yt-dlp] captions unavailable: {captions_result.stderr[:300]}")
+            print(f"  [yt-dlp] manual captions unavailable: {captions_result.stderr[:300]}")
+
+        if not list(audio_dir.glob(f"{slug}.*.vtt")):
+            auto_captions_args = [
+                "--skip-download",
+                "--write-auto-subs",
+                "--sub-langs", "en.*,en",
+                "--sub-format", "vtt",
+                "--output", str(audio_out),
+                "--no-playlist",
+                url,
+            ]
+            captions_result = _run_yt_dlp(auto_captions_args, timeout=120)
+            if captions_result.returncode != 0:
+                captions_stderr = captions_result.stderr[:500]
+                print(f"  [yt-dlp] auto captions unavailable: {captions_result.stderr[:300]}")
 
     # yt-dlp language tag varies (en, en-US, en-orig, etc.) — find whatever landed
     vtt_candidates = sorted(audio_dir.glob(f"{slug}.*.vtt"))
-    vtt_file = vtt_candidates[0] if vtt_candidates else audio_dir / f"{slug}.en.vtt"
+    vtt_file = _preferred_caption_file(vtt_candidates, slug) or audio_dir / f"{slug}.en.vtt"
 
     return {
         "audio_file": str(audio_file) if audio_file.exists() else None,
