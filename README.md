@@ -2,7 +2,7 @@
 
 **Deterministic listening tools for AI agents. Audio in, listener-state traces out.**
 
-galdr analyzes music from YouTube URLs or local audio files and turns it into time-ordered traces of attention, pattern, pulse, pressure, surface balance, surface evidence, harmony, melody, overtones, and silence/re-entry structure.
+galdr analyzes music from audio and turns it into time-ordered traces of attention, pattern, pulse, pressure, surface balance, surface evidence, harmony, melody, overtones, and silence/re-entry structure.
 
 galdr runs signal analysis first. It measures what the audio is doing second by second, then packages that evidence for agents, scripts, or humans to inspect.
 
@@ -59,7 +59,7 @@ Requirements: Python 3.10+ and `ffmpeg` for common audio/video formats.
 
 ```bash
 # 1. Fetch and analyze. The slug is derived from the YouTube title.
-galdr fetch '<youtube-url>' --analyze
+galdr fetch '<url>' --analyze
 
 # Example output:
 #   Slug : my-track
@@ -167,7 +167,7 @@ Suggested instruction for another model:
 
 > You are reading a time-ordered listener-state trace. Start from the stream. Walk the track through time. Explain what changes, when it changes, and how attention is being shaped. Use `PERCEPTION-MODEL.md` as the semantic contract for the metrics. Build the whole-song summary from the timed evidence.
 
-## YouTube download health
+## Dependency health
 
 ```bash
 galdr doctor
