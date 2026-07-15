@@ -1,7 +1,7 @@
-"""YouTube Music timed lyric helpers.
+"""Provider-timed lyric helpers.
 
-This uses ytmusicapi's unofficial YouTube Music browser API emulation. Treat
-results as useful timing evidence, not as a canonical lyric authority.
+This uses an unofficial third-party music metadata client. Treat results as
+useful timing evidence, not as a canonical lyric authority.
 """
 
 from dataclasses import asdict, is_dataclass
@@ -19,8 +19,8 @@ except Exception:  # pragma: no cover
     nav = None
 
 
-def extract_youtube_video_id(url: str | None) -> str | None:
-    """Return the 11-character YouTube video id from a watch or short URL."""
+def extract_video_id(url: str | None) -> str | None:
+    """Return the 11-character video id from a supported watch or short URL."""
     if not url:
         return None
     parsed = urlparse(url)
@@ -135,8 +135,8 @@ def _timed_result(video_id: str, browse_id: str, provider_source: str | None, ti
     }
 
 
-def fetch_youtube_music_timed_lyrics(video_id: str) -> dict:
-    """Fetch normalized timed lyrics for a YouTube video id.
+def fetch_provider_timed_lyrics(video_id: str) -> dict:
+    """Fetch normalized timed lyrics for a video id.
 
     Returns a small result dict and never raises. ytmusicapi is useful but not
     a stable vendor API, so all parse/network/provider failures degrade to
@@ -149,7 +149,7 @@ def fetch_youtube_music_timed_lyrics(video_id: str) -> dict:
         watch = ytmusic.get_watch_playlist(videoId=video_id)
         browse_id = watch.get("lyrics") if isinstance(watch, dict) else None
         if not browse_id:
-            return {"found": False, "reason": "no YouTube Music lyrics browse id"}
+            return {"found": False, "reason": "no timed lyric browse id"}
         try:
             lyrics = ytmusic.get_lyrics(browse_id, timestamps=True)
         except KeyError as exc:
@@ -162,7 +162,7 @@ def fetch_youtube_music_timed_lyrics(video_id: str) -> dict:
                 return _timed_result(video_id, browse_id, data.get("sourceMessage"), timed_lines)
             return {
                 "found": False,
-                "reason": "YouTube Music lyrics are not timed",
+                "reason": "Provider lyrics are not timed",
                 "lyrics_available": lyric_row_count > 0,
                 "untimed_line_count": lyric_row_count,
                 "provider_source": data.get("sourceMessage") if isinstance(data, dict) else None,
@@ -171,16 +171,16 @@ def fetch_youtube_music_timed_lyrics(video_id: str) -> dict:
                 "error": "KeyError: 'cueRange'",
             }
         if not lyrics or not isinstance(lyrics, dict):
-            return {"found": False, "reason": "no YouTube Music lyrics payload"}
+            return {"found": False, "reason": "no timed lyric payload"}
         if not lyrics.get("hasTimestamps"):
-            return {"found": False, "reason": "YouTube Music lyrics are not timed"}
+            return {"found": False, "reason": "Provider lyrics are not timed"}
         timed_lines = _normalize_timed_lines(lyrics.get("lyrics") or [])
         if not timed_lines:
-            return {"found": False, "reason": "no usable YouTube Music timed lyric lines"}
+            return {"found": False, "reason": "no usable provider timed lyric lines"}
         return _timed_result(video_id, browse_id, lyrics.get("source"), timed_lines)
     except Exception as exc:
         return {
             "found": False,
-            "reason": "YouTube Music timed lyrics fetch failed",
+            "reason": "Provider timed lyrics fetch failed",
             "error": f"{type(exc).__name__}: {exc}",
         }
