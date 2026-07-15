@@ -2958,7 +2958,7 @@ def test_fetch_does_not_promote_rejected_autocaptions_to_lyric_timestamps(tmp_pa
     assert context["lyrics"]["caption_lines"] == []
 
 
-def test_fetch_stores_youtube_music_timed_lyrics_with_genius(tmp_path, monkeypatch):
+def test_fetch_stores_provider_timed_lyrics_with_genius(tmp_path, monkeypatch):
     from galdr import fetch
 
     audio_dir = tmp_path / "audio"
@@ -2973,7 +2973,7 @@ def test_fetch_stores_youtube_music_timed_lyrics_with_genius(tmp_path, monkeypat
             "audio_sha256": "fake",
         }
 
-    def fake_youtube_music(video_id):
+    def fake_provider_timed_lyrics(video_id):
         return {
             "found": True,
             "source": "youtube-music-timed-lyrics",
@@ -3009,7 +3009,7 @@ def test_fetch_stores_youtube_music_timed_lyrics_with_genius(tmp_path, monkeypat
         }
 
     monkeypatch.setattr(fetch, "download_youtube", fake_download_youtube)
-    monkeypatch.setattr(fetch, "fetch_youtube_music_timed_lyrics", fake_youtube_music)
+    monkeypatch.setattr(fetch, "fetch_provider_timed_lyrics", fake_provider_timed_lyrics)
     monkeypatch.setattr(fetch, "fetch_genius_lyrics", fake_genius_lyrics)
 
     context = fetch.fetch_track(
@@ -3029,7 +3029,7 @@ def test_fetch_stores_youtube_music_timed_lyrics_with_genius(tmp_path, monkeypat
     assert context["lyrics"]["genius_text"] == "Clean lyric text"
 
 
-def test_fetch_uses_youtube_music_timed_lyrics_when_genius_missing(tmp_path, monkeypatch):
+def test_fetch_uses_provider_timed_lyrics_when_genius_missing(tmp_path, monkeypatch):
     from galdr import fetch
 
     audio_dir = tmp_path / "audio"
@@ -3047,7 +3047,7 @@ def test_fetch_uses_youtube_music_timed_lyrics_when_genius_missing(tmp_path, mon
     monkeypatch.setattr(fetch, "download_youtube", fake_download_youtube)
     monkeypatch.setattr(
         fetch,
-        "fetch_youtube_music_timed_lyrics",
+        "fetch_provider_timed_lyrics",
         lambda video_id: {
             "found": True,
             "source": "youtube-music-timed-lyrics",
@@ -3082,8 +3082,8 @@ def test_fetch_uses_youtube_music_timed_lyrics_when_genius_missing(tmp_path, mon
     assert context["lyrics"]["genius_text"] is None
 
 
-def test_youtube_music_timed_lyrics_normalizes_provider_lines(monkeypatch):
-    from galdr import youtube_music
+def test_provider_timed_lyrics_normalizes_provider_lines(monkeypatch):
+    from galdr import provider_timed_lyrics
 
     class FakeYTMusic:
         def get_watch_playlist(self, videoId):
@@ -3102,9 +3102,9 @@ def test_youtube_music_timed_lyrics_normalizes_provider_lines(monkeypatch):
                 ],
             }
 
-    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+    monkeypatch.setattr(provider_timed_lyrics, "YTMusic", FakeYTMusic)
 
-    result = youtube_music.fetch_youtube_music_timed_lyrics("DO0yaw3Wj1A")
+    result = provider_timed_lyrics.fetch_provider_timed_lyrics("DO0yaw3Wj1A")
 
     assert result["found"] is True
     assert result["provider_source"] == "Source: Musixmatch"
@@ -3122,8 +3122,8 @@ def test_youtube_music_timed_lyrics_normalizes_provider_lines(monkeypatch):
     ]
 
 
-def test_youtube_music_timed_lyrics_recovers_raw_rows_after_cuerange_error(monkeypatch):
-    from galdr import youtube_music
+def test_provider_timed_lyrics_recovers_raw_rows_after_cuerange_error(monkeypatch):
+    from galdr import provider_timed_lyrics
 
     class MobileContext:
         def __enter__(self):
@@ -3186,9 +3186,9 @@ def test_youtube_music_timed_lyrics_recovers_raw_rows_after_cuerange_error(monke
                 }
             }
 
-    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+    monkeypatch.setattr(provider_timed_lyrics, "YTMusic", FakeYTMusic)
 
-    result = youtube_music.fetch_youtube_music_timed_lyrics("DO0yaw3Wj1A")
+    result = provider_timed_lyrics.fetch_provider_timed_lyrics("DO0yaw3Wj1A")
 
     assert result["found"] is True
     assert result["provider_source"] == "Source: LyricFind"
@@ -3198,8 +3198,8 @@ def test_youtube_music_timed_lyrics_recovers_raw_rows_after_cuerange_error(monke
     assert result["timed_lines"][0]["end"] == 15.1
 
 
-def test_youtube_music_timed_lyrics_marks_cuerange_less_rows_as_untimed(monkeypatch):
-    from galdr import youtube_music
+def test_provider_timed_lyrics_marks_cuerange_less_rows_as_untimed(monkeypatch):
+    from galdr import provider_timed_lyrics
 
     class MobileContext:
         def __enter__(self):
@@ -3248,31 +3248,31 @@ def test_youtube_music_timed_lyrics_marks_cuerange_less_rows_as_untimed(monkeypa
                 }
             }
 
-    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+    monkeypatch.setattr(provider_timed_lyrics, "YTMusic", FakeYTMusic)
 
-    result = youtube_music.fetch_youtube_music_timed_lyrics("Tn7wvu8R4Wk")
+    result = provider_timed_lyrics.fetch_provider_timed_lyrics("Tn7wvu8R4Wk")
 
     assert result["found"] is False
-    assert result["reason"] == "YouTube Music lyrics are not timed"
+    assert result["reason"] == "Provider lyrics are not timed"
     assert result["lyrics_available"] is True
     assert result["untimed_line_count"] == 2
     assert result["provider_source"] == "Source: LyricFind"
     assert result["error"] == "KeyError: 'cueRange'"
 
 
-def test_youtube_music_timed_lyrics_fails_soft_on_provider_error(monkeypatch):
-    from galdr import youtube_music
+def test_provider_timed_lyrics_fails_soft_on_provider_error(monkeypatch):
+    from galdr import provider_timed_lyrics
 
     class FakeYTMusic:
         def get_watch_playlist(self, videoId):
             raise KeyError("cueRange")
 
-    monkeypatch.setattr(youtube_music, "YTMusic", FakeYTMusic)
+    monkeypatch.setattr(provider_timed_lyrics, "YTMusic", FakeYTMusic)
 
-    result = youtube_music.fetch_youtube_music_timed_lyrics("dQw4w9WgXcQ")
+    result = provider_timed_lyrics.fetch_provider_timed_lyrics("dQw4w9WgXcQ")
 
     assert result["found"] is False
-    assert result["reason"] == "YouTube Music timed lyrics fetch failed"
+    assert result["reason"] == "Provider timed lyrics fetch failed"
     assert "KeyError" in result["error"]
 
 

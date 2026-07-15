@@ -25,7 +25,7 @@ from .captions import (
     timed_lyric_segments,
 )
 from .provenance import file_sha256, utc_now_iso
-from .youtube_music import extract_youtube_video_id, fetch_youtube_music_timed_lyrics
+from .provider_timed_lyrics import extract_video_id, fetch_provider_timed_lyrics
 
 
 _CONTEXT_CONFIDENCE_MINIMUM = {"high": 3, "medium": 2, "low": 1, "rejected": 0}
@@ -1002,33 +1002,33 @@ def fetch_track(
         timed_lines: list[dict] = []
         timed_lyrics_source: dict | None = None
         if url:
-            video_id = extract_youtube_video_id(url)
+            video_id = extract_video_id(url)
             if video_id:
-                print(f"\n[fetch] YouTube Music timed lyrics: {video_id}")
-                ytmusic = fetch_youtube_music_timed_lyrics(video_id)
-                if ytmusic.get("found"):
-                    timed_lines = ytmusic.get("timed_lines", [])
+                print(f"\n[fetch] Provider timed lyrics: {video_id}")
+                provider_timed = fetch_provider_timed_lyrics(video_id)
+                if provider_timed.get("found"):
+                    timed_lines = provider_timed.get("timed_lines", [])
                     timed_lyrics_source = {
-                        "source": ytmusic.get("source"),
-                        "provider": ytmusic.get("provider"),
-                        "provider_source": ytmusic.get("provider_source"),
-                        "lyrics_browse_id": ytmusic.get("lyrics_browse_id"),
-                        "video_id": ytmusic.get("video_id"),
-                        "has_timestamps": ytmusic.get("has_timestamps"),
-                        "line_count": ytmusic.get("line_count"),
+                        "source": provider_timed.get("source"),
+                        "provider": provider_timed.get("provider"),
+                        "provider_source": provider_timed.get("provider_source"),
+                        "lyrics_browse_id": provider_timed.get("lyrics_browse_id"),
+                        "video_id": provider_timed.get("video_id"),
+                        "has_timestamps": provider_timed.get("has_timestamps"),
+                        "line_count": provider_timed.get("line_count"),
                     }
                     print(
-                        f"  YouTube Music: {len(timed_lines)} timed lines"
+                        f"  Provider timed lyrics: {len(timed_lines)} timed lines"
                         + (
-                            f" ({ytmusic.get('provider_source')})"
-                            if ytmusic.get("provider_source")
+                            f" ({provider_timed.get('provider_source')})"
+                            if provider_timed.get("provider_source")
                             else ""
                         )
                     )
                 else:
                     print(
-                        "  YouTube Music: "
-                        f"{ytmusic.get('reason') or ytmusic.get('error') or 'not found'}"
+                        "  Provider timed lyrics: "
+                        f"{provider_timed.get('reason') or provider_timed.get('error') or 'not found'}"
                     )
 
         print(f"\n[fetch] Genius: {artist} — {title}")
