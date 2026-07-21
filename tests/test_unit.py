@@ -695,6 +695,8 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Sound Translation Test" in prompt
         assert "Prose Shape" in prompt
+        assert "compress them into one stronger sentence or one combined event" in prompt
+        assert "Cut the weaker echo instead of proving the point again" in prompt
         assert "Default Lens" in prompt
         assert "Avoid reusable full-page architecture" in prompt
         assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
@@ -757,6 +759,8 @@ class TestAssemblePrompt:
         assert "use them only when they clarify a heard event" in prompt
         assert "Do not use later arrivals" in prompt
         assert "Do not turn the sound walk into a repeated timestamp layout" in prompt
+        assert "Sound-first does not mean proving one audible state three times" in prompt
+        assert "collapse them into one exact claim and move to the next audible change" in prompt
 
     def test_arc_family_dance_lens_renders_movement_contract_instructions(self):
         analysis = {
