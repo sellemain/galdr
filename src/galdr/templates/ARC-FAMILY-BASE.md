@@ -22,6 +22,8 @@ Time order is not an outline format. Let the page walk through the track, but do
 
 Begin paragraphs from different kinds of concrete evidence when the music supports it: a voice entering, a low line changing function, a guitar edge, drum behavior, synth color, string motion, room tone, silence, a lyric image, a density change, a harmonic turn, a repeated phrase, or an instrument role. Use timestamps as anchors inside that prose, not as paragraph templates.
 
+When adjacent sentences describe the same opening state or short-region state, compress them into one stronger sentence or one combined event. Do not restate the same beat, pulse, ground, motion, density, or pressure claim in three nearby metaphors. Cut the weaker echo instead of proving the point again.
+
 Avoid replacing the sound with house nouns. Shared words like body, pulse, grid, pressure, weight, hold, release, room, surface, and frame are allowed when exact, but they should not carry three paragraphs in a row. If the same abstract term starts repeating, name the audible cause instead.
 
 ## Sound Translation Test
