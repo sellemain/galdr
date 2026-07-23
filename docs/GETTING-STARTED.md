@@ -16,7 +16,7 @@ That's the first use. Give galdr a track. Give an AI the output. Get that back.
 
 The second use is deeper: return to a track with a specific question. Focus on the chords. Focus on the silence structure. Focus on motor capture or surface balance. The data supports it.
 
-The default path is agent-led. Start with [Point an Agent at Galdr](AGENT-ONBOARDING.md) for the canonical happy-path prompt, `AGENTS.md` / `CLAUDE.md` style instruction block, and smoke-test path.
+The default path is agent-led. Start with [Point an Agent at Galdr](AGENT-ONBOARDING.md): copy one prompt into your agent, give it a song, and let the agent handle setup, commands, trace reading, and artifact paths.
 
 ---
 
