@@ -10,11 +10,11 @@ galdr runs signal analysis first. It measures what the audio is doing second by 
 
 The easiest way to try Galdr is to let your coding or chat agent use it.
 
-Point Codex, Claude Code, Cursor, OpenClaw, or another shell-capable agent at this repository and use the canonical happy-path prompt:
+Point Codex, Claude Code, Cursor, OpenClaw, or another shell-capable agent at this repository and copy the human-friendly happy-path prompt:
 
 [Point an Agent at Galdr](https://github.com/sellemain/galdr/blob/main/docs/AGENT-ONBOARDING.md)
 
-That prompt should make the agent install or run Galdr, analyze the audio, assemble an ARC prompt, inspect the time stream, and write from the evidence.
+That prompt tells the agent to handle setup, install or run Galdr, analyze the audio, assemble an ARC prompt, inspect the time stream, and write from the evidence.
 
 For a reusable project instruction file, see the minimal fixture in [`examples/agent/`](https://github.com/sellemain/galdr/tree/main/examples/agent).
 
