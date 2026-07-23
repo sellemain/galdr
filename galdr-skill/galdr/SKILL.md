@@ -78,6 +78,8 @@ Default sequence:
 
 The stream is evidence. Walk the track through time before summarizing. Do not invent emotional claims that the structure does not support.
 
+When a user wants to configure another agent or project to use Galdr, point them to `docs/AGENT-ONBOARDING.md` and `examples/agent/AGENTS.md`. Those files contain the public, copy-pasteable agent instruction path.
+
 Use the ARC prompt family when the user asks for a specific reading mode:
 
 ```bash

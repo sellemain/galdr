@@ -6,6 +6,25 @@ galdr analyzes music from audio and turns it into time-ordered traces of attenti
 
 galdr runs signal analysis first. It measures what the audio is doing second by second, then packages that evidence for agents, scripts, or humans to inspect.
 
+## Fast path: give Galdr to your agent
+
+The easiest way to try Galdr is to let your coding or chat agent use it.
+
+Point Codex, Claude Code, Cursor, OpenClaw, or another shell-capable agent at this repository and ask:
+
+```text
+Figure out Galdr from this repo, then use it to listen to this song:
+<URL or local file path>
+
+Walk the track through time. Use timestamped listener-state evidence, not music trivia. Return a concise listening experience and the generated artifact paths.
+```
+
+That should make the agent install or run Galdr, analyze the audio, assemble an ARC prompt, inspect the time stream, and write from the evidence.
+
+For a copy-paste agent instruction file, use [Point an Agent at Galdr](https://github.com/sellemain/galdr/blob/main/docs/AGENT-ONBOARDING.md) or the minimal fixture in [`examples/agent/`](https://github.com/sellemain/galdr/tree/main/examples/agent).
+
+Use the manual CLI path below if you want to run the commands yourself, wire Galdr into scripts, or inspect the raw analysis files directly.
+
 ## What you get
 
 - **Listener-state streams:** second-by-second traces of attention, pressure, surface balance, surface evidence, harmony, melody, and motion.
@@ -181,6 +200,7 @@ If captions fail but audio succeeds, analysis can still continue. If audio fails
 ## More docs
 
 - [Getting Started](https://github.com/sellemain/galdr/blob/main/docs/GETTING-STARTED.md): fuller walkthrough, local-file workflow, and deeper usage.
+- [Point an Agent at Galdr](https://github.com/sellemain/galdr/blob/main/docs/AGENT-ONBOARDING.md): copy-pasteable agent instructions and a smoke-test path.
 - [Perception Model](https://github.com/sellemain/galdr/blob/main/docs/PERCEPTION-MODEL.md): metric semantics and interpretation boundaries.
 - [Listening-Test Workflow](https://github.com/sellemain/galdr/blob/main/docs/listening-tests/README.md): how metric changes prove before/after listening improvement.
 - [Python API](https://github.com/sellemain/galdr/blob/main/docs/PYTHON-API.md): library usage, DataFrames, notebooks.
