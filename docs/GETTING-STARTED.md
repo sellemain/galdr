@@ -16,14 +16,7 @@ That's the first use. Give galdr a track. Give an AI the output. Get that back.
 
 The second use is deeper: return to a track with a specific question. Focus on the chords. Focus on the silence structure. Focus on motor capture or surface balance. The data supports it.
 
-The default path is agent-led. Point Codex, Claude Code, Cursor, OpenClaw, or another shell-capable agent at the repo and say:
-
-```text
-Figure out Galdr from this repo, then use it to listen to this song:
-<URL or local file path>
-```
-
-Start with [Point an Agent at Galdr](AGENT-ONBOARDING.md) if you want the full pasteable prompt, `AGENTS.md` / `CLAUDE.md` style instruction block, and smoke-test path.
+The default path is agent-led. Start with [Point an Agent at Galdr](AGENT-ONBOARDING.md) for the canonical happy-path prompt, `AGENTS.md` / `CLAUDE.md` style instruction block, and smoke-test path.
 
 ---
 

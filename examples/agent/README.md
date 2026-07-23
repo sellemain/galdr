@@ -2,15 +2,7 @@
 
 This directory is a minimal example for people who want to point a coding or chat agent at Galdr.
 
-The fastest test is to point your agent at the Galdr repo and a song:
-
-```text
-Use https://github.com/sellemain/galdr as the guide.
-Figure out Galdr, then use it to analyze this performance:
-<url or local file path>
-
-Walk the track through time. Use timestamped listener-state evidence, not music trivia. Return a concise listening experience and link the generated Galdr artifacts.
-```
+For a first run, use the happy-path prompt in [`docs/AGENT-ONBOARDING.md`](../../docs/AGENT-ONBOARDING.md).
 
 For a repeatable project setup, copy `AGENTS.md` into a small project where your agent can run shell commands, then ask:
 
