@@ -908,6 +908,9 @@ class TestAssemblePrompt:
         assert "Keep the ritual grammar, counter-reading, and qualification test private" in prompt
         assert "Do not publish contract labels" in prompt
         assert "Let audible procedure, changed role, transformation, and exit prove the reading" in prompt
+        assert "Do not print that private pass" in prompt
+        assert "Output only the resulting public listening experience" in prompt
+        assert "a separate list of public prose sparks" in prompt
 
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {
