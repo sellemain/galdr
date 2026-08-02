@@ -14,6 +14,8 @@ Keep interpretation cumulative. Once the page has established a meaning, bodily 
 
 Do not compress the song's governing sequence merely to satisfy a preferred page length. If a cycle, numbered progression, narrative chain, set of variations, or other ordered series is the body of the recording, let the reader experience its accumulation. Group related stages when that preserves the motion; give individual stages room when their differences change the arc. A list of names is not coverage. Show how successive stages alter the weight of a later return, climax, refusal, or release.
 
+Group stages only when the recording, text, or enacted motion gives them a genuine shared function. Do not invent thematic bundles merely to reduce paragraph count. If a stage resists the proposed group, preserve its difference or choose a grouping the evidence actually supports.
+
 Avoid reusable full-page architecture. The track still needs an opening, middle, late turn, and ending, but those obligations should not become the same paragraph sequence across songs.
 
 Let the ending land from the final musical behavior, not from a generic moral.
