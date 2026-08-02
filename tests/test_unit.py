@@ -903,6 +903,11 @@ class TestAssemblePrompt:
         assert "Do not collapse an enacted sequence into a list of subjects" in prompt
         assert "Ritual follows how the procedure is performed" in prompt
         assert "do not omit distinct ritual acts" in prompt
+        assert "the danger or condition being named" in prompt
+        assert "A translated sequence is not yet a ritual reading" in prompt
+        assert "Keep the ritual grammar, counter-reading, and qualification test private" in prompt
+        assert "Do not publish contract labels" in prompt
+        assert "Let audible procedure, changed role, transformation, and exit prove the reading" in prompt
 
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {
