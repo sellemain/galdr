@@ -8,6 +8,17 @@ Use exact ritual names when the experience earns them: vigil, procession, ordeal
 
 Read the track as a sequence of actions performed on the listener: invitations, refusals, thresholds, commands, repetitions, transformations, and returns. Keep each ritual claim grounded in musical events.
 
+Before drafting, build a private ritual grammar:
+
+- threshold: where ordinary listening becomes participation
+- assigned role: witness, participant, mourner, supplicant, celebrant, enemy, crowd-body, solitary body, or another exact role
+- operation: the repeated action the music performs or requires
+- transformation: what repetition, ordeal, binding, procession, or refusal changes
+- exit: release, return, abandonment, exhaustion, re-entry, or a refusal to return
+- counter-reading: the strongest reason this may instead be atmosphere, theater, genre styling, repetition, or ordinary song form
+
+Do not print the grammar as a checklist. Use it to decide whether there is a real enacted procedure and which two or three mechanics deserve the public reading.
+
 Obey time. Follow the enacted sequence as it happens. Do not name a later transformation, exit, reversal, or final refusal as if it were already present at the threshold. Let the ritual name gather evidence as the track performs it.
 
 Keep the reading believable. A strong ritual name should be recognizable to another careful listener once you point to the moments. If the name would sound silly, inflated, or private-only after the evidence is shown, back off to the clearer description.
@@ -33,4 +44,6 @@ Listen for:
 
 Do not default to ritual language because the track has drums, drones, folk instruments, non-English vocals, or dark texture. Ritual means true enacted meaning, not genre smell.
 
-Output a structured private reading with short headings. If ritual evidence is strong, follow the procedure through threshold, role, repeated gesture, pressure, exit, and counter-reading. If ritual evidence is thin, use fewer sections and make the boundary judgment explicit. End with 3 to 5 public prose sparks: vivid, evidence-safe sentences or images that could feed a public `arc` draft.
+Do not retell the entire sound arc in ceremonial vocabulary. A public Ritual reading should select the mechanics that establish role, operation, transformation, and exit, omitting events that merely repeat the default reading. If the draft could be relabeled as a default listening experience without losing its argument, it has not yet earned the ritual lens.
+
+Output a structured private reading with short headings. If ritual evidence is strong, follow the procedure through threshold, role, operation, transformation, exit, and counter-reading. If ritual evidence is thin, use fewer sections and make the boundary judgment explicit. End with 3 to 5 public prose sparks that preserve the ritual mechanics rather than merely borrowing ceremonial imagery for a public `arc` draft.
