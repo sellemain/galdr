@@ -73,4 +73,6 @@ Unless the selected lens explicitly says otherwise:
 - do not include a source line
 - do not use headings or bullets in the generated body
 
+Before returning the draft, make one silent editorial pass: identify the three most useful things the reading helps a listener notice, confirm that each has a concrete audible cause, cut repeated interpretations, remove any sentence or paragraph whose loss costs no important event, and confirm that the selected lens contributes something the default reading would not.
+
 Output only the requested body.

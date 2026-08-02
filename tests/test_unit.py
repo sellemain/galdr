@@ -699,9 +699,15 @@ class TestAssemblePrompt:
         assert "Cut the weaker echo instead of proving the point again" in prompt
         assert "Default Lens" in prompt
         assert "Avoid reusable full-page architecture" in prompt
+        assert "what would help the listener hear this more clearly" in prompt
+        assert "changed returns" in prompt
+        assert "Keep interpretation cumulative" in prompt
+        assert "shortest complete walk" in prompt
         assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
         assert "not like proof of work" in prompt
-        assert "lyric/music relationship" in prompt
+        assert "Do not assume the lyric and music are doing the same thing" in prompt
+        assert "make one silent editorial pass" in prompt
+        assert "three most useful things" in prompt
         assert "Write in the publication's public voice" in prompt
         assert "continuous with the surrounding corpus" in prompt
         assert "Do not mention prompts, agents, private memory, or internal process" in prompt
@@ -781,6 +787,11 @@ class TestAssemblePrompt:
         assert "Pressure belongs here only when it changes movement" in prompt
         assert "Do not force dance language onto a track that only has a beat" in prompt
         assert "Describe the movement contract as it is taught" in prompt
+        assert "what movement becomes possible here" in prompt
+        assert "private movement model" in prompt
+        assert "movement scale" in prompt
+        assert "could test the claim while the track plays" in prompt
+        assert "could be relabeled as a default listening experience" in prompt
 
     def test_arc_family_meaning_lens_renders_human_situation_instructions(self):
         analysis = {
@@ -847,9 +858,13 @@ class TestAssemblePrompt:
 
         assert "ARC Prompt Family Base" in prompt
         assert "Classical Lens" in prompt
-        assert "Do not turn the form walk into a repeated paragraph template" in prompt
         assert "Do not force verse/chorus/hook/lyric-persona logic" in prompt
         assert "Write each formal moment from what the listener has heard so far" in prompt
+        assert "what must the listener remember for the form to become audible" in prompt
+        assert "private memory map" in prompt
+        assert "transformed recurrence" in prompt
+        assert "Track musical agency" in prompt
+        assert "another default arc with orchestral nouns" in prompt
 
     def test_arc_family_ritual_lens_renders_permission_first_reading(self):
         analysis = {
@@ -870,16 +885,17 @@ class TestAssemblePrompt:
         assert "Then prove the name" in prompt
         assert "recurrence, phrase extension, harmonic delay" in prompt
         assert "song as enacted procedure" in prompt
-        assert "sequence of actions performed on the listener" in prompt
         assert "recognizable to another careful listener" in prompt
         assert "Follow the enacted sequence as it happens" in prompt
-        assert "compact boundary reading instead of a full ritual map" in prompt
-        assert "Weak-fit tracks should produce less ritual prose" in prompt
         assert "If the name would sound silly" in prompt
-        assert "formal proof" in prompt
         assert "public draft decides what survives" not in prompt
         assert "what is your ritual interpretation" in prompt
         assert "Ritual means true enacted meaning, not genre smell" in prompt
+        assert "private ritual grammar" in prompt
+        assert "where ordinary listening becomes participation" in prompt
+        assert "strongest reason this may instead be atmosphere" in prompt
+        assert "Do not retell the entire sound arc in ceremonial vocabulary" in prompt
+        assert "could be relabeled as a default listening experience" in prompt
 
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {
