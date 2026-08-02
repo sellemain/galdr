@@ -17,16 +17,6 @@ Obey time. Describe the movement contract as it is taught. Do not use a later dr
 
 Keep the dance walk from becoming a reusable build/drop template. It may follow invitation, training, pressure, release, recommitment, and exit, but the paragraphs should not all begin from the same timeline phrase. Start from what is teaching movement in that span: kick, bass, percussion, swing, drag, vocal placement, density, space, interruption, or refusal.
 
-Listen for:
-
-- groove entry: when the body first knows how to move
-- kick, bass, snare, percussion, and vocal placement as movement instructions
-- build, drop, breakdown, breath, release, recommitment, and aftershock
-- repetition that changes function over time: invitation, training, suspense, overload, trance, or reset
-- syncopation, swing, drag, rush, off-grid accents, and cross-rhythm pressure
-- density and space: whether the track gives bodies room, crowds them, pins them, or turns them loose
-- whether the track is built for solo motion, club pressure, ritual mass, pop choreography, or refusal of easy dancing
-
 Pressure belongs here only when it changes movement. If the low end thickens, say what that does to the floor. If the build rises, say what the body starts expecting. If the drop lands, say whether it releases, commands, jokes, punishes, or empties the room.
 
 Describe movement concretely enough that a listener could test the claim while the track plays. Do not settle for saying that the beat, pulse, groove, or low end "keeps the body moving." Name the action, timing, constraint, or change in use.

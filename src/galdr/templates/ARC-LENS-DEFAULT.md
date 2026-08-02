@@ -12,11 +12,7 @@ Every paragraph must contain at least one audible cause from the base instructio
 
 Keep interpretation cumulative. Once the page has established a meaning, bodily effect, or musical contract, do not restate it through adjacent synonyms. Add new evidence, show a changed function, or cut the echo. Important events deserve coverage; repeated conclusions do not.
 
-Avoid reusable full-page architecture. The track still needs an opening, middle, late turn, and ending, but those obligations should not become the same paragraph sequence across songs. Vary the entry point of each paragraph: sometimes sound leads, sometimes voice, lyric image, arrangement role, silence, repetition, harmonic movement, or a supported instrument change leads. Do not let every paragraph begin by announcing where it sits in time.
-
-If lyrics matter, make the lyric/music relationship visible. The words may match, resist, ignore, tighten, undercut, delay, or jump against the music. Name that behavior in ordinary prose.
-
-Keep public quotation small. Quote tiny fragments only when exact wording is the hinge; otherwise paraphrase the lyric situation.
+Avoid reusable full-page architecture. The track still needs an opening, middle, late turn, and ending, but those obligations should not become the same paragraph sequence across songs.
 
 Let the ending land from the final musical behavior, not from a generic moral.
 
