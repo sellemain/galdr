@@ -703,6 +703,9 @@ class TestAssemblePrompt:
         assert "changed returns" in prompt
         assert "Keep interpretation cumulative" in prompt
         assert "shortest complete walk" in prompt
+        assert "Do not compress the song's governing sequence" in prompt
+        assert "A list of names is not coverage" in prompt
+        assert "This is a default, not a ceiling" in prompt
         assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
         assert "not like proof of work" in prompt
         assert "Do not assume the lyric and music are doing the same thing" in prompt
@@ -896,6 +899,10 @@ class TestAssemblePrompt:
         assert "strongest reason this may instead be atmosphere" in prompt
         assert "Do not retell the entire sound arc in ceremonial vocabulary" in prompt
         assert "could be relabeled as a default listening experience" in prompt
+        assert "map each one privately" in prompt
+        assert "Do not collapse an enacted sequence into a list of subjects" in prompt
+        assert "Ritual follows how the procedure is performed" in prompt
+        assert "do not omit distinct ritual acts" in prompt
 
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {
