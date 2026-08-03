@@ -644,6 +644,8 @@ class TestAssemblePrompt:
         assert "sound natural, specific, and alive" in prompt
         assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
         assert "not like proof of work" in prompt
+        assert "Listen as a person who actually lives with music" in prompt
+        assert "not like a system describing a track" in prompt
         assert "Protect major form turns" in prompt
         assert "late groove turn" in prompt
         assert "private transition map" in prompt
@@ -708,6 +710,8 @@ class TestAssemblePrompt:
         assert "This is a default, not a ceiling" in prompt
         assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
         assert "not like proof of work" in prompt
+        assert "Listen as a person who actually lives with music" in prompt
+        assert "not like a system describing a track" in prompt
         assert "Do not assume the lyric and music are doing the same thing" in prompt
         assert "make one silent editorial pass" in prompt
         assert "three most useful things" in prompt
