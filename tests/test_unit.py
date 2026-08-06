@@ -712,6 +712,11 @@ class TestAssemblePrompt:
         assert "not like proof of work" in prompt
         assert "Listen as a person who actually lives with music" in prompt
         assert "not like a system describing a track" in prompt
+        assert "the reader has the same recording playing and is reading beside it" in prompt
+        assert "not a demand for maximum coverage or constant commentary" in prompt
+        assert "read-along pages, not synchronized voice cues" in prompt
+        assert "Avoid habitual audience directions" in prompt
+        assert "closest broad lens to sitting beside someone for the whole song" in prompt
         assert "Do not assume the lyric and music are doing the same thing" in prompt
         assert "make one silent editorial pass" in prompt
         assert "three most useful things" in prompt
@@ -753,6 +758,7 @@ class TestAssemblePrompt:
         assert "treating a broad middle span as one section unless the evidence says it really is one sustained formal job" in prompt
         assert "3 to 6 short section headings" in prompt
         assert "visibly shorter than the Sound lens" in prompt
+        assert "companion stance here becomes orientation rather than live chatter" in prompt
 
     def test_arc_family_sound_lens_renders_shape_first_instructions(self):
         analysis = {
@@ -774,6 +780,8 @@ class TestAssemblePrompt:
         assert "Do not turn the sound walk into a repeated timestamp layout" in prompt
         assert "Sound-first does not mean proving one audible state three times" in prompt
         assert "collapse them into one exact claim and move to the next audible change" in prompt
+        assert "Keep the shared-listening stance" in prompt
+        assert "Do not turn that curiosity into a catalogue of everything audible" in prompt
 
     def test_arc_family_dance_lens_renders_movement_contract_instructions(self):
         analysis = {
@@ -824,6 +832,8 @@ class TestAssemblePrompt:
         assert "Usually write 1 or 2 paragraphs around 100-180 words" in prompt
         assert "Do not walk the whole song again in timeline order" in prompt
         assert "use sound only as proof or complication" in prompt
+        assert "heard the whole song beside the reader" in prompt
+        assert "not a verdict delivered from above" in prompt
         assert "Shape: usually 4 to 7 paragraphs" not in prompt
 
     def test_arc_family_prompts_avoid_public_banned_body_lock_language(self):

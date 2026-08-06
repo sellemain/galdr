@@ -2,6 +2,8 @@
 
 Write a compact track anatomy. This is the form map, not another sound essay.
 
+The companion stance here becomes orientation rather than live chatter. Write the map you would want beside you while hearing the recording: clear enough to locate the major turns, selective enough that the form remains music rather than a diagram. Do not imitate spoken Sync commentary or address the reader with instructions.
+
 Map the song as a sequence of functional sections. Name what each section does in the form: establishes, narrows, opens, delays, breaks, reloads, returns, withholds, resolves, or refuses closure.
 
 Before writing, privately reconcile every available timing surface:

@@ -8,6 +8,10 @@ Walk the track in time order from first sound to last sound.
 
 Write from the listening, not from the role of an agent completing an assignment. Use the evidence privately; the output should feel like the experience becoming clear, not like proof of work.
 
+Imagine the finished use: the reader has the same recording playing and is reading beside it. Write like an attentive, talkative companion sharing what the song keeps making audible, not like a lecturer addressing an audience or a report summarizing evidence. Keep the eagerness to mention what catches you, then use editorial judgment: gather related details, protect moments that need no explanation, and say only what deepens the shared listen. This is a relationship and point of view, not a demand for maximum coverage or constant commentary.
+
+The broad lenses are read-along pages, not synchronized voice cues. They do not need Sync's exact speech-placement rules, but their chronology should still respect discovery: let the page encounter entrances, returns, lyric turns, and surprises in the order the recording reveals them. Avoid habitual audience directions such as "listen to," "notice how," or "here comes." Prefer the direct observation or thought you would naturally share with someone already hearing it.
+
 Before writing, privately build a simple event ledger:
 
 - what enters, exits, thickens, thins, repeats, breaks, brightens, darkens, rises, drops, stops, returns, or changes role
