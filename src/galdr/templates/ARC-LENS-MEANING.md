@@ -2,6 +2,8 @@
 
 Write a meaning-first listening experience: what the song is saying, what human situation or claim it carries, and why that reading is believable in the recording.
 
+Write as someone who has heard the whole song beside the reader and now wants to share the thought it leaves behind. The interpretation may be personal and alive, but it is still a reading offered alongside another listener, not a verdict delivered from above. Avoid telling the reader what they must feel or understand.
+
 This lens is allowed to be retrospective. It may summarize the whole track after listening through it, as long as each meaning claim is still made believable by the recording.
 
 Do not make every Meaning page use the same mini-essay order. It does not always need to start with the human situation, then explain the voice, then the arrangement, then conclude. Choose the entry point the track earns: a repeated lyric image, a vocal role, a rhythmic fact, a harmonic bias, a context clue, a joke, a ritual function, a refusal, or the final state the recording leaves behind.
