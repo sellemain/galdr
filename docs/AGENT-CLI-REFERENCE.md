@@ -116,10 +116,12 @@ Catalog state lives at `~/.galdr/catalog_state.json`.
 ### assemble — build a model prompt from analysis data
 
 ```bash
-galdr assemble <track-name> [--template arc|arc-family|first|none] [--lens default|sound|dance|structure|meaning|lyrics-study|classical|ritual] [--mode blind|lyrics|context|full]
+galdr assemble <track-name> [--template arc|arc-family|first|inner-ear|none] [--lens default|sound|dance|structure|meaning|lyrics-study|classical|ritual] [--mode blind|lyrics|context|full] [--witness-packet PATH]
 ```
 
 Build a model prompt from analysis data. Template controls voice/format instructions; mode controls which data sections to include. `--lens` selects the ARC prompt-family lens and implies `--template arc-family` when no template is supplied.
+
+`--template inner-ear` builds a provider-neutral evidence-discovery prompt for an audio-capable model. `--witness-packet PATH` includes the resulting JSON as bounded model evidence in a later assembly pass. See [INNER-EAR.md](INNER-EAR.md).
 
 ### fetch — download audio and context
 

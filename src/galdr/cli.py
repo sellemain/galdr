@@ -430,6 +430,7 @@ def cmd_fetch(args):
 def cmd_assemble(args):
     """Assemble a model prompt from context + galdr analysis data."""
     from pathlib import Path
+    import json
     from .assemble import assemble_prompt_from_disk
 
     analysis_dir = Path(args.analysis_dir)
@@ -437,6 +438,14 @@ def cmd_assemble(args):
     template = args.template
     if args.lens and template == "none":
         template = "arc-family"
+
+    witness_packet = None
+    if args.witness_packet:
+        try:
+            witness_packet = json.loads(Path(args.witness_packet).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"Error: could not load witness packet: {exc}", file=sys.stderr)
+            sys.exit(1)
 
     try:
         prompt = assemble_prompt_from_disk(
@@ -446,6 +455,7 @@ def cmd_assemble(args):
             template=template,
             docs_dir=docs_dir if docs_dir.exists() else None,
             lens=args.lens,
+            witness_packet=witness_packet,
         )
         if args.output:
             Path(args.output).write_text(prompt)
@@ -797,6 +807,7 @@ Templates prepend instruction rules to the data block:
   arc      Listening experience template (body, attention, time — first sound to last)
   first    Alias for arc
   arc-family Shared ARC prompt-family base, usually paired with --lens
+  inner-ear Provider-neutral discovery prompt for an audio-capable model
 
 Prompt-family lenses:
   default       Public lyric/pop/general listening page
@@ -814,6 +825,8 @@ Examples:
   galdr assemble 7-helvegen --template arc-family --lens default
   galdr assemble 7-helvegen --mode blind --template arc  # structure only, no context
   galdr assemble 7-helvegen --mode blind > blind.md && galdr assemble 7-helvegen > full.md
+  galdr assemble 7-helvegen --template inner-ear > inner-ear-prompt.md
+  galdr assemble 7-helvegen --template arc --witness-packet inner-ear.json
 """,
     )
     assemble_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
@@ -825,6 +838,7 @@ Examples:
     assemble_parser.add_argument("--lens", choices=["default", "sound", "dance", "structure", "meaning", "lyrics-study", "classical", "ritual"],
                                   help="Prompt-family lens to append; implies arc-family when --template is omitted")
     assemble_parser.add_argument("--output", "-o", help="Write prompt to file instead of stdout")
+    assemble_parser.add_argument("--witness-packet", help="Include a model-produced witness packet JSON as bounded evidence")
 
     # packet
     packet_parser = subparsers.add_parser(

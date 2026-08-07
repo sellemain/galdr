@@ -27,6 +27,7 @@ Use the manual CLI path below if you want to run the commands yourself, wire Gal
 - **Prompt packets for AI agents:** assembled evidence for Claude, `llm`, OpenClaw, or another runtime.
 - **Experience documents:** reproducible examples of measured audio evidence becoming grounded listening prose.
 - **Optional video-frame support:** frames around structural moments when the music video matters.
+- **Optional Inner Ear packets:** audio-capable models can file bounded sensory evidence for a separate editorial model.
 
 ## Origin
 
@@ -146,6 +147,8 @@ jq '.summary' analysis/my-track/my-track_perception.json
 ```
 
 The assembled prompt includes source context, structural events, harmonic and melodic data, lyrics when available, and video-frame descriptions when present. Automated lyrics, provider-timed lyrics, and captions are context, not proof; verify central words for release-quality prose.
+
+For models that accept audio, Galdr can also assemble a provider-neutral Inner Ear discovery prompt and later include the resulting witness packet as bounded evidence. See [Inner Ear witness packets](docs/INNER-EAR.md).
 
 ## Listening experiences
 
