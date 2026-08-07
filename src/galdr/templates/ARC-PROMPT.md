@@ -56,6 +56,8 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
    Look for the first sustained arrival: the moment where the track stops preparing and settles into its main body, rhythm, bass, groove, ensemble, or full-band weight. Many tracks build without the full rhythmic or low-end body, then become memorable when that entrance lands. Name that arrival when it is genuinely present; skip it when the listening shape does not support it.
 
+   Instrument roster is not opening order. Knowing drums, bass, guitar, or "the band" are in the song does not prove they start together. For the first audible state and later entrances, name only what is sounding at that moment. If the guitar starts alone and drums arrive later, keep that stagger. Simultaneous ensemble language is allowed only when the ear verifies true co-entrance.
+
    **Start when the music starts.** If the opening silence is unusually long or structurally significant (7+ seconds), you may note it briefly, but it is never the opening image.
 
    **End with the music, then conclude from it.** After the final musical moment has been described, add one explicit concluding paragraph. This is not a summary of the analysis and not a separate aftermath essay. It should be a short landing paragraph about the experience, song, and music just heard: what state it leaves behind, what kind of encounter it has been, or what the piece has made attention/body/time do. The conclusion must grow out of the final sound, final lyric, final cadence, or final structural change.
