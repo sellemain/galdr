@@ -373,6 +373,37 @@ class TestAssemblePrompt:
         assert isinstance(result, str)
         assert len(result) > 0
 
+    def test_inner_ear_template_defines_witness_role(self):
+        result = self.fn(self._minimal_analysis(), mode="blind", template="inner-ear")
+        assert "You are a listening witness, not the final author" in result
+        assert "galdr.inner_ear_packet.v0" in result
+
+    def test_witness_packet_is_bounded_and_included(self):
+        packet = {
+            "schema": "galdr.inner_ear_packet.v0",
+            "literal_claim_allowed": False,
+            "full_mix_first": True,
+            "hinges": [{
+                "time_sec": 12.5,
+                "claim": "a dry pulse enters",
+                "support_mode": "audio_only",
+            }],
+        }
+        result = self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
+        assert "## Optional witness packet" in result
+        assert "model-produced evidence, not Galdr measurement" in result
+        assert '"time_sec": 12.5' in result
+
+    def test_witness_packet_rejects_unbounded_literal_claims(self):
+        packet = {
+            "schema": "galdr.inner_ear_packet.v0",
+            "literal_claim_allowed": True,
+            "full_mix_first": True,
+            "hinges": [],
+        }
+        with pytest.raises(ValueError, match="literal_claim_allowed"):
+            self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
+
     def test_full_mode_longer_than_blind(self):
         analysis = self._minimal_analysis()
         context = {

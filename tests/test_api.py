@@ -73,6 +73,48 @@ def test_assemble_accepts_raw_analysis_dict():
     assert "BPM" not in prompt
 
 
+def test_assemble_accepts_witness_packet():
+    from galdr import assemble
+
+    prompt = assemble(
+        {"report": {"duration_seconds": 61.0}},
+        mode="blind",
+        witness_packet={
+            "schema": "galdr.inner_ear_packet.v0",
+            "literal_claim_allowed": False,
+            "full_mix_first": True,
+            "hinges": [],
+        },
+    )
+
+    assert "## Optional witness packet" in prompt
+    assert "galdr.inner_ear_packet.v0" in prompt
+
+
+def test_analysis_object_accepts_witness_packet(tmp_path):
+    from galdr.api import Analysis, assemble
+
+    analysis = Analysis(
+        slug="demo",
+        analysis_dir=tmp_path,
+        data={"report": {"duration_seconds": 61.0}},
+    )
+    (tmp_path / "demo").mkdir()
+    (tmp_path / "demo" / "demo_report.json").write_text(
+        '{"duration_seconds": 61.0}', encoding="utf-8"
+    )
+    packet = {
+        "schema": "galdr.inner_ear_packet.v0",
+        "literal_claim_allowed": False,
+        "full_mix_first": True,
+        "hinges": [],
+    }
+
+    prompt = assemble(analysis, mode="blind", witness_packet=packet)
+
+    assert "## Optional witness packet" in prompt
+
+
 def test_python_module_entrypoint_help():
     import os
     import subprocess

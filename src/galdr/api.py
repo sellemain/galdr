@@ -108,7 +108,13 @@ class Analysis:
         """Load ``context.json`` for this track, returning ``{}`` when absent."""
         return load_context(self.slug, self.analysis_dir)
 
-    def to_prompt(self, mode: str = "full", template: str = "none", lens: str | None = None) -> str:
+    def to_prompt(
+        self,
+        mode: str = "full",
+        template: str = "none",
+        lens: str | None = None,
+        witness_packet: dict | None = None,
+    ) -> str:
         """Assemble this analysis into a model prompt."""
         return assemble_prompt_from_disk(
             self.slug,
@@ -116,6 +122,7 @@ class Analysis:
             mode=mode,
             template=template,
             lens=lens,
+            witness_packet=witness_packet,
         )
 
     def to_dataframes(self) -> dict[str, Any]:
@@ -196,13 +203,33 @@ def assemble(
     mode: str = "full",
     template: str = "none",
     lens: str | None = None,
+    witness_packet: dict | None = None,
 ) -> str:
     """Assemble a prompt from an ``Analysis``, raw data dict, or slug."""
     if isinstance(analysis, Analysis):
-        return analysis.to_prompt(mode=mode, template=template, lens=lens)
+        return analysis.to_prompt(
+            mode=mode,
+            template=template,
+            lens=lens,
+            witness_packet=witness_packet,
+        )
     if isinstance(analysis, str):
-        return assemble_prompt_from_disk(analysis, Path(analysis_dir), mode=mode, template=template, lens=lens)
-    return assemble_prompt(analysis, context=context or {}, mode=mode, template=template, lens=lens)
+        return assemble_prompt_from_disk(
+            analysis,
+            Path(analysis_dir),
+            mode=mode,
+            template=template,
+            lens=lens,
+            witness_packet=witness_packet,
+        )
+    return assemble_prompt(
+        analysis,
+        context=context or {},
+        mode=mode,
+        template=template,
+        lens=lens,
+        witness_packet=witness_packet,
+    )
 
 
 def _require_pandas():

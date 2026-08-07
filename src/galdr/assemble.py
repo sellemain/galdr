@@ -38,6 +38,7 @@ from .boundary import derive_boundary_candidates
 from .metric_vocabulary import display_name, glossary_lines
 from .salience import synthesize_salience
 from .captions import dedup_captions_with_timestamps, parse_vtt
+from .witness import validate_witness_packet
 
 
 # ─── Mode definitions ─────────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ BUNDLED_TEMPLATES = {
     "arc": "ARC-PROMPT.md",
     "first": "ARC-PROMPT.md",  # "first" aliased to "arc"
     "arc-family": "ARC-FAMILY-BASE.md",
+    "inner-ear": "INNER-EAR-PROMPT.md",
 }
 ARC_LENS_TEMPLATES = {
     "default": "ARC-LENS-DEFAULT.md",
@@ -1222,6 +1224,22 @@ def _build_frames(context: dict) -> str | None:
     return "\n".join(lines)
 
 
+def _build_witness_packet(packet: dict) -> str:
+    """Render a model-produced witness packet as explicitly bounded evidence."""
+    return "\n".join([
+        "## Optional witness packet",
+        "",
+        "This is model-produced evidence, not Galdr measurement. Treat its timed claims as "
+        "candidates unless Galdr supports them. It may add timbre, space, grain, vocal body, "
+        "and other directly heard surface detail; it must not silently override Galdr timing "
+        "or structure.",
+        "",
+        "```json",
+        json.dumps(packet, indent=2, ensure_ascii=False),
+        "```",
+    ])
+
+
 # ─── Core assembly ────────────────────────────────────────────────────────────
 
 def assemble_prompt(
@@ -1231,6 +1249,7 @@ def assemble_prompt(
     template: str = DEFAULT_TEMPLATE,
     docs_dir: Path | None = None,
     lens: str | None = None,
+    witness_packet: dict | None = None,
 ) -> str:
     """Assemble a model prompt from analysis data and optional context.
 
@@ -1244,12 +1263,16 @@ def assemble_prompt(
         template: "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir: optional path to docs/ directory for local template overrides
         lens:     optional prompt-family lens: default, sound, dance, structure, meaning, lyrics-study, classical, ritual
+        witness_packet: optional model-produced listening evidence; Galdr remains the
+                        timing and structure authority
 
     Returns:
         Complete prompt string ready to send to a model.
     """
     if mode not in MODES:
         raise ValueError(f"Unknown mode '{mode}'. Choose from: {', '.join(MODES)}")
+    if witness_packet is not None:
+        witness_packet = validate_witness_packet(witness_packet)
 
     flags = MODES[mode]
     ctx = context or {}
@@ -1290,6 +1313,9 @@ def assemble_prompt(
         if frames:
             sections.append(frames)
 
+    if witness_packet:
+        sections.append(_build_witness_packet(witness_packet))
+
     return "\n\n".join(sections)
 
 
@@ -1300,6 +1326,7 @@ def assemble_prompt_from_disk(
     template: str = DEFAULT_TEMPLATE,
     docs_dir: Path | None = None,
     lens: str | None = None,
+    witness_packet: dict | None = None,
 ) -> str:
     """Assemble a prompt by loading data from disk for a given slug.
 
@@ -1324,4 +1351,12 @@ def assemble_prompt_from_disk(
         raise ValueError(
             f"No analysis or context found for slug '{slug}' in {analysis_dir / slug}"
         )
-    return assemble_prompt(analysis, context, mode=mode, template=template, docs_dir=docs_dir, lens=lens)
+    return assemble_prompt(
+        analysis,
+        context,
+        mode=mode,
+        template=template,
+        docs_dir=docs_dir,
+        lens=lens,
+        witness_packet=witness_packet,
+    )
