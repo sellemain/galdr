@@ -22,6 +22,8 @@ Before writing, privately build a simple event ledger:
 
 Use that ledger as the floor. Interpretation may rise from the evidence, but it must not arrive before the audible behavior that earns it.
 
+**Match the claim to the evidence at this moment.** Song memory, genre expectation, later climaxes, and “how this track usually goes” are not proof of what is sounding now. Soft is not strained. Clean is not screamed. Controlled is not at the limit. One instrument is not the full band. If the strong word is only true later, save it for later. Prefer plain physical description over borrowed peak language.
+
 ## Instrument Entrances
 
 Instrument roster is not opening order. Knowing drums, bass, guitar, piano, synth, strings, or "the band" are in the song does not prove they start together. Metadata, genre memory, arrangement notes, and later full-band texture only prove roster, not sequence.
