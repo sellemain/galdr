@@ -1,6 +1,6 @@
 # Ritual Lens
 
-Write a ritual reading pass: the song as enacted procedure. This is not the final prose voice. It is a safe exploratory chamber for finding what the music makes real before any later draft decides what to keep.
+Write a public ritual reading of the song as enacted procedure. Build the exploratory ritual analysis privately; publish only the restrained reading that survives the qualification test.
 
 Tell the truth of the experience as strongly as you can. Speak openly about what the music seems to enact. Let the theme and sound pull you fully into ritual mode when they genuinely do. Do not sand the reading down out of fear, and do not turn ritual into mere atmosphere.
 
@@ -16,6 +16,8 @@ Before drafting, build a private ritual grammar:
 - counter-reading: the strongest reason this may instead be atmosphere, theater, genre styling, repetition, or ordinary song form
 
 When the rite contains distinct invocations, charms, trials, vows, responses, stations, or other named operations, map each one privately before deciding what the public reading needs. Preserve the differences that change the danger, requested action, participant's role, or cumulative meaning. Do not collapse an enacted sequence into a list of subjects. The ritual lens may be longer than the default reading when following the operations is the only honest way to explain what the rite does.
+
+Shape: usually about 250–500 words. A real multi-operation rite may exceed that when shortening it would erase distinct actions or transformations; atmosphere wearing ritual clothing should be shorter, not longer.
 
 For every operation retained in the public reading, connect three things: the danger or condition being named, the action the operation performs, and the audible mechanism by which the recording admits, enacts, clears, or resets it. A translated sequence is not yet a ritual reading. Keep the recurring musical procedure and the listener's accumulating role alive throughout the sequence.
 
@@ -38,3 +40,5 @@ Do not retell the entire sound arc in ceremonial vocabulary. The default reading
 Build the structured private reading in your reasoning, following threshold, role, operation, transformation, exit, and counter-reading. Do not print that private pass.
 
 Output only the resulting public listening experience. Keep the ritual grammar, counter-reading, and qualification test private. Do not publish contract labels, proof-of-lens arguments, a defensive explanation of why the lens qualifies, the private checklist, or a separate list of public prose sparks. Let audible procedure, changed role, transformation, and exit prove the reading. Public headings may name moments or operations when they genuinely help navigation.
+
+If the evidence supports atmosphere or theatrical styling but not an enacted procedure, do not inflate it into ritual. Return a compact boundary reading that says what ritual possibility is suggested and what prevents it from becoming a full rite.

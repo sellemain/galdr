@@ -55,3 +55,36 @@ Cache generated packets using at least the audio hash, Galdr evidence hash, disc
 ## What belongs outside Galdr
 
 Batch generation for a private catalog, model routing, free-tier health, retries, cost limits, and publication policy belong in the consuming pipeline. Video frames, deterministic sounds-like tags, and model audio witnesses can all become optional evidence artifacts without making Galdr a provider SDK.
+
+## Hearing stream as optional Arc witness
+
+Dense chronological hearing logs use schema `galdr.hearing_stream.v0`.
+
+The frozen v0 JSON Schema is at
+[`schemas/hearing-stream-v0.schema.json`](schemas/hearing-stream-v0.schema.json).
+It requires source duration, model/prompt provenance, an exact event count,
+monotonic in-duration timestamps, bounded voice intensity/density/confidence
+vocabularies, and the non-literal/full-mix safety flags.
+
+They are an alternate optional witness shape for Arc/family assemble, not a replacement for the sparse `inner_ear_packet` contract.
+
+```bash
+galdr assemble my-track \
+  --template arc \
+  --mode full \
+  --witness-packet hearing-stream.json \
+  > final-writing-prompt.md
+```
+
+Assemble accepts either:
+
+- `galdr.inner_ear_packet.v0` — sparse hinge packet, rendered as JSON evidence
+- `galdr.hearing_stream.v0` — dense hearing log, compacted to selected moments in the prompt
+
+Writer rules for hearing streams:
+
+- Do not publish the stream.
+- Do not paraphrase the 4-second grid into prose.
+- Remember that words, music, and sound-as-heard are simultaneous.
+- Prefer Galdr for timing/structure; prefer the stream for surface/voice/local intensity.
+- Star a few decisive moments and write the lens contract.

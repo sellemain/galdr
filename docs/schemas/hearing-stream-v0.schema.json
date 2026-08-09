@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sellemain/galdr/blob/main/docs/schemas/hearing-stream-v0.schema.json",
+  "title": "Galdr Hearing Stream v0",
+  "type": "object",
+  "required": [
+    "schema",
+    "track",
+    "model",
+    "prompt_version",
+    "duration_hint_sec",
+    "event_count",
+    "literal_claim_allowed",
+    "full_mix_first",
+    "events"
+  ],
+  "properties": {
+    "schema": {"const": "galdr.hearing_stream.v0"},
+    "track": {"type": "string", "minLength": 1},
+    "model": {"type": "string", "minLength": 1},
+    "prompt_version": {"type": "string", "minLength": 1},
+    "overlay": {"type": "string"},
+    "duration_hint_sec": {"type": "number", "exclusiveMinimum": 0},
+    "event_count": {"type": "integer", "minimum": 1},
+    "literal_claim_allowed": {"const": false},
+    "full_mix_first": {"const": true},
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/event"}
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "event": {
+      "type": "object",
+      "required": ["t", "now", "voice", "density", "confidence"],
+      "properties": {
+        "t": {"type": "number", "minimum": 0},
+        "now": {"type": "string", "minLength": 1},
+        "foreground": {"type": "string"},
+        "voice": {
+          "type": "object",
+          "required": ["intensity"],
+          "properties": {
+            "present": {"type": "boolean"},
+            "intensity": {"enum": ["none", "soft", "medium", "hard", "screamed"]},
+            "quality": {"type": "array", "items": {"type": "string"}},
+            "count": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": true
+        },
+        "body": {"type": ["string", "null"]},
+        "density": {"enum": ["thin", "medium", "thick", "wall"]},
+        "change": {"type": ["string", "null"]},
+        "confidence": {"enum": ["medium", "high"]},
+        "unsure": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    }
+  }
+}

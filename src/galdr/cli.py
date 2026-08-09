@@ -54,9 +54,9 @@ _module_failed = False
 def run_module(name, func, *args, **kwargs):
     """Run a module with timing and error handling."""
     global _module_failed
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  MODULE: {name}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     start = time.time()
     try:
         result = func(*args, **kwargs)
@@ -67,6 +67,7 @@ def run_module(name, func, *args, **kwargs):
         elapsed = time.time() - start
         print(f"  x {name} failed ({elapsed:.1f}s): {e}")
         import traceback
+
         traceback.print_exc()
         _module_failed = True
         return None
@@ -75,9 +76,9 @@ def run_module(name, func, *args, **kwargs):
 def _print_null_signal_summary(track_name, total_start, result):
     """Print the standard early-exit summary for null or near-silent audio."""
     total_elapsed = time.time() - total_start
-    print(f"\n{'#'*60}")
+    print(f"\n{'#' * 60}")
     print(f"  SUMMARY: {track_name} ({total_elapsed:.1f}s total)")
-    print(f"{'#'*60}\n")
+    print(f"{'#' * 60}\n")
     print("  Null or near-silent audio detected; remaining modules skipped.")
     print(f"  RMS: {result.get('rms', '?')}")
     print("  No analysis files written and catalog indexing skipped.")
@@ -184,12 +185,12 @@ def cmd_listen(args):
     else:
         modules = all_modules
 
-    print(f"\n{'#'*60}")
+    print(f"\n{'#' * 60}")
     print(f"  LISTENING TO: {track_name}")
     print(f"  Audio: {audio_path}")
     print(f"  Output: {output_dir}")
     print(f"  Modules: {', '.join(modules)}")
-    print(f"{'#'*60}")
+    print(f"{'#' * 60}")
 
     total_start = time.time()
     results = {}
@@ -213,7 +214,9 @@ def cmd_listen(args):
             return
 
     if "report" in modules:
-        result = run_module("Audio Analysis", analyze_track, audio_path, output_dir, track_name, audio=audio)
+        result = run_module(
+            "Audio Analysis", analyze_track, audio_path, output_dir, track_name, audio=audio
+        )
         if result:
             results["report"] = result
             if result.get("null_signal"):
@@ -221,22 +224,36 @@ def cmd_listen(args):
                 return
 
     if "perceive" in modules:
-        result = run_module("Perception", generate_perception_stream, audio_path, output_dir, track_name, args.hop_sec, audio=audio)
+        result = run_module(
+            "Perception",
+            generate_perception_stream,
+            audio_path,
+            output_dir,
+            track_name,
+            args.hop_sec,
+            audio=audio,
+        )
         if result:
             results["perception"] = result
 
     if "harmony" in modules:
-        result = run_module("Harmony", analyze_harmony, audio_path, output_dir, track_name, audio=audio)
+        result = run_module(
+            "Harmony", analyze_harmony, audio_path, output_dir, track_name, audio=audio
+        )
         if result:
             results["harmony"] = result
 
     if "melody" in modules:
-        result = run_module("Melody", analyze_melody, audio_path, output_dir, track_name, audio=audio)
+        result = run_module(
+            "Melody", analyze_melody, audio_path, output_dir, track_name, audio=audio
+        )
         if result:
             results["melody"] = result
 
     if "overtone" in modules:
-        result = run_module("Overtone", analyze_overtones, audio_path, output_dir, track_name, audio=audio)
+        result = run_module(
+            "Overtone", analyze_overtones, audio_path, output_dir, track_name, audio=audio
+        )
         if result:
             results["overtone"] = result
 
@@ -249,9 +266,9 @@ def cmd_listen(args):
 
     # Catalog indexing
     if not args.no_catalog and results:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  CATALOG INDEXING")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         try:
             catalog = CatalogState(args.analysis_dir, catalog_dir=args.catalog_dir)
             catalog.load()
@@ -272,55 +289,69 @@ def cmd_listen(args):
 
     # Unified summary
     total_elapsed = time.time() - total_start
-    print(f"\n{'#'*60}")
+    print(f"\n{'#' * 60}")
     print(f"  SUMMARY: {track_name} ({total_elapsed:.1f}s total)")
-    print(f"{'#'*60}\n")
+    print(f"{'#' * 60}\n")
 
     if "report" in results:
         r = results["report"]
-        print(f"  Duration: {r.get('duration_seconds', '?')}s | "
-              f"Felt pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
-              f"Pulse: {r.get('pulse', '?')} | "
-              f"Body: {r.get('body', '?')} "
-              f"({r.get('body_state', '?')}) | "
-              f"Weight: {r.get('weight', '?')} "
-              f"({r.get('weight_state', '?')}) | "
-              f"Surface balance: {r.get('surface_balance', '?')}")
+        print(
+            f"  Duration: {r.get('duration_seconds', '?')}s | "
+            f"Felt pulse: {r.get('felt_pulse_bpm', '?')} BPM | "
+            f"Pulse: {r.get('pulse', '?')} | "
+            f"Body: {r.get('body', '?')} "
+            f"({r.get('body_state', '?')}) | "
+            f"Weight: {r.get('weight', '?')} "
+            f"({r.get('weight_state', '?')}) | "
+            f"Surface balance: {r.get('surface_balance', '?')}"
+        )
 
     if "perception" in results:
         s = results["perception"].get("summary", results["perception"])
-        print(f"  Attention: {s.get('mean_attention', '?')} | "
-              f"Pattern: {s.get('mean_pattern', '?')} | "
-              f"Silence: {s.get('total_silence_sec', '?')}s | "
-              f"Pattern Breaks: {s.get('pattern_break_count', '?')}")
-        print(f"  Pressure: +{s.get('pressure_building_pct', '?')}% / "
-              f"-{s.get('pressure_releasing_pct', '?')}% / "
-              f"={s.get('pressure_sustaining_pct', '?')}%")
+        print(
+            f"  Attention: {s.get('mean_attention', '?')} | "
+            f"Pattern: {s.get('mean_pattern', '?')} | "
+            f"Silence: {s.get('total_silence_sec', '?')}s | "
+            f"Pattern Breaks: {s.get('pattern_break_count', '?')}"
+        )
+        print(
+            f"  Pressure: +{s.get('pressure_building_pct', '?')}% / "
+            f"-{s.get('pressure_releasing_pct', '?')}% / "
+            f"={s.get('pressure_sustaining_pct', '?')}%"
+        )
 
     if "harmony" in results:
         h = results["harmony"]
-        print(f"  Harmonic pull: {h.get('mean_harmonic_pull', '?')} | "
-              f"Tonal anchor: {h.get('mean_tonal_anchor', '?')} | "
-              f"Chroma motion: {h.get('mean_chroma_motion', '?')}")
+        print(
+            f"  Harmonic pull: {h.get('mean_harmonic_pull', '?')} | "
+            f"Tonal anchor: {h.get('mean_tonal_anchor', '?')} | "
+            f"Chroma motion: {h.get('mean_chroma_motion', '?')}"
+        )
 
     if "melody" in results:
         m = results["melody"]
-        print(f"  Foreground line: {m.get('mean_foreground_line', '?')} "
-              "(pitch-tracking support, not a vocal claim)")
+        print(
+            f"  Foreground line: {m.get('mean_foreground_line', '?')} "
+            "(pitch-tracking support, not a vocal claim)"
+        )
 
     if "overtone" in results:
         o = results["overtone"]
-        print(f"  Resonance evidence: fit {o.get('mean_overtone_fit', '?')} | "
-              f"upper-partial density {o.get('mean_overtone_density', '?')} | "
-              f"roughness evidence {o.get('mean_inharmonicity', '?')} cents")
+        print(
+            f"  Resonance evidence: fit {o.get('mean_overtone_fit', '?')} | "
+            f"upper-partial density {o.get('mean_overtone_density', '?')} | "
+            f"roughness evidence {o.get('mean_inharmonicity', '?')} cents"
+        )
 
     if "layers" in results:
         layers = results["layers"]
         cp = layers.get("carrier_pct", {})
-        print(f"  Layers: harmonic={cp.get('harmonic', '?')}% | "
-              f"percussive={cp.get('percussive', '?')}% | "
-              f"both={cp.get('both', '?')}% | "
-              f"neither={cp.get('neither', '?')}%")
+        print(
+            f"  Layers: harmonic={cp.get('harmonic', '?')}% | "
+            f"percussive={cp.get('percussive', '?')}% | "
+            f"both={cp.get('both', '?')}% | "
+            f"neither={cp.get('neither', '?')}%"
+        )
 
     print(f"\n  Analysis files: {output_dir}/")
     print(f"  Total time: {total_elapsed:.1f}s")
@@ -364,9 +395,7 @@ def cmd_fetch(args):
         print(f"[fetch] Fetching metadata from YouTube...")
         try:
             meta = get_youtube_metadata(args.url)
-            derived_artist, derived_title = derive_artist_title(
-                meta["title"], meta["uploader"]
-            )
+            derived_artist, derived_title = derive_artist_title(meta["title"], meta["uploader"])
             if not artist:
                 artist = derived_artist
             if not title:
@@ -405,26 +434,33 @@ def cmd_fetch(args):
     if args.analyze and not args.no_download:
         audio_path = audio_dir / f"{slug}.mp3"
         if audio_path.exists():
-            listen_args = type("args", (), {
-                "audio": str(audio_path),
-                "name": slug,
-                "analysis_dir": args.analysis_dir,
-                "skip": None,
-                "only": None,
-                "no_catalog": False,
-                "catalog_dir": None,
-                "hop_sec": args.hop_sec,
-            })()
+            listen_args = type(
+                "args",
+                (),
+                {
+                    "audio": str(audio_path),
+                    "name": slug,
+                    "analysis_dir": args.analysis_dir,
+                    "skip": None,
+                    "only": None,
+                    "no_catalog": False,
+                    "catalog_dir": None,
+                    "hop_sec": args.hop_sec,
+                },
+            )()
             cmd_listen(listen_args)
         else:
-            print(f"[fetch] Error: audio not found at {audio_path}; cannot run galdr analysis.", file=sys.stderr)
+            print(
+                f"[fetch] Error: audio not found at {audio_path}; cannot run galdr analysis.",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
     # Always print the slug at the end so users know what to pass to assemble
-    print(f"\n{'─'*50}")
+    print(f"\n{'─' * 50}")
     print(f"  Slug   : {slug}")
     print(f"  Next   : galdr assemble {slug} --template arc --mode full")
-    print(f"{'─'*50}\n")
+    print(f"{'─' * 50}\n")
 
 
 def cmd_assemble(args):
@@ -502,7 +538,10 @@ def cmd_frames(args):
         print(f"Error: --target must be > 0, got {args.target}", file=sys.stderr)
         sys.exit(1)
     if args.anchor_ratio < 0 or args.anchor_ratio > 1:
-        print(f"Error: --anchor-ratio must be between 0 and 1, got {args.anchor_ratio}", file=sys.stderr)
+        print(
+            f"Error: --anchor-ratio must be between 0 and 1, got {args.anchor_ratio}",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     analysis_dir = Path(args.analysis_dir)
@@ -538,8 +577,10 @@ def cmd_catalog(args):
         catalog.rebuild_from_files()
         print(f"\nCatalog rebuilt: {len(catalog.tracks)} tracks")
         for metric, stats in sorted(catalog.stats.items()):
-            print(f"  {metric}: mean={stats['mean']:.4f} std={stats['std']:.4f} "
-                  f"range=[{stats['min']:.4f}, {stats['max']:.4f}] n={stats['count']}")
+            print(
+                f"  {metric}: mean={stats['mean']:.4f} std={stats['std']:.4f} "
+                f"range=[{stats['min']:.4f}, {stats['max']:.4f}] n={stats['count']}"
+            )
     elif args.track:
         catalog.load()
         print(catalog.summary_card(args.track))
@@ -651,6 +692,7 @@ def cmd_doctor():
     print("-" * 60)
     target_cmd = _yt_dlp_base_cmd() + ["--list-impersonate-targets"]
     import subprocess
+
     try:
         result = subprocess.run(target_cmd, capture_output=True, text=True, timeout=15)
     except subprocess.TimeoutExpired:
@@ -663,7 +705,8 @@ def cmd_doctor():
         return
 
     lines = [
-        line for line in result.stdout.splitlines()
+        line
+        for line in result.stdout.splitlines()
         if line.strip()
         and not line.startswith("[info]")
         and not line.startswith("Client")
@@ -710,8 +753,7 @@ def cmd_update_deps():
         _print_yt_dlp_component_versions()
     else:
         print(
-            "yt-dlp update failed — run: "
-            f'python -m pip install --upgrade "{YT_DLP_UPGRADE_SPEC}"',
+            f'yt-dlp update failed — run: python -m pip install --upgrade "{YT_DLP_UPGRADE_SPEC}"',
             file=sys.stderr,
         )
         sys.exit(1)
@@ -721,6 +763,7 @@ def main():
     _ensure_cache_dirs()
 
     import importlib.metadata
+
     try:
         _version = importlib.metadata.version("galdr")
     except importlib.metadata.PackageNotFoundError:
@@ -748,7 +791,9 @@ def main():
     listen_parser.add_argument("--skip", help="Comma-separated modules to skip")
     listen_parser.add_argument("--only", help="Comma-separated modules to run (overrides skip)")
     listen_parser.add_argument("--no-catalog", action="store_true", help="Skip catalog indexing")
-    listen_parser.add_argument("--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)")
+    listen_parser.add_argument(
+        "--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)"
+    )
     listen_parser.add_argument(
         "--hop-sec",
         type=float,
@@ -779,25 +824,49 @@ def main():
 
     # fetch
     fetch_parser = subparsers.add_parser("fetch", help="Download audio + context for a track")
-    fetch_parser.add_argument("url", nargs="?", help="YouTube URL (omit if audio already downloaded)")
-    fetch_parser.add_argument("--name", default=None, help="Track slug (auto-derived from YouTube title if omitted)")
-    fetch_parser.add_argument("--artist", default=None, help="Artist name for Wikipedia lookup (auto-derived if omitted)")
-    fetch_parser.add_argument("--title", default=None, help="Song title for Wikipedia lookup (auto-derived if omitted)")
-    fetch_parser.add_argument("--audio-dir", default="audio", help="Directory for audio files (default: audio)")
-    fetch_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory root (default: analysis)")
-    fetch_parser.add_argument("--analyze", action="store_true", help="Run galdr listen after download")
+    fetch_parser.add_argument(
+        "url", nargs="?", help="YouTube URL (omit if audio already downloaded)"
+    )
+    fetch_parser.add_argument(
+        "--name", default=None, help="Track slug (auto-derived from YouTube title if omitted)"
+    )
+    fetch_parser.add_argument(
+        "--artist", default=None, help="Artist name for Wikipedia lookup (auto-derived if omitted)"
+    )
+    fetch_parser.add_argument(
+        "--title", default=None, help="Song title for Wikipedia lookup (auto-derived if omitted)"
+    )
+    fetch_parser.add_argument(
+        "--audio-dir", default="audio", help="Directory for audio files (default: audio)"
+    )
+    fetch_parser.add_argument(
+        "--analysis-dir", default="analysis", help="Analysis directory root (default: analysis)"
+    )
+    fetch_parser.add_argument(
+        "--analyze", action="store_true", help="Run galdr listen after download"
+    )
     fetch_parser.add_argument(
         "--hop-sec",
         type=float,
         default=0.5,
         help="Perception stream sample interval when using --analyze (default: 0.5)",
     )
-    fetch_parser.add_argument("--no-download", action="store_true", help="Skip audio download (context only)")
+    fetch_parser.add_argument(
+        "--no-download", action="store_true", help="Skip audio download (context only)"
+    )
     fetch_parser.add_argument("--no-wikipedia", action="store_true", help="Skip Wikipedia fetch")
     fetch_parser.add_argument("--no-lyrics", action="store_true", help="Skip lyrics/captions")
-    fetch_parser.add_argument("--wiki-artist", help="Exact Wikipedia article title for artist (overrides auto-lookup)")
-    fetch_parser.add_argument("--wiki-song", help="Exact Wikipedia article title for song (overrides auto-lookup)")
-    fetch_parser.add_argument("--censor", action="store_true", help="Sanitize explicit lyrics before saving (avoids content filter errors)")
+    fetch_parser.add_argument(
+        "--wiki-artist", help="Exact Wikipedia article title for artist (overrides auto-lookup)"
+    )
+    fetch_parser.add_argument(
+        "--wiki-song", help="Exact Wikipedia article title for song (overrides auto-lookup)"
+    )
+    fetch_parser.add_argument(
+        "--censor",
+        action="store_true",
+        help="Sanitize explicit lyrics before saving (avoids content filter errors)",
+    )
 
     # assemble
     assemble_parser = subparsers.add_parser(
@@ -817,7 +886,7 @@ Templates prepend instruction rules to the data block:
   none     Data block only — add your own instructions (DEFAULT)
   arc      Listening experience template (body, attention, time — first sound to last)
   first    Alias for arc
-  arc-family Shared ARC prompt-family base, usually paired with --lens
+  arc-family ARC lens router; some lenses share a read-along base and others are standalone
   inner-ear Provider-neutral discovery prompt for an audio-capable model
 
 Prompt-family lenses:
@@ -838,21 +907,46 @@ Examples:
   galdr assemble 7-helvegen --mode blind > blind.md && galdr assemble 7-helvegen > full.md
   galdr assemble 7-helvegen --template inner-ear > inner-ear-prompt.md
   galdr assemble 7-helvegen --template arc --witness-packet inner-ear.json
+  galdr assemble 7-helvegen --template arc --witness-packet hearing-stream.json
 """,
     )
     assemble_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
-    assemble_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory (default: analysis)")
-    assemble_parser.add_argument("--mode", default="full", choices=["full", "lyrics", "context", "blind"],
-                                  help="What context to include (default: full)")
-    assemble_parser.add_argument("--template", default="none",
-                                  help="Instructions to prepend: none, arc, first, arc-family, arc-* lens alias, or a file path (default: none)")
-    assemble_parser.add_argument("--lens", choices=["default", "sound", "dance", "structure", "meaning", "lyrics-study", "classical", "ritual"],
-                                  help="Prompt-family lens to append; implies arc-family when --template is omitted")
+    assemble_parser.add_argument(
+        "--analysis-dir", default="analysis", help="Analysis directory (default: analysis)"
+    )
+    assemble_parser.add_argument(
+        "--mode",
+        default="full",
+        choices=["full", "lyrics", "context", "blind"],
+        help="What context to include (default: full)",
+    )
+    assemble_parser.add_argument(
+        "--template",
+        default="none",
+        help="Instructions to prepend: none, arc, first, arc-family, arc-* lens alias, or a file path (default: none)",
+    )
+    assemble_parser.add_argument(
+        "--lens",
+        choices=[
+            "default",
+            "sound",
+            "dance",
+            "structure",
+            "meaning",
+            "lyrics-study",
+            "classical",
+            "ritual",
+        ],
+        help="ARC reading contract to select; implies arc-family routing when --template is omitted",
+    )
     assemble_parser.add_argument("--output", "-o", help="Write prompt to file instead of stdout")
-    assemble_parser.add_argument("--witness-packet", help="Include a model-produced witness packet JSON as bounded evidence")
+    assemble_parser.add_argument(
+        "--witness-packet",
+        help="Include optional model witness JSON (inner-ear packet or hearing stream) as bounded evidence",
+    )
     assemble_parser.add_argument(
         "--provenance-output",
-        help="Write Galdr version and optional Inner Ear model provenance as JSON",
+        help="Write Galdr version and optional witness model provenance as JSON",
     )
 
     # packet
@@ -871,7 +965,9 @@ Examples:
 """,
     )
     packet_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
-    packet_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory (default: analysis)")
+    packet_parser.add_argument(
+        "--analysis-dir", default="analysis", help="Analysis directory (default: analysis)"
+    )
     packet_parser.add_argument("--output", "-o", help="Write packet JSON to file instead of stdout")
 
     # frames
@@ -899,16 +995,24 @@ Examples:
     frames_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
     frames_parser.add_argument("--url", help="YouTube URL to download video from")
     frames_parser.add_argument("--video", help="Explicit path to video file")
-    frames_parser.add_argument("--video-dir", default=None,
-                                help="Directory to search/save video files (default: video/)")
-    frames_parser.add_argument("--analysis-dir", default="analysis",
-                                help="Analysis directory root (default: analysis)")
-    frames_parser.add_argument("--target", type=int, default=12,
-                                help="Total number of frames to select (default: 12)")
-    frames_parser.add_argument("--anchor-ratio", type=float, default=0.6,
-                                help="Fraction of frames from structural events (default: 0.6)")
-    frames_parser.add_argument("--dry-run", action="store_true",
-                                help="Show frame plan without extracting frames")
+    frames_parser.add_argument(
+        "--video-dir", default=None, help="Directory to search/save video files (default: video/)"
+    )
+    frames_parser.add_argument(
+        "--analysis-dir", default="analysis", help="Analysis directory root (default: analysis)"
+    )
+    frames_parser.add_argument(
+        "--target", type=int, default=12, help="Total number of frames to select (default: 12)"
+    )
+    frames_parser.add_argument(
+        "--anchor-ratio",
+        type=float,
+        default=0.6,
+        help="Fraction of frames from structural events (default: 0.6)",
+    )
+    frames_parser.add_argument(
+        "--dry-run", action="store_true", help="Show frame plan without extracting frames"
+    )
 
     # update-deps
     subparsers.add_parser(
@@ -923,10 +1027,16 @@ Examples:
     )
 
     # catalog
-    catalog_parser = subparsers.add_parser("catalog", help="Local analysis index (operator tooling)")
-    catalog_parser.add_argument("--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)")
+    catalog_parser = subparsers.add_parser(
+        "catalog", help="Local analysis index (operator tooling)"
+    )
+    catalog_parser.add_argument(
+        "--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)"
+    )
     catalog_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory")
-    catalog_parser.add_argument("--rebuild", action="store_true", help="Rebuild from analysis files")
+    catalog_parser.add_argument(
+        "--rebuild", action="store_true", help="Rebuild from analysis files"
+    )
     catalog_parser.add_argument("--track", help="Show summary card for a specific track")
 
     args = parser.parse_args()
