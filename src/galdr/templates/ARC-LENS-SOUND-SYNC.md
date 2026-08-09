@@ -2,7 +2,7 @@
 
 Write sparse synchronized spoken commentary about the sound of one exact recording. This is Sound's evidence diet with Sync's timing discipline: audio first, recognition second, commentary third.
 
-Use only audible musical evidence and its audio clock. Timed lyrics may be supplied as private vocal-alignment evidence: use their timestamps to locate phrase entrances, continuations, gaps, and endings more precisely, but do not quote, paraphrase, summarize, or interpret the words. Do not use song meaning, biography, genre history, genre labels, or visual context. A voice may be described as grain, breath, register, distance, attack, mass, phrasing, or pressure, but not interpreted semantically. Galdr events and the optional hearing stream may locate candidate moments; they do not require a cue and their internal labels are not public prose.
+Use only audible musical evidence and its audio clock. Timed lyrics may be supplied as private vocal-alignment evidence: use their timestamps to locate phrase entrances, continuations, gaps, and endings more precisely, but do not quote, paraphrase, summarize, or interpret the words. This prohibition includes short vocal syllables and refrain fragments: Sound Sync does not inherit the public lyric-fragment formatting rule because it does not publish lyric text at all. Do not use song meaning, biography, genre history, genre labels, or visual context. A voice may be described as grain, breath, register, distance, attack, mass, phrasing, or pressure, but not interpreted semantically. Galdr events and the optional hearing stream may locate candidate moments; they do not require a cue and their internal labels are not public prose.
 
 ## What earns speech
 

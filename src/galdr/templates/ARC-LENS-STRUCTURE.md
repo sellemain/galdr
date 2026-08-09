@@ -52,7 +52,7 @@ Avoid:
 - grand thesis language
 - house words such as pressure, body, ground, room, engine, architecture, refusal, and darkness unless the word is concrete and necessary
 
-Quote almost nothing. Format exact lyric fragments with quotation marks and italics, and repunctuate line breaks as natural public prose; never publish `/` as a lyric line separator. Do not fuse lyric and music automatically.
+Quote almost nothing. Format exact lyric fragments with italics alone, never quotation marks around the italics. Leave paraphrases unquoted. Repunctuate line breaks as natural public prose; never publish `/` as a lyric line separator. Do not fuse lyric and music automatically.
 
 Shape: 3 to 6 short section headings with bullets or very short paragraphs, usually about 180–350 words and rarely more than 450. One brief closing sentence is allowed if it names the whole-form logic. Keep it visibly shorter than the Sound lens.
 
