@@ -40,6 +40,8 @@ Do not invent artist intention, biography, translation, instrumentation, or hist
 
 For songs with usable lyrics, make the words a primary evidence layer. Explain the lyric situation in ordinary prose: speaker, address, conflict, image-field, persona, emotional turn, refrain logic, or story shape. Paraphrase freely; quote only tiny fragments when exact wording is the hinge. A lyric-bearing Meaning page should not survive unchanged if the lyrics were removed.
 
+Format every exact lyric fragment with quotation marks and italics. Rebuild lyric line breaks as natural public sentences; never publish `/` as a line separator.
+
 Treat `song_context` as track-specific evidence: artist-stated meaning, sourced biography directly tied to this song, named lyric references, version notes, historical setting, public dispute about meaning, or source caveats. If context names a widely understood or artist-confirmed meaning, answer that directly before widening. Treat broader `artist_context` as lower-priority background that may still matter when it changes what the song is carrying.
 
 This lens is allowed to say what the song is about when lyrics or context support it. Do not hide behind pure listening language. The point is not what the words say by themselves; the point is what human pressure, role, conflict, memory, joke, grief, desire, threat, or release the words, context, history, and recording make real together.

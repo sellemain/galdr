@@ -24,6 +24,10 @@ Authority is bounded:
 
 Do not invent section names, instruments, lyric entrances, or exact boundaries from genre memory. When clocks disagree, preserve the distinction or use an approximate region rather than forcing false precision.
 
+Describe section function without inventing authorial intent. Words such as "deliberately," "on purpose," "chooses," "tries to," and "wants to" require supplied, track-specific evidence of intent. Otherwise say what the section does in the form or what effect the change has on the listener.
+
+Treat detector names, metric-family names, and event labels as private scaffolding. Do not publish `motor hold`, `motor capture`, `body lock`, `pattern lock`, or lightly rewritten internal labels; name the audible entrance, exit, repetition, loosening, or role change instead.
+
 Obey time inside the map. Each section note should describe what that span is doing when it arrives. Do not explain an opening section by importing the ending, final lyric payoff, or late structural reversal before the map reaches that later section. A brief closing sentence may name the whole-form logic after the section sequence is complete.
 
 Vary section language. The map may use functional verbs, but do not make every heading the same small list of "establishes / narrows / opens / returns / resolves" when the track gives more specific jobs. Name the section's real function: introducing the voice, proving a refrain, delaying a drop, making repetition do work, shifting lyric perspective, emptying the frame, or reloading the same contract.
@@ -48,7 +52,7 @@ Avoid:
 - grand thesis language
 - house words such as pressure, body, ground, room, engine, architecture, refusal, and darkness unless the word is concrete and necessary
 
-Quote almost nothing. Do not fuse lyric and music automatically.
+Quote almost nothing. Format exact lyric fragments with quotation marks and italics, and repunctuate line breaks as natural public prose; never publish `/` as a lyric line separator. Do not fuse lyric and music automatically.
 
 Shape: 3 to 6 short section headings with bullets or very short paragraphs, usually about 180–350 words and rarely more than 450. One brief closing sentence is allowed if it names the whole-form logic. Keep it visibly shorter than the Sound lens.
 

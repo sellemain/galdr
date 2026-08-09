@@ -73,13 +73,14 @@ For the newer ARC prompt-family shape, select a lens:
 ```bash
 galdr assemble my-track --template arc-family --lens default --mode full > prompt.txt
 galdr assemble rhythm-track --template arc-family --lens sound --mode blind > sound-shape.txt
+galdr assemble rhythm-track --lens sound-sync --mode lyrics > sound-sync.json
 galdr assemble club-track --template arc-family --lens dance --mode blind > dance-reading.txt
 galdr assemble lyric-track --template arc-family --lens meaning --mode full > meaning-reading.txt
 galdr assemble long-form-piece --template arc-family --lens classical --mode blind > prompt.txt
 galdr assemble ritual-track --template arc-family --lens ritual --mode full > ritual-reading.txt
 ```
 
-Available lenses are `default`, `sound`, `dance`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual`. If `--lens` is supplied without `--template`, galdr uses `arc-family`.
+Available lenses are `default`, `sound`, `sound-sync`, `dance`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual`. `sound-sync` uses sound evidence to draft sparse synchronized cue JSON; use it with `--mode lyrics` so lyric timestamps can sharpen vocal alignment without allowing the words into public cues. If `--lens` is supplied without `--template`, galdr uses `arc-family`.
 
 For a 5-minute track, `fetch --analyze` takes 60–90 seconds.
 

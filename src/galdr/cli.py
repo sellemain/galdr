@@ -892,6 +892,7 @@ Templates prepend instruction rules to the data block:
 Prompt-family lenses:
   default       Public lyric/pop/general listening page
   sound         Sound-as-shape page: pressure, density, space, body, motion
+  sound-sync    Sparse timed sound commentary; use --mode lyrics for vocal alignment
   dance         Movement contract: groove, build/drop, repetition, bodily use
   structure     Compact audit/debug witness
   meaning       Human situation carried by sound
@@ -930,6 +931,7 @@ Examples:
         choices=[
             "default",
             "sound",
+            "sound-sync",
             "dance",
             "structure",
             "meaning",

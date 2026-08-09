@@ -15,9 +15,11 @@ Before drafting, build a private ritual grammar:
 - exit: release, return, abandonment, exhaustion, re-entry, or a refusal to return
 - counter-reading: the strongest reason this may instead be atmosphere, theater, genre styling, repetition, or ordinary song form
 
-When the rite contains distinct invocations, charms, trials, vows, responses, stations, or other named operations, map each one privately before deciding what the public reading needs. Preserve the differences that change the danger, requested action, participant's role, or cumulative meaning. Do not collapse an enacted sequence into a list of subjects. The ritual lens may be longer than the default reading when following the operations is the only honest way to explain what the rite does.
+Before drafting, make one private qualification sentence: the participant enters as a particular role, repeatedly performs or undergoes a particular operation, and leaves in a changed condition. If the supplied evidence cannot support that sentence, the full Ritual lens is not earned.
 
-Shape: usually about 250–500 words. A real multi-operation rite may exceed that when shortening it would erase distinct actions or transformations; atmosphere wearing ritual clothing should be shorter, not longer.
+When the rite contains several invocations, charms, trials, vows, responses, stations, or other named operations, map them privately before deciding what the public reading needs. Group operations that perform the same public function. Separate them only when the requested action, danger, participant's role, or transformation materially changes. The public reading is not a ritual manual or a catalogue of every station.
+
+Shape: usually about 250–450 words. A genuinely changed role or transformation may earn more; atmosphere wearing ritual clothing should be shorter, not longer.
 
 For every operation retained in the public reading, connect three things: the danger or condition being named, the action the operation performs, and the audible mechanism by which the recording admits, enacts, clears, or resets it. A translated sequence is not yet a ritual reading. Keep the recurring musical procedure and the listener's accumulating role alive throughout the sequence.
 
@@ -35,7 +37,7 @@ Keep faith with the evidence. Distinguish:
 
 Do not default to ritual language because the track has drums, drones, folk instruments, non-English vocals, or dark texture. Ritual means true enacted meaning, not genre smell.
 
-Do not retell the entire sound arc in ceremonial vocabulary. The default reading follows how the recording travels; Ritual follows how the procedure is performed. A public Ritual reading should select the mechanics that establish role, operation, transformation, and exit. When repeated operations are materially different, follow those differences closely and explain what each operation names, asks, clears, binds, releases, or changes. Omit musical events that merely repeat the default reading, but do not omit distinct ritual acts merely because they share one musical frame. If the draft could be relabeled as a default listening experience without losing its argument, it has not yet earned the ritual lens.
+Do not retell the entire sound arc in ceremonial vocabulary. The default reading follows how the recording travels; Ritual follows how the procedure is performed. Meaning can say what the song signifies; Ritual must show what the participant repeatedly does or undergoes. Select only the mechanics that establish role, operation, transformation, and exit. Omit musical events and ritual stations that do not materially change that procedure. If the draft could be relabeled as a default listening experience or a Meaning reading without losing its argument, it has not yet earned the ritual lens.
 
 Build the structured private reading in your reasoning, following threshold, role, operation, transformation, exit, and counter-reading. Do not print that private pass.
 

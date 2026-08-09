@@ -63,6 +63,7 @@ BUNDLED_TEMPLATES = {
 ARC_LENS_TEMPLATES = {
     "default": "ARC-LENS-DEFAULT.md",
     "sound": "ARC-LENS-SOUND.md",
+    "sound-sync": "ARC-LENS-SOUND-SYNC.md",
     "dance": "ARC-LENS-DANCE.md",
     "structure": "ARC-LENS-STRUCTURE.md",
     "meaning": "ARC-LENS-MEANING.md",
@@ -73,6 +74,7 @@ ARC_LENS_TEMPLATES = {
 ARC_LENS_ALIASES = {
     "arc-default": "default",
     "arc-sound": "sound",
+    "arc-sound-sync": "sound-sync",
     "arc-dance": "dance",
     "arc-structure": "structure",
     "arc-meaning": "meaning",
@@ -84,7 +86,7 @@ ARC_LENS_ALIASES = {
 # These lenses are complete prompt contracts rather than variants of the
 # chronological read-along family. Prepending ARC-FAMILY-BASE would make them
 # spend instructions undoing chronology, prose-shape, and output-format rules.
-STANDALONE_ARC_LENSES = {"meaning", "structure"}
+STANDALONE_ARC_LENSES = {"meaning", "structure", "sound-sync"}
 
 
 def _read_bundled_template(filename: str) -> str | None:
@@ -1398,7 +1400,7 @@ def assemble_prompt(
         mode:     "full" | "lyrics" | "context" | "blind" (default: "full")
         template: "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir: optional path to docs/ directory for local template overrides
-        lens:     optional prompt-family lens: default, sound, dance, structure, meaning, lyrics-study, classical, ritual
+        lens:     optional prompt-family lens: default, sound, sound-sync, dance, structure, meaning, lyrics-study, classical, ritual
         witness_packet: optional model-produced listening evidence; Galdr remains the
                         timing and structure authority
 
@@ -1474,7 +1476,7 @@ def assemble_prompt_from_disk(
         mode:         "full" | "lyrics" | "context" | "blind" (default: "full")
         template:     "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir:     optional path to docs/ for local template overrides
-        lens:         optional prompt-family lens: default, sound, dance, structure, meaning, lyrics-study, classical, ritual
+        lens:         optional prompt-family lens: default, sound, sound-sync, dance, structure, meaning, lyrics-study, classical, ritual
 
     Returns:
         Complete prompt string ready to send to a model.
