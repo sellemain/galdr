@@ -108,7 +108,9 @@ def test_family_public_hygiene_carries_quote_metric_and_intent_guards():
     prompt = assemble_prompt(minimal_analysis(), mode="blind", lens="default")
 
     assert "never publish `/` as a lyric line separator" in prompt
-    assert "format every exact lyric quotation with quotation marks and italics" in prompt
+    assert "format every exact lyric fragment with italics alone" in prompt
+    assert "do not wrap italic lyric fragments in quotation marks" in prompt
+    assert "leave paraphrases in ordinary unquoted prose" in prompt
     assert "Treat detector names, metric-family names, and event labels as private scaffolding" in prompt
     assert "`motor hold`" in prompt
     assert "without inventing intention" in prompt
@@ -135,5 +137,6 @@ def test_standalone_structure_carries_intent_metric_and_quote_guards():
 def test_standalone_meaning_carries_public_quote_formatting():
     prompt = assemble_prompt(minimal_analysis(), mode="blind", lens="meaning")
 
-    assert "Format every exact lyric fragment with quotation marks and italics" in prompt
+    assert "Format every exact lyric fragment with italics alone" in prompt
+    assert "Leave paraphrases unquoted" in prompt
     assert "never publish `/` as a line separator" in prompt

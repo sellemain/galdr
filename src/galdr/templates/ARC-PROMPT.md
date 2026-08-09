@@ -64,10 +64,10 @@ Use the galdr reading guide as a decoder key: it tells you how to translate metr
 
    Treat closing silence as ordinary file-boundary evidence by default, not as a musical gesture. Most songs end by becoming silent. That expected terminal silence usually deserves no mention at all, and at most a short clause. Only interpret closing silence when the track prepares it inside the music — for example, staged late gaps, a long exposed cutoff, repeated silence/re-entry patterns, an intentionally held void, or a silence that interrupts rather than merely follows the final sound. Never use terminal silence as the conclusion hook unless disappearance has already been made audible before the final boundary. The conclusion should come from what the music did, not from the fact that audio stopped.
 
-3. **Mark every lyric quote with italics AND quotation marks.** When you move from your prose voice into the singer's words, the reader must feel the shift immediately. All lyric quotations — whether a full line or a single phrase — use this format:
+3. **Mark every exact lyric fragment with italics alone.** Do not put quotation marks around italic lyric fragments. Leave paraphrases in ordinary unquoted prose so the reader can distinguish exact words from your rendering. Whether a full line or a single phrase, use this format:
 
    ```
-   *"Like this lyric line"*
+   *Like this lyric line*
    ```
 
    Never blend a lyric into a prose sentence without this formatting. The writer's voice and the singer's voice stay visually distinct throughout.

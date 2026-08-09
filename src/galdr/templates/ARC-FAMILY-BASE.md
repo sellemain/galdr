@@ -87,7 +87,8 @@ Write in the publication's public voice when one is supplied: evidence-bound, vi
 Unless the selected lens explicitly says otherwise:
 
 - quote lyrics sparingly; quote only tiny fragments when exact words are the hinge
-- format every exact lyric quotation with quotation marks and italics
+- format every exact lyric fragment with italics alone; do not wrap italic lyric fragments in quotation marks
+- leave paraphrases in ordinary unquoted prose so exact words and paraphrase remain visibly distinct
 - repunctuate lyric line breaks as natural public prose; never publish `/` as a lyric line separator
 - paraphrase lyric situation when exact wording is not needed
 - use timestamps only for major landmarks and only when they help the listener orient; the Default lens normally requires 2–4 for a 3–5 minute track
