@@ -10,6 +10,7 @@ Output structure (controlled by mode):
   [Galdr analysis]         <- metrics, events, melody        (all modes)
   [Lyrics]                 <- timed lyrics / captions         (full, lyrics)
   [Frame descriptions]     <- vision descriptions at events  (full, if present)
+  [Optional witness]       <- inner-ear packet or hearing stream (when provided)
 
 Modes:
   full     — everything available. Best default output. (DEFAULT)
@@ -38,7 +39,7 @@ from .boundary import derive_boundary_candidates
 from .metric_vocabulary import display_name, glossary_lines
 from .salience import synthesize_salience
 from .captions import dedup_captions_with_timestamps, parse_vtt
-from .witness import validate_witness_packet
+from .witness import HEARING_STREAM_SCHEMA, INNER_EAR_PACKET_SCHEMA, validate_witness_packet, witness_kind
 
 
 # ─── Mode definitions ─────────────────────────────────────────────────────────
@@ -79,6 +80,11 @@ ARC_LENS_ALIASES = {
     "arc-classical": "classical",
     "arc-ritual": "ritual",
 }
+
+# These lenses are complete prompt contracts rather than variants of the
+# chronological read-along family. Prepending ARC-FAMILY-BASE would make them
+# spend instructions undoing chronology, prose-shape, and output-format rules.
+STANDALONE_ARC_LENSES = {"meaning", "structure"}
 
 
 def _read_bundled_template(filename: str) -> str | None:
@@ -159,7 +165,7 @@ def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None =
 
 
 def _append_lens(base: str, lens: str, docs_dir: Path | None = None) -> str:
-    """Append a prompt-family lens to resolved base instructions."""
+    """Resolve a lens, appending the family base only when the lens uses it."""
     lens_text = None
     if docs_dir:
         local = docs_dir / f"arc-lens-{lens}.md"
@@ -169,6 +175,8 @@ def _append_lens(base: str, lens: str, docs_dir: Path | None = None) -> str:
         lens_text = _read_bundled_template(ARC_LENS_TEMPLATES[lens])
     if lens_text is None:
         raise ValueError(f"Lens template for '{lens}' not found")
+    if lens in STANDALONE_ARC_LENSES:
+        return f"{lens_text.strip()}\n"
     return f"{base.strip()}\n\n---\n\n{lens_text.strip()}\n"
 
 
@@ -1224,8 +1232,122 @@ def _build_frames(context: dict) -> str | None:
     return "\n".join(lines)
 
 
-def _build_witness_packet(packet: dict) -> str:
-    """Render a model-produced witness packet as explicitly bounded evidence."""
+def _voice_intensity(event: dict) -> str | None:
+    voice = event.get("voice")
+    if isinstance(voice, dict):
+        intensity = voice.get("intensity")
+        return str(intensity) if intensity is not None else None
+    if isinstance(voice, str) and voice.strip():
+        return voice.strip()
+    return None
+
+
+def _compact_hearing_events(events: list[dict], *, max_events: int = 24) -> list[dict]:
+    """Select a star subset from a dense hearing stream for Arc writing.
+
+    Keep open/close anchors and non-hold changes. Fill remaining budget with
+    evenly spaced continuity samples so the writer sees shape without a transcript.
+    """
+    if len(events) <= max_events:
+        return list(events)
+
+    ranked: list[tuple[int, int]] = []
+    prev_voice = None
+    for index, event in enumerate(events):
+        change = str(event.get("change") or "").strip().lower()
+        voice = _voice_intensity(event)
+        score = 0
+        if index == 0 or index == len(events) - 1:
+            score += 100
+        if change and change not in {"hold", "none"}:
+            score += 40
+        if voice and voice != prev_voice:
+            score += 25
+        if event.get("unsure"):
+            score += 5
+        ranked.append((score, index))
+        prev_voice = voice or prev_voice
+
+    # Always keep anchors.
+    chosen: set[int] = {0, len(events) - 1}
+
+    # Take strongest non-anchor events first.
+    for score, index in sorted(ranked, key=lambda row: (-row[0], row[1])):
+        if index in chosen:
+            continue
+        if score < 25 and len(chosen) >= max(8, max_events // 2):
+            continue
+        chosen.add(index)
+        if len(chosen) >= max_events:
+            break
+
+    # Fill gaps with evenly spaced continuity if still under budget.
+    if len(chosen) < max_events:
+        step = max(1, len(events) // max_events)
+        for index in range(0, len(events), step):
+            chosen.add(index)
+            if len(chosen) >= max_events:
+                break
+
+    return [events[i] for i in sorted(chosen)[:max_events]]
+
+
+def _format_hearing_event_line(event: dict) -> str:
+    t = float(event.get("t", 0.0))
+    now = str(event.get("now") or event.get("foreground") or "").strip()
+    voice = _voice_intensity(event) or "n/a"
+    density = event.get("density") or "n/a"
+    body = event.get("body")
+    change = event.get("change") or ""
+    parts = [f"t={t:.1f}s", f"voice={voice}", f"density={density}"]
+    if body:
+        parts.append(f"body={body}")
+    if change:
+        parts.append(f"change={change}")
+    return f"- {' | '.join(parts)} — {now}"
+
+
+def _build_hearing_stream_section(packet: dict) -> str:
+    events = packet.get("events") or []
+    selected = _compact_hearing_events(events)
+    lines = [
+        "## Optional hearing stream",
+        "",
+        "This is model-produced sensory evidence, not Galdr measurement.",
+        "It is a dense chronological hearing log. Do not publish it and do not paraphrase its grid into prose.",
+        "",
+        "Simultaneous-evidence reminder:",
+        "At any moment, words, music, and sound-as-heard are happening together.",
+        "These layers split that unity so you can inspect parts. Your job is to reunite the moment the current lens needs.",
+        "",
+        "Authority split:",
+        "- Prefer Galdr for timing, structure, pressure, returns, and silence.",
+        "- Prefer this stream for surface, voice body, local intensity, and support density color.",
+        "- Prefer lyrics/context only when the lens earns them.",
+        "- Star a few decisive simultaneous moments. Write the lens contract, not a transcript.",
+        "- Tone: alive grounded companion. Keep human temperature and care. No first-listen rapture, new-age haze, or mystic-guide voice. Do not flatten into dead inventory prose.",
+        "- Named Galdr language such as pulse, pocket, body lock, or suspended weight is allowed when true and useful. Keep the audible cause nearby; do not stack house terms as wallpaper.",
+        "- Vary attention across the page: voice, support or pulse, then a different musical feature. Let this track set the page's temperature.",
+        "- Lyrics: quote only when actively referring to the words. Prefer a short hinge line; do not stack stanzas or use quotes as atmosphere.",
+        "- Ending options: meaningful residue, a quick surprising cutoff, the last audible fact, or no closer. Do not default to a 'what it leaves' paragraph.",
+        "",
+        f"Stream provenance: model={packet.get('model') or 'unknown'}; "
+        f"prompt_version={packet.get('prompt_version') or 'unknown'}; "
+        f"overlay={packet.get('overlay') or 'none'}; "
+        f"events={len(events)}; shown={len(selected)}.",
+        "",
+        "Selected hearing moments:",
+    ]
+    lines.extend(_format_hearing_event_line(event) for event in selected)
+    if len(events) > len(selected):
+        lines.append("")
+        lines.append(
+            f"({len(events) - len(selected)} additional hold/continuity events omitted from the prompt.)"
+        )
+    return "\n".join(lines)
+
+
+def _build_inner_ear_packet_section(packet: dict) -> str:
     return "\n".join([
         "## Optional witness packet",
         "",
@@ -1234,10 +1356,24 @@ def _build_witness_packet(packet: dict) -> str:
         "and other directly heard surface detail; it must not silently override Galdr timing "
         "or structure.",
         "",
+        "Simultaneous-evidence reminder: words, music, and sound-as-heard are happening together. "
+        "Use this packet as one partial view, then write the reunited moment the lens needs.",
+        "",
         "```json",
         json.dumps(packet, indent=2, ensure_ascii=False),
         "```",
     ])
+
+
+def _build_witness_packet(packet: dict) -> str:
+    """Render optional model-produced witness evidence as bounded prompt material."""
+    kind = witness_kind(packet)
+    if kind == "hearing_stream" or packet.get("schema") == HEARING_STREAM_SCHEMA:
+        return _build_hearing_stream_section(packet)
+    if kind == "inner_ear_packet" or packet.get("schema") == INNER_EAR_PACKET_SCHEMA:
+        return _build_inner_ear_packet_section(packet)
+    # validate_witness_packet should prevent this path; keep a safe fallback.
+    return _build_inner_ear_packet_section(packet)
 
 
 # ─── Core assembly ────────────────────────────────────────────────────────────

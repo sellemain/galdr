@@ -22,4 +22,4 @@ Avoid reusable full-page architecture. The track still needs an opening, middle,
 
 Let the ending land from the final musical behavior, not from a generic moral.
 
-Shape: usually 4 to 7 paragraphs, no headings. This is a default, not a ceiling. Prefer the shortest complete walk that preserves the decisive musical and human turns, and expand when the recording's governing sequence would otherwise become a summary of the event instead of an experience of it.
+Shape: usually 4 to 7 paragraphs and about 400–650 words for a normal 3–5 minute song, no headings. Around 350 words is a soft floor, not a requirement to pad; longer tracks and genuinely eventful governing sequences may earn more. Prefer the shortest complete walk that preserves the decisive musical and human turns.

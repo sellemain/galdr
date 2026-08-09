@@ -1,6 +1,8 @@
 # Meaning Lens
 
-Write a meaning-first page: what this song leaves you with after you have heard it, while thinking about what you know about it.
+Write a compact public meaning page from supplied Galdr listening evidence, lyrics, and sourced context. Output only the page body. Do not mention prompts, models, packets, metrics, captions, transcripts, providers, evidence layers, or internal process.
+
+Listen through the whole recording before deciding what to say. Then write what the song leaves standing once sound, words, performance, and earned context have been considered together. This is a post-listen interpretation, not a chronological companion page.
 
 Meaning is not another Arc. It is the residue of the listen — the claim, situation, pressure, joke, grief, desire, threat, release, or worldview the song makes real — held together with whatever earned context belongs to this track: lyrics, performance, band/artist history, version notes, public reception, or sourced biography tied to the song.
 
@@ -14,6 +16,8 @@ Do **not** rebuild the listening journey beat by beat.
 
 Those jobs belong to Arc, Sound, Structure, and Sync. Meaning may mention a decisive musical or lyric fact as proof, but the spine of the page is the takeaway, not the timeline.
 
+Do not use headings or bullets in the public body. Do not include timestamps. Start with the human situation, claim, contradiction, image, role, or residue itself; do not preface it with review language.
+
 Prefer shapes like:
 - the human situation the song leaves standing
 - what the words and voice are doing to that situation
@@ -24,6 +28,15 @@ Prefer shapes like:
 Entry point can be a lyric image, a persona, a cultural fact, a contradiction, a joke, a ritual function, a title after the whole song, or the final emotional residue. Choose what the track earns. Do not default to chronological narration.
 
 ## Evidence
+
+Treat supplied evidence as bounded authority:
+
+- lyrics and reliable translations support claims about words, speaker, address, and argument
+- sourced song context supports history, intention, version, and public meaning claims
+- Galdr supports timing, structure, recurrence, tension, release, density, and ending behavior
+- hearing-stream evidence supports local voice, timbre, grain, room, density, and intensity, but is not biography or literal source identification
+
+Do not invent artist intention, biography, translation, instrumentation, or historical meaning. When evidence is uncertain or contested, scale the claim instead of exposing the evidence machinery.
 
 For songs with usable lyrics, make the words a primary evidence layer. Explain the lyric situation in ordinary prose: speaker, address, conflict, image-field, persona, emotional turn, refrain logic, or story shape. Paraphrase freely; quote only tiny fragments when exact wording is the hinge. A lyric-bearing Meaning page should not survive unchanged if the lyrics were removed.
 
@@ -53,3 +66,5 @@ Compact public interpretation, no headings. Usually 1 or 2 paragraphs around 100
 Name the decisive meaning claim, show the strongest lyric/context/history evidence, and use sound only as proof or complication. Use more space only when the song needs layered persona, cultural context, grief, politics, religion, sexuality, or a real musical contradiction of the words.
 
 Final check before return: if the draft could be mistaken for a short Arc page, rewrite it as residue and claim.
+
+Before returning, silently check that the page has one governing claim, that sound is evidence rather than a second tour, and that removing the lyrics or context would materially change a lyric/context-bearing reading.

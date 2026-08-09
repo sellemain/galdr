@@ -107,7 +107,7 @@ galdr assemble my-track --template arc-family --lens meaning --mode full | claud
 galdr assemble my-track --mode full
 ```
 
-The ARC prompt family shares one grounding contract and then applies a lens. Available lenses are `default`, `sound`, `dance`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual`. Use `arc` for the standard listening-experience prompt; use `arc-family` when you want a deliberate reading mode.
+The ARC prompt family routes to a deliberate reading contract. Read-along lenses share a grounding base where that posture fits; `meaning` and `structure` use standalone contracts so they do not inherit chronological prose rules that contradict their jobs. Available lenses are `default`, `sound`, `dance`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual`. Use `arc` for the standard listening-experience prompt; use `arc-family` when you want a deliberate reading mode.
 
 ## Analyze a local file
 

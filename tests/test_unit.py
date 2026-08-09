@@ -14,6 +14,7 @@ from galdr.arc import derive_arc_scales, derive_arc_spans, normalize_stream, sel
 class TestHzToNoteName:
     def setup_method(self):
         from galdr.melody import hz_to_note_name
+
         self.fn = hz_to_note_name
 
     def test_concert_a(self):
@@ -37,6 +38,7 @@ class TestHzToNoteName:
 
     def test_nan_returns_unknown(self):
         import numpy as np
+
         assert self.fn(float("nan")) == "?"
 
     def test_octave_relationship(self):
@@ -55,6 +57,7 @@ class TestHzToNoteName:
 class TestHzToCents:
     def setup_method(self):
         from galdr.overtone import hz_to_cents
+
         self.fn = hz_to_cents
 
     def test_unison_is_zero(self):
@@ -151,14 +154,78 @@ def test_normalize_stream_preserves_listener_state_rows():
 
 def test_derive_arc_spans_collapses_contiguous_states():
     stream = [
-        {"t": 0.0, "attention": 0.55, "pattern": 0.58, "pressure": 0.35, "body": 0.42, "weight": 0.28, "silence": 0.0},
-        {"t": 1.0, "attention": 0.60, "pattern": 0.62, "pressure": 0.30, "body": 0.50, "weight": 0.30, "silence": 0.0},
-        {"t": 2.0, "attention": 0.78, "pattern": 0.82, "pressure": 0.02, "body": 0.72, "weight": 0.34, "silence": 0.0},
-        {"t": 3.0, "attention": 0.80, "pattern": 0.84, "pressure": 0.00, "body": 0.75, "weight": 0.36, "silence": 0.0},
-        {"t": 4.0, "attention": 0.65, "pattern": 0.61, "pressure": -0.33, "body": 0.58, "weight": 0.39, "silence": 0.0},
-        {"t": 5.0, "attention": 0.59, "pattern": 0.55, "pressure": -0.28, "body": 0.54, "weight": 0.42, "silence": 0.0},
-        {"t": 6.0, "attention": 0.12, "pattern": 0.10, "pressure": 0.01, "body": 0.18, "weight": 0.22, "silence": 1.0},
-        {"t": 7.0, "attention": 0.10, "pattern": 0.08, "pressure": 0.00, "body": 0.16, "weight": 0.20, "silence": 1.0},
+        {
+            "t": 0.0,
+            "attention": 0.55,
+            "pattern": 0.58,
+            "pressure": 0.35,
+            "body": 0.42,
+            "weight": 0.28,
+            "silence": 0.0,
+        },
+        {
+            "t": 1.0,
+            "attention": 0.60,
+            "pattern": 0.62,
+            "pressure": 0.30,
+            "body": 0.50,
+            "weight": 0.30,
+            "silence": 0.0,
+        },
+        {
+            "t": 2.0,
+            "attention": 0.78,
+            "pattern": 0.82,
+            "pressure": 0.02,
+            "body": 0.72,
+            "weight": 0.34,
+            "silence": 0.0,
+        },
+        {
+            "t": 3.0,
+            "attention": 0.80,
+            "pattern": 0.84,
+            "pressure": 0.00,
+            "body": 0.75,
+            "weight": 0.36,
+            "silence": 0.0,
+        },
+        {
+            "t": 4.0,
+            "attention": 0.65,
+            "pattern": 0.61,
+            "pressure": -0.33,
+            "body": 0.58,
+            "weight": 0.39,
+            "silence": 0.0,
+        },
+        {
+            "t": 5.0,
+            "attention": 0.59,
+            "pattern": 0.55,
+            "pressure": -0.28,
+            "body": 0.54,
+            "weight": 0.42,
+            "silence": 0.0,
+        },
+        {
+            "t": 6.0,
+            "attention": 0.12,
+            "pattern": 0.10,
+            "pressure": 0.01,
+            "body": 0.18,
+            "weight": 0.22,
+            "silence": 1.0,
+        },
+        {
+            "t": 7.0,
+            "attention": 0.10,
+            "pattern": 0.08,
+            "pressure": 0.00,
+            "body": 0.16,
+            "weight": 0.20,
+            "silence": 1.0,
+        },
     ]
 
     spans = derive_arc_spans(stream)
@@ -168,7 +235,6 @@ def test_derive_arc_spans_collapses_contiguous_states():
     assert spans[0]["end"] == pytest.approx(1.0)
     assert spans[1]["mean_body"] == pytest.approx(0.735)
     assert spans[-1]["silence_ratio"] == pytest.approx(1.0)
-
 
 
 def test_arc_scale_coalescing_preserves_terminal_silence_boundary():
@@ -211,7 +277,16 @@ def test_arc_scales_preserve_detail_but_coalesce_shallow_chatter():
     stream = []
     pressures = [0.23, 0.0, -0.23, 0.0] * 10
     for i, pressure in enumerate(pressures):
-        stream.append({"t": float(i), "attention": 0.92, "pattern": 0.95, "pressure": pressure, "body": 0.58, "weight": 0.44})
+        stream.append(
+            {
+                "t": float(i),
+                "attention": 0.92,
+                "pattern": 0.95,
+                "pressure": pressure,
+                "body": 0.58,
+                "weight": 0.44,
+            }
+        )
 
     scales = derive_arc_scales(stream)
     selected, reason = select_arc_scale(scales)
@@ -225,9 +300,13 @@ def test_arc_scale_selector_keeps_real_high_contrast_detail():
     stream = []
     for i in range(20):
         if i % 2 == 0:
-            stream.append({"t": float(i), "attention": 0.95, "pattern": 0.92, "pressure": 0.85, "body": 0.70})
+            stream.append(
+                {"t": float(i), "attention": 0.95, "pattern": 0.92, "pressure": 0.85, "body": 0.70}
+            )
         else:
-            stream.append({"t": float(i), "attention": 0.30, "pattern": 0.40, "pressure": -0.85, "body": 0.20})
+            stream.append(
+                {"t": float(i), "attention": 0.30, "pattern": 0.40, "pressure": -0.85, "body": 0.20}
+            )
 
     scales = derive_arc_scales(stream)
     selected, reason = select_arc_scale(scales)
@@ -299,25 +378,85 @@ def test_arc_scale_selector_caps_extreme_detail_volume_to_standard():
 
 def test_arc_spans_mark_pressure_pivots_between_opposed_states():
     stream = [
-        {"t": 0.0, "attention": 0.82, "pattern": 0.78, "pressure": 0.50, "body": 0.66, "silence": 0.0},
-        {"t": 1.0, "attention": 0.80, "pattern": 0.76, "pressure": 0.46, "body": 0.64, "silence": 0.0},
-        {"t": 2.0, "attention": 0.76, "pattern": 0.72, "pressure": -0.42, "body": 0.58, "silence": 0.0},
-        {"t": 3.0, "attention": 0.74, "pattern": 0.70, "pressure": -0.38, "body": 0.54, "silence": 0.0},
-        {"t": 4.0, "attention": 0.78, "pattern": 0.74, "pressure": 0.37, "body": 0.62, "silence": 0.0},
-        {"t": 5.0, "attention": 0.81, "pattern": 0.77, "pressure": 0.41, "body": 0.65, "silence": 0.0},
+        {
+            "t": 0.0,
+            "attention": 0.82,
+            "pattern": 0.78,
+            "pressure": 0.50,
+            "body": 0.66,
+            "silence": 0.0,
+        },
+        {
+            "t": 1.0,
+            "attention": 0.80,
+            "pattern": 0.76,
+            "pressure": 0.46,
+            "body": 0.64,
+            "silence": 0.0,
+        },
+        {
+            "t": 2.0,
+            "attention": 0.76,
+            "pattern": 0.72,
+            "pressure": -0.42,
+            "body": 0.58,
+            "silence": 0.0,
+        },
+        {
+            "t": 3.0,
+            "attention": 0.74,
+            "pattern": 0.70,
+            "pressure": -0.38,
+            "body": 0.54,
+            "silence": 0.0,
+        },
+        {
+            "t": 4.0,
+            "attention": 0.78,
+            "pattern": 0.74,
+            "pressure": 0.37,
+            "body": 0.62,
+            "silence": 0.0,
+        },
+        {
+            "t": 5.0,
+            "attention": 0.81,
+            "pattern": 0.77,
+            "pressure": 0.41,
+            "body": 0.65,
+            "silence": 0.0,
+        },
     ]
 
     spans = derive_arc_spans(stream)
 
-    assert [span["label"] for span in spans] == ["building", "pressure_peak_release", "pressure_rebound"]
+    assert [span["label"] for span in spans] == [
+        "building",
+        "pressure_peak_release",
+        "pressure_rebound",
+    ]
     assert spans[1]["start"] == pytest.approx(2.0)
     assert spans[2]["start"] == pytest.approx(4.0)
 
 
 def test_arc_spans_do_not_mark_silence_as_pressure_pivot():
     stream = [
-        {"t": 0.0, "attention": 0.82, "pattern": 0.78, "pressure": 0.50, "body": 0.66, "silence": 0.0},
-        {"t": 1.0, "attention": 0.05, "pattern": 0.05, "pressure": -0.60, "body": 0.05, "silence": 1.0},
+        {
+            "t": 0.0,
+            "attention": 0.82,
+            "pattern": 0.78,
+            "pressure": 0.50,
+            "body": 0.66,
+            "silence": 0.0,
+        },
+        {
+            "t": 1.0,
+            "attention": 0.05,
+            "pattern": 0.05,
+            "pressure": -0.60,
+            "body": 0.05,
+            "silence": 1.0,
+        },
     ]
 
     spans = derive_arc_spans(stream, min_span_frames=1)
@@ -350,17 +489,24 @@ def test_arc_archetype_splits_plateau_subtypes():
     assert _arc_archetype(martial)[0] == "martial/motor command"
     assert _arc_archetype(narrative)[0] == "suspended narrative gravity"
 
+
 # ── assemble_prompt (pipeline) ───────────────────────────────────────
 
 
 class TestAssemblePrompt:
     def setup_method(self):
         from galdr.assemble import assemble_prompt
+
         self.fn = assemble_prompt
 
     def _minimal_analysis(self):
         return {
-            "report": {"duration_seconds": 200.0, "detected_pulse_bpm": 120.0, "felt_pulse_bpm": 120.0, "pulse": 0.96},
+            "report": {
+                "duration_seconds": 200.0,
+                "detected_pulse_bpm": 120.0,
+                "felt_pulse_bpm": 120.0,
+                "pulse": 0.96,
+            },
             "perception": {"summary": {"mean_attention": 0.85, "mean_pattern": 0.95}},
         }
 
@@ -383,11 +529,13 @@ class TestAssemblePrompt:
             "schema": "galdr.inner_ear_packet.v0",
             "literal_claim_allowed": False,
             "full_mix_first": True,
-            "hinges": [{
-                "time_sec": 12.5,
-                "claim": "a dry pulse enters",
-                "support_mode": "audio_only",
-            }],
+            "hinges": [
+                {
+                    "time_sec": 12.5,
+                    "claim": "a dry pulse enters",
+                    "support_mode": "audio_only",
+                }
+            ],
         }
         result = self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
         assert "## Optional witness packet" in result
@@ -404,39 +552,173 @@ class TestAssemblePrompt:
         with pytest.raises(ValueError, match="literal_claim_allowed"):
             self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
 
-    def test_assembly_provenance_without_witness_records_galdr_version(self):
-        from galdr import __version__
-        from galdr.witness import assembly_provenance
-
-        assert assembly_provenance() == {
-            "schema": "galdr.assembly_provenance.v1",
-            "galdr_version": __version__,
-        }
-
-    def test_assembly_provenance_records_inner_ear_model_when_used(self):
-        from galdr import __version__
-        from galdr.witness import assembly_provenance
-
+    def test_hearing_stream_witness_is_compacted_and_included(self):
+        events = []
+        for i in range(40):
+            intensity = "none" if i < 3 else ("soft" if i < 20 else "medium")
+            change = (
+                "enter"
+                if i == 0
+                else ("vocal enter" if i == 3 else ("intensity increase" if i == 20 else "hold"))
+            )
+            events.append(
+                {
+                    "t": float(i * 4),
+                    "now": f"moment {i}",
+                    "voice": {
+                        "present": intensity != "none",
+                        "intensity": intensity,
+                        "quality": [],
+                        "count": 0 if intensity == "none" else 1,
+                    },
+                    "body": "guitar",
+                    "density": "thin",
+                    "change": change,
+                    "confidence": "high",
+                }
+            )
         packet = {
-            "schema": "galdr.inner_ear_packet.v0",
+            "schema": "galdr.hearing_stream.v0",
             "literal_claim_allowed": False,
             "full_mix_first": True,
-            "witness": {
-                "kind": "model_audio",
-                "model": "google-ai-studio/gemini-3.1-flash-lite",
-            },
-            "hinges": [],
+            "model": "google-ai-studio/gemini-3.5-flash-lite",
+            "prompt_version": "hearing_stream.v0.5-general@2026-08-08",
+            "overlay": "general",
+            "track": "fixture-track",
+            "duration_hint_sec": 160.0,
+            "event_count": len(events),
+            "events": events,
         }
+        result = self.fn(
+            self._minimal_analysis(), mode="blind", template="arc", witness_packet=packet
+        )
+        assert "## Optional hearing stream" in result
+        assert "Do not publish it and do not paraphrase" in result
+        assert "words, music, and sound-as-heard are happening together" in result
+        assert "grounded companion" in result or "not a transcript" in result
+        assert "Named Galdr language" in result
+        assert "do not stack stanzas" in result
+        assert "Ending options" in result
+        assert "Do not automatically add a concluding paragraph" in result
+        assert "one to three short exact anchors" in result
+        assert "four exact quote spans and 35 quoted words" in result
+        assert "not proof that the entire surrounding minute is unchanged" in result
+        assert "Selected hearing moments:" in result
+        assert "t=0.0s" in result
+        # compact: should not dump every hold line count-for-count
+        assert sum(1 for line in result.splitlines() if " — moment " in line) <= 24
 
-        assert assembly_provenance(packet) == {
-            "schema": "galdr.assembly_provenance.v1",
-            "galdr_version": __version__,
-            "witness": {
-                "schema": "galdr.inner_ear_packet.v0",
-                "kind": "inner_ear_packet",
-                "model": "google-ai-studio/gemini-3.1-flash-lite",
-            },
+    def test_hearing_stream_requires_events(self):
+        packet = {
+            "schema": "galdr.hearing_stream.v0",
+            "literal_claim_allowed": False,
+            "full_mix_first": True,
+            "track": "fixture-track",
+            "model": "fixture-model",
+            "prompt_version": "fixture-prompt",
+            "duration_hint_sec": 10.0,
+            "event_count": 0,
+            "events": [],
         }
+        with pytest.raises(ValueError, match="events"):
+            self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
+
+    def test_hearing_stream_rejects_non_monotonic_events(self):
+        packet = {
+            "schema": "galdr.hearing_stream.v0",
+            "literal_claim_allowed": False,
+            "full_mix_first": True,
+            "track": "fixture-track",
+            "model": "fixture-model",
+            "prompt_version": "fixture-prompt",
+            "duration_hint_sec": 10.0,
+            "event_count": 2,
+            "events": [
+                {
+                    "t": 8.0,
+                    "now": "Piano phrase rises.",
+                    "voice": {"intensity": "none"},
+                    "density": "thin",
+                    "confidence": "high",
+                },
+                {
+                    "t": 4.0,
+                    "now": "Piano phrase falls.",
+                    "voice": {"intensity": "none"},
+                    "density": "thin",
+                    "confidence": "high",
+                },
+            ],
+        }
+        with pytest.raises(ValueError, match="monotonic"):
+            self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
+
+
+def test_assembly_provenance_without_witness_records_galdr_version():
+    from galdr import __version__
+    from galdr.witness import assembly_provenance
+
+    assert assembly_provenance() == {
+        "schema": "galdr.assembly_provenance.v1",
+        "galdr_version": __version__,
+    }
+
+
+def test_assembly_provenance_records_inner_ear_model_when_used():
+    from galdr import __version__
+    from galdr.witness import assembly_provenance
+
+    packet = {
+        "schema": "galdr.hearing_stream.v0",
+        "literal_claim_allowed": False,
+        "full_mix_first": True,
+        "model": "google-ai-studio/gemini-3.5-flash-lite",
+        "prompt_version": "hearing_stream.v0.5-general@2026-08-08",
+        "track": "fixture-track",
+        "duration_hint_sec": 10.0,
+        "event_count": 1,
+        "events": [
+            {
+                "t": 0.0,
+                "now": "A low drone enters.",
+                "voice": {"intensity": "none"},
+                "density": "thin",
+                "confidence": "high",
+            }
+        ],
+    }
+
+    assert assembly_provenance(packet) == {
+        "schema": "galdr.assembly_provenance.v1",
+        "galdr_version": __version__,
+        "witness": {
+            "schema": "galdr.hearing_stream.v0",
+            "kind": "hearing_stream",
+            "model": "google-ai-studio/gemini-3.5-flash-lite",
+            "prompt_version": "hearing_stream.v0.5-general@2026-08-08",
+        },
+    }
+
+
+def test_assembly_provenance_reads_sparse_inner_ear_witness_model():
+    from galdr.witness import assembly_provenance
+
+    packet = {
+        "schema": "galdr.inner_ear_packet.v0",
+        "literal_claim_allowed": False,
+        "full_mix_first": True,
+        "witness": {
+            "kind": "model_audio",
+            "model": "google-ai-studio/gemini-3.1-flash-lite",
+        },
+        "hinges": [],
+    }
+
+    assert assembly_provenance(packet)["witness"] == {
+        "schema": "galdr.inner_ear_packet.v0",
+        "kind": "inner_ear_packet",
+        "model": "google-ai-studio/gemini-3.1-flash-lite",
+    }
 
     def test_full_mode_longer_than_blind(self):
         analysis = self._minimal_analysis()
@@ -494,7 +776,10 @@ class TestAssemblePrompt:
             }
         }
         result = self.fn(analysis, context=context, mode="lyrics")
-        assert "## Lyrics — local VTT captions (coarse timing; text may contain transcription or alignment errors)" in result
+        assert (
+            "## Lyrics — local VTT captions (coarse timing; text may contain transcription or alignment errors)"
+            in result
+        )
         assert "Source: local VTT captions (/tmp/song.en.vtt)" in result
         assert "[0:01]  caption words" in result
         assert "## Lyrics — autocaptions" not in result
@@ -525,8 +810,14 @@ class TestAssemblePrompt:
             }
         }
         result = self.fn(analysis, context=context, mode="lyrics")
-        assert "## Lyrics — YouTube Music timed lyrics (provider line timing; verify central words)" in result
-        assert "Source: Genius (https://genius.example/song) + YouTube Music timed lyrics (Source: Musixmatch)" in result
+        assert (
+            "## Lyrics — YouTube Music timed lyrics (provider line timing; verify central words)"
+            in result
+        )
+        assert (
+            "Source: Genius (https://genius.example/song) + YouTube Music timed lyrics (Source: Musixmatch)"
+            in result
+        )
         assert "[0:10.65]  provider timed words" in result
         assert "## Lyrics — autocaptions" not in result
         assert "clean lyric text" in result
@@ -666,14 +957,25 @@ class TestAssemblePrompt:
     def test_stream_arc_structure_is_included_for_experience_prompt(self):
         stream = []
         for i in range(12):
-            stream.append({"t": i * 1.0, "attention": 0.90, "pattern": 0.95, "pressure": 0.50, "body": 0.70})
+            stream.append(
+                {"t": i * 1.0, "attention": 0.90, "pattern": 0.95, "pressure": 0.50, "body": 0.70}
+            )
         for i in range(12, 16):
-            stream.append({"t": i * 1.0, "attention": 0.82, "pattern": 0.88, "pressure": 0.72, "body": 0.68})
+            stream.append(
+                {"t": i * 1.0, "attention": 0.82, "pattern": 0.88, "pressure": 0.72, "body": 0.68}
+            )
         for i in range(16, 20):
-            stream.append({"t": i * 1.0, "attention": 0.70, "pattern": 0.72, "pressure": 0.22, "body": 0.50})
+            stream.append(
+                {"t": i * 1.0, "attention": 0.70, "pattern": 0.72, "pressure": 0.22, "body": 0.50}
+            )
 
         analysis = {
-            "report": {"duration_seconds": 20.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse": 0.8},
+            "report": {
+                "duration_seconds": 20.0,
+                "detected_pulse_bpm": 90.0,
+                "felt_pulse_bpm": 90.0,
+                "pulse": 0.8,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
                 "stream": stream,
@@ -695,10 +997,16 @@ class TestAssemblePrompt:
 
     def test_arc_prompt_protects_natural_vivid_major_turns(self):
         analysis = {
-            "report": {"duration_seconds": 240.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0},
+            "report": {
+                "duration_seconds": 240.0,
+                "detected_pulse_bpm": 90.0,
+                "felt_pulse_bpm": 90.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -707,7 +1015,10 @@ class TestAssemblePrompt:
         assert "Surface discipline is not a command to flatten" in prompt
         assert "Treat anti-pattern warnings as guardrails" in prompt
         assert "sound natural, specific, and alive" in prompt
-        assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
+        assert (
+            "Write from the listening, not from the role of an agent completing an assignment"
+            in prompt
+        )
         assert "not like proof of work" in prompt
         assert "Listen as a person who actually lives with music" in prompt
         assert "not like a system describing a track" in prompt
@@ -727,7 +1038,7 @@ class TestAssemblePrompt:
         assert "Do **not** timestamp every event" in prompt
         assert "Obey time" in prompt
         assert "use only what the listener has heard up to that point" in prompt
-        assert "The final concluding paragraph may summarize the whole experience" in prompt
+        assert "A concluding paragraph is optional" in prompt
         assert "Do not attach a quoted lyric to a specific metric event or timestamp" in prompt
         assert "audio-state timestamp pretend to be a lyric start" in prompt
         assert "first sustained arrival" in prompt
@@ -745,15 +1056,22 @@ class TestAssemblePrompt:
         assert "not as a claimed second-by-second alignment" in prompt
         assert "galdr assemble <slug>" not in prompt
         assert "Pipe the output to any model" not in prompt
-        assert "~150 words per minute" in prompt
-        assert "900-1,300" in prompt
+        assert "Length belongs to the lens" in prompt
+        assert "90–125 words per minute" in prompt
+        assert "400–650 words" in prompt
 
     def test_arc_family_default_lens_renders_base_and_lens(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -773,7 +1091,10 @@ class TestAssemblePrompt:
         assert "Do not compress the song's governing sequence" in prompt
         assert "A list of names is not coverage" in prompt
         assert "This is a default, not a ceiling" in prompt
-        assert "Write from the listening, not from the role of an agent completing an assignment" in prompt
+        assert (
+            "Write from the listening, not from the role of an agent completing an assignment"
+            in prompt
+        )
         assert "not like proof of work" in prompt
         assert "Listen as a person who actually lives with music" in prompt
         assert "not like a system describing a track" in prompt
@@ -795,16 +1116,22 @@ class TestAssemblePrompt:
 
     def test_arc_family_lens_implies_template_when_omitted(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
         prompt = self.fn(analysis, mode="blind", lens="structure")
 
-        assert "ARC Prompt Family Base" in prompt
+        assert "ARC Prompt Family Base" not in prompt
         assert "Structure Lens" in prompt
         assert "compact track anatomy" in prompt
         assert "privately reconcile every available timing surface" in prompt
@@ -820,17 +1147,29 @@ class TestAssemblePrompt:
         assert "Vary section language" in prompt
         assert "section boundaries and section jobs" in prompt
         assert "not another sound essay" in prompt
-        assert "treating a broad middle span as one section unless the evidence says it really is one sustained formal job" in prompt
+        assert (
+            "treating a broad middle span as one section unless the evidence says it really is one sustained formal job"
+            in prompt
+        )
         assert "3 to 6 short section headings" in prompt
         assert "visibly shorter than the Sound lens" in prompt
         assert "companion stance here becomes orientation rather than live chatter" in prompt
+        assert "Headings and bullets are explicitly allowed here" in prompt
+        assert "hearing-stream evidence may confirm an entrance" in prompt
+        assert "do not use headings or bullets" not in prompt
 
     def test_arc_family_sound_lens_renders_shape_first_instructions(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -839,7 +1178,7 @@ class TestAssemblePrompt:
         assert "ARC Prompt Family Base" in prompt
         assert "Sound Lens" in prompt
         assert "moving physical shape" in prompt
-        assert "watching the waveform become architecture" in prompt
+        assert "Architecture is one possible metaphor" in prompt
         assert "use them only when they clarify a heard event" in prompt
         assert "Do not use later arrivals" in prompt
         assert "Do not turn the sound walk into a repeated timestamp layout" in prompt
@@ -850,10 +1189,16 @@ class TestAssemblePrompt:
 
     def test_arc_family_dance_lens_renders_movement_contract_instructions(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 128.0, "felt_pulse_bpm": 128.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 128.0,
+                "felt_pulse_bpm": 128.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -875,38 +1220,48 @@ class TestAssemblePrompt:
 
     def test_arc_family_meaning_lens_renders_human_situation_instructions(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
         prompt = self.fn(analysis, mode="full", lens="meaning")
 
-        assert "ARC Prompt Family Base" in prompt
+        assert "ARC Prompt Family Base" not in prompt
         assert "Meaning Lens" in prompt
-        assert "what the song is saying" in prompt
         assert "what the song is about" in prompt
         assert "make the words a primary evidence layer" in prompt
         assert "This lens is allowed to say what the song is about" in prompt
-        assert "Sound is the proof and complication layer" in prompt
-        assert "This lens is allowed to be retrospective" in prompt
-        assert "It may summarize the whole track" in prompt
-        assert "Do not make every Meaning page use the same mini-essay order" in prompt
-        assert "Usually write 1 or 2 paragraphs around 100-180 words" in prompt
-        assert "Do not walk the whole song again in timeline order" in prompt
+        assert "post-listen interpretation, not a chronological companion page" in prompt
+        assert "Do **not** walk the song in time order" in prompt
         assert "use sound only as proof or complication" in prompt
-        assert "heard the whole song beside the reader" in prompt
-        assert "not a verdict delivered from above" in prompt
+        assert "already listened through the whole recording beside the reader" in prompt
+        assert "not a verdict from above" in prompt
+        assert "Do not include timestamps" in prompt
+        assert "hearing-stream evidence supports local voice" in prompt
+        assert "one governing claim" in prompt
         assert "Shape: usually 4 to 7 paragraphs" not in prompt
 
     def test_arc_family_prompts_avoid_public_banned_body_lock_language(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -929,10 +1284,16 @@ class TestAssemblePrompt:
 
     def test_arc_family_lens_alias_selects_lens(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -950,10 +1311,16 @@ class TestAssemblePrompt:
 
     def test_arc_family_ritual_lens_renders_permission_first_reading(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -986,17 +1353,26 @@ class TestAssemblePrompt:
         assert "A translated sequence is not yet a ritual reading" in prompt
         assert "Keep the ritual grammar, counter-reading, and qualification test private" in prompt
         assert "Do not publish contract labels" in prompt
-        assert "Let audible procedure, changed role, transformation, and exit prove the reading" in prompt
+        assert (
+            "Let audible procedure, changed role, transformation, and exit prove the reading"
+            in prompt
+        )
         assert "Do not print that private pass" in prompt
         assert "Output only the resulting public listening experience" in prompt
         assert "a separate list of public prose sparks" in prompt
 
     def test_arc_family_rejects_unknown_lens(self):
         analysis = {
-            "report": {"duration_seconds": 180.0, "detected_pulse_bpm": 92.0, "felt_pulse_bpm": 92.0},
+            "report": {
+                "duration_seconds": 180.0,
+                "detected_pulse_bpm": 92.0,
+                "felt_pulse_bpm": 92.0,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.8, "mean_pattern": 0.85},
-                "stream": [{"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}],
+                "stream": [
+                    {"t": 0.0, "attention": 0.80, "pattern": 0.85, "pressure": 0.50, "body": 0.60}
+                ],
             },
         }
 
@@ -1134,11 +1510,13 @@ class TestNullSignalGuard:
     def _write_null_wav(self, path, duration_sec=2.0, sr=22050):
         import numpy as np
         import soundfile as sf
+
         silence = np.zeros(int(sr * duration_sec), dtype=np.float32)
         sf.write(path, silence, sr)
 
     def test_null_audio_returns_null_signal_dict(self, tmp_path):
         from galdr.analyze import analyze_track
+
         wav = tmp_path / "null.wav"
         self._write_null_wav(wav)
         result = analyze_track(str(wav), str(tmp_path / "out"), "null-test")
@@ -1146,6 +1524,7 @@ class TestNullSignalGuard:
 
     def test_null_audio_no_output_files(self, tmp_path):
         from galdr.analyze import analyze_track
+
         out = tmp_path / "out"
         wav = tmp_path / "null.wav"
         self._write_null_wav(wav)
@@ -1155,6 +1534,7 @@ class TestNullSignalGuard:
 
     def test_null_audio_has_duration(self, tmp_path):
         from galdr.analyze import analyze_track
+
         wav = tmp_path / "null.wav"
         self._write_null_wav(wav, duration_sec=5.0)
         result = analyze_track(str(wav), str(tmp_path / "out"), "null-test")
@@ -1164,6 +1544,7 @@ class TestNullSignalGuard:
         import numpy as np
         import soundfile as sf
         from galdr.analyze import analyze_track
+
         sr = 22050
         t = np.linspace(0, 2.0, sr * 2)
         tone = (np.sin(2 * np.pi * 440 * t) * 0.5).astype(np.float32)
@@ -1247,11 +1628,13 @@ class TestActiveFrameStats:
         from galdr.constants import ACTIVE_FRAME_SILENCE_PCT_THRESHOLD
 
         cat = CatalogState(analysis_dir="/tmp", catalog_dir="/tmp/cat-test")
-        perception = {"summary": self._make_perception_summary(
-            silence_pct=ACTIVE_FRAME_SILENCE_PCT_THRESHOLD + 5.0,
-            attention_active=0.80,
-            attention_whole=0.40,
-        )}
+        perception = {
+            "summary": self._make_perception_summary(
+                silence_pct=ACTIVE_FRAME_SILENCE_PCT_THRESHOLD + 5.0,
+                attention_active=0.80,
+                attention_whole=0.40,
+            )
+        }
         cat.index_track("test-silence-track", perception=perception)
         indexed = cat.tracks["test-silence-track"]
         # Should use active-frame attention for catalog ranking
@@ -1262,11 +1645,13 @@ class TestActiveFrameStats:
         from galdr.constants import ACTIVE_FRAME_SILENCE_PCT_THRESHOLD
 
         cat = CatalogState(analysis_dir="/tmp", catalog_dir="/tmp/cat-test2")
-        perception = {"summary": self._make_perception_summary(
-            silence_pct=ACTIVE_FRAME_SILENCE_PCT_THRESHOLD - 5.0,
-            attention_active=0.80,
-            attention_whole=0.40,
-        )}
+        perception = {
+            "summary": self._make_perception_summary(
+                silence_pct=ACTIVE_FRAME_SILENCE_PCT_THRESHOLD - 5.0,
+                attention_active=0.80,
+                attention_whole=0.40,
+            )
+        }
         cat.index_track("test-quiet-track", perception=perception)
         indexed = cat.tracks["test-quiet-track"]
         # Should use whole-track attention (silence not significant)
@@ -1279,6 +1664,7 @@ class TestActiveFrameStats:
 class TestLufsPressureMotion:
     def _tone(self, amp=0.2, duration_sec=6.0, sr=22050):
         import numpy as np
+
         t = np.linspace(0, duration_sec, int(sr * duration_sec), endpoint=False)
         return (np.sin(2 * np.pi * 440 * t) * amp).astype(np.float32), sr
 
@@ -1387,7 +1773,12 @@ class TestLufsPressureMotion:
         from galdr.assemble import assemble_prompt
 
         analysis = {
-            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse": 0.8},
+            "report": {
+                "duration_seconds": 60.0,
+                "detected_pulse_bpm": 90.0,
+                "felt_pulse_bpm": 90.0,
+                "pulse": 0.8,
+            },
             "perception": {
                 "summary": {
                     "mean_attention": 0.5,
@@ -1411,7 +1802,12 @@ class TestLufsPressureMotion:
         from galdr.assemble import assemble_prompt
 
         analysis = {
-            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 90.0, "felt_pulse_bpm": 90.0, "pulse": 0.8},
+            "report": {
+                "duration_seconds": 60.0,
+                "detected_pulse_bpm": 90.0,
+                "felt_pulse_bpm": 90.0,
+                "pulse": 0.8,
+            },
             "perception": {
                 "summary": {
                     "mean_attention": 0.5,
@@ -1446,12 +1842,16 @@ class TestLufsPressureMotion:
         assert "Body comfort mean 0.380, peak 0.650" in prompt
         assert "Expectation debt mean 0.310, peak 0.880" in prompt
 
-
     def test_assembled_timeline_includes_sustained_state_spans(self):
         from galdr.assemble import assemble_prompt
 
         analysis = {
-            "report": {"duration_seconds": 60.0, "detected_pulse_bpm": 120.0, "felt_pulse_bpm": 120.0, "pulse": 0.9},
+            "report": {
+                "duration_seconds": 60.0,
+                "detected_pulse_bpm": 120.0,
+                "felt_pulse_bpm": 120.0,
+                "pulse": 0.9,
+            },
             "perception": {
                 "summary": {"mean_attention": 0.9, "mean_pattern": 0.95},
                 "sustained_state_spans": [
@@ -1488,34 +1888,36 @@ def test_perception_metric_plots_cover_listener_state_and_surface_evidence(tmp_p
     stream = []
     for i in range(8):
         v = i / 7
-        stream.append({
-            "t": float(i),
-            "body_capture": v,
-            "body_comfort": 1.0 - v,
-            "groove_comfort": 0.5,
-            "accent_phase_drift": v * 0.4,
-            "section_gravity": 0.2 + v * 0.6,
-            "surface_density": 0.1 + v * 0.5,
-            "expectation_debt": v * 0.8,
-            "release_force": max(0.0, 0.7 - v),
-            "weight": 0.25 + v * 0.2,
-            "pressure": -0.5 + v,
-            "surface_evidence": {
-                "roughness": v,
-                "noise_density": 1.0 - v,
-                "surface_motion": 0.2 + v * 0.5,
-                "brightness_tilt": 0.4,
-                "transient_attack": v * 0.6,
-                "punch": v * 0.5,
-                "sustain_drone": 1.0 - v * 0.5,
-                "band_pressure": 0.3 + v * 0.3,
-                "bass_weight": 0.25,
-                "body_weight": 0.35,
-                "presence_weight": 0.30,
-                "air_weight": 0.10,
-                "percussive_ratio": v,
-            },
-        })
+        stream.append(
+            {
+                "t": float(i),
+                "body_capture": v,
+                "body_comfort": 1.0 - v,
+                "groove_comfort": 0.5,
+                "accent_phase_drift": v * 0.4,
+                "section_gravity": 0.2 + v * 0.6,
+                "surface_density": 0.1 + v * 0.5,
+                "expectation_debt": v * 0.8,
+                "release_force": max(0.0, 0.7 - v),
+                "weight": 0.25 + v * 0.2,
+                "pressure": -0.5 + v,
+                "surface_evidence": {
+                    "roughness": v,
+                    "noise_density": 1.0 - v,
+                    "surface_motion": 0.2 + v * 0.5,
+                    "brightness_tilt": 0.4,
+                    "transient_attack": v * 0.6,
+                    "punch": v * 0.5,
+                    "sustain_drone": 1.0 - v * 0.5,
+                    "band_pressure": 0.3 + v * 0.3,
+                    "bass_weight": 0.25,
+                    "body_weight": 0.35,
+                    "presence_weight": 0.30,
+                    "air_weight": 0.10,
+                    "percussive_ratio": v,
+                },
+            }
+        )
 
     silences = [{"start": 2.0, "end": 3.0}]
     sr = 22050
@@ -1526,7 +1928,9 @@ def test_perception_metric_plots_cover_listener_state_and_surface_evidence(tmp_p
 
     _plot_listener_state_metrics(stream, silences, tmp_path, "plot-test", duration=8.0)
     _plot_surface_evidence_metrics(stream, silences, tmp_path, "plot-test", duration=8.0)
-    _plot_reading_map(y, sr, stream, hp_times, hp_balance, silences, tmp_path, "plot-test", duration=8.0)
+    _plot_reading_map(
+        y, sr, stream, hp_times, hp_balance, silences, tmp_path, "plot-test", duration=8.0
+    )
 
     listener_plot = tmp_path / "plot-test_listener_state.png"
     surface_plot = tmp_path / "plot-test_surface_evidence.png"
@@ -1556,6 +1960,7 @@ def test_cli_plot_index_lists_png_artifacts(tmp_path):
     assert "color-scheme: dark" in text
     assert "background: #0d1117" in text
     assert "grid-template-columns: minmax(0, 1fr)" in text
+
 
 # ── Rhythm Body-Entrainment ──────────────────────────────────────────────────
 
@@ -1680,12 +2085,60 @@ def test_compute_silence_reentries_classifies_post_gap_return():
     from galdr.perceive import compute_silence_reentries
 
     times = np.arange(0.0, 10.0, 0.5)
-    attention = np.array([0.8, 0.82, 0.81, 0.8, 0.1, 0.1, 0.76, 0.82, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84, 0.84])
-    pressure = np.array([0.02, 0.02, 0.01, 0.0, -0.5, -0.5, 0.15, 0.12, 0.03, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02])
+    attention = np.array(
+        [
+            0.8,
+            0.82,
+            0.81,
+            0.8,
+            0.1,
+            0.1,
+            0.76,
+            0.82,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+            0.84,
+        ]
+    )
+    pressure = np.array(
+        [
+            0.02,
+            0.02,
+            0.01,
+            0.0,
+            -0.5,
+            -0.5,
+            0.15,
+            0.12,
+            0.03,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+            0.02,
+        ]
+    )
     loudness_delta = np.zeros_like(times)
     silences = [{"start": 4.0, "end": 5.0, "duration": 1.0, "depth_db": -80.0}]
 
-    reentries = compute_silence_reentries(silences, times, attention, pressure, loudness_delta, 10.0)
+    reentries = compute_silence_reentries(
+        silences, times, attention, pressure, loudness_delta, 10.0
+    )
 
     assert len(reentries) == 1
     event = reentries[0]
@@ -1730,7 +2183,9 @@ def test_compute_silence_reentries_marks_boundaries_separately():
         {"start": 9.4, "end": 11.5, "duration": 2.1, "depth_db": -80.0},
     ]
 
-    reentries = compute_silence_reentries(silences, times, attention, pressure, loudness_delta, 12.0)
+    reentries = compute_silence_reentries(
+        silences, times, attention, pressure, loudness_delta, 12.0
+    )
 
     assert reentries[0]["boundary_position"] == "opening"
     assert reentries[0]["reentry_shape"] == "entry_preparation"
@@ -1827,6 +2282,7 @@ def test_assembled_structural_events_include_reentry_language():
     assert "return: continuation" in prompt
     assert "re-entry force" in prompt
 
+
 class TestContextConfidenceScoring:
     def test_genius_hit_rejects_unrelated_result(self):
         from galdr.fetch import _score_genius_hit
@@ -1865,7 +2321,7 @@ class TestContextConfidenceScoring:
             {
                 "found": True,
                 "title": "Bright Signal (Example Ensemble song)",
-                "extract": "\"Bright Signal\" is a song by Example Ensemble.",
+                "extract": '"Bright Signal" is a song by Example Ensemble.',
             },
             expected_name="Bright Signal",
             entity_type="song",
@@ -1883,7 +2339,7 @@ class TestContextConfidenceScoring:
             {
                 "found": True,
                 "title": "Bright Signal (Reference Artist song)",
-                "extract": "\"Bright Signal\" is a song by Reference Artist.",
+                "extract": '"Bright Signal" is a song by Reference Artist.',
             },
             expected_name="Bright Signal",
             entity_type="song",
@@ -1908,15 +2364,22 @@ class TestContextConfidenceScoring:
         assert result["confidence"] == "rejected"
         assert result["use_in_prompt"] is False
 
-
     def test_wikipedia_artist_prefers_music_qualified_page_over_disambiguation(self, monkeypatch):
         import galdr.fetch as fetch
 
         def fake_intro(title):
             if title == "Example Band (band)":
-                return {"found": True, "title": "Example Band (band)", "extract": "Example Band is an American heavy metal band from Oakland, California."}
+                return {
+                    "found": True,
+                    "title": "Example Band (band)",
+                    "extract": "Example Band is an American heavy metal band from Oakland, California.",
+                }
             if title == "Example Band":
-                return {"found": True, "title": "Example band", "extract": "Example band may refer to:"}
+                return {
+                    "found": True,
+                    "title": "Example band",
+                    "extract": "Example band may refer to:",
+                }
             return {"found": False}
 
         monkeypatch.setattr(fetch, "fetch_wikipedia_intro", fake_intro)
@@ -1929,11 +2392,13 @@ class TestContextConfidenceScoring:
     def test_genius_sanitizer_removes_live_ticket_cta(self):
         from galdr.fetch import _sanitize_lyric_lines
 
-        lines = _sanitize_lyric_lines([
-            "See Example Band LiveGet tickets as low as $67",
-            "This is real lyric text",
-            "Embed",
-        ])
+        lines = _sanitize_lyric_lines(
+            [
+                "See Example Band LiveGet tickets as low as $67",
+                "This is real lyric text",
+                "Embed",
+            ]
+        )
 
         assert lines == ["This is real lyric text"]
 
@@ -1983,28 +2448,34 @@ class TestContextConfidenceScoring:
         original_urlopen = fetch.urllib.request.urlopen
 
         def fake_urlopen(req, *args, **kwargs):
-            return __import__('io').BytesIO(__import__('json').dumps({
-                "response": {
-                    "hits": [
-                        {
-                            "result": {
-                                "path": "/Genius-english-translations-reference-artist-long-road-english-translation-lyrics",
-                                "title": "Reference Artist - Long Road (English Translation)",
-                                "full_title": "Reference Artist - Long Road (English Translation) by Genius English Translations",
-                                "primary_artist": {"name": "Genius English Translations"},
-                            }
-                        },
-                        {
-                            "result": {
-                                "path": "/Reference-artist-long-road-lyrics",
-                                "title": "Long Road",
-                                "full_title": "Reference Artist - Long Road",
-                                "primary_artist": {"name": "Reference Artist"},
-                            }
-                        },
-                    ]
-                }
-            }).encode())
+            return __import__("io").BytesIO(
+                __import__("json")
+                .dumps(
+                    {
+                        "response": {
+                            "hits": [
+                                {
+                                    "result": {
+                                        "path": "/Genius-english-translations-reference-artist-long-road-english-translation-lyrics",
+                                        "title": "Reference Artist - Long Road (English Translation)",
+                                        "full_title": "Reference Artist - Long Road (English Translation) by Genius English Translations",
+                                        "primary_artist": {"name": "Genius English Translations"},
+                                    }
+                                },
+                                {
+                                    "result": {
+                                        "path": "/Reference-artist-long-road-lyrics",
+                                        "title": "Long Road",
+                                        "full_title": "Reference Artist - Long Road",
+                                        "primary_artist": {"name": "Reference Artist"},
+                                    }
+                                },
+                            ]
+                        }
+                    }
+                )
+                .encode()
+            )
 
         fetch.urllib.request.urlopen = fake_urlopen
         try:
@@ -2310,8 +2781,17 @@ def test_salience_labels_soft_mass_lock_without_promoting_to_new_contract():
 
 
 def _boundary_frame(
-    t, *, silence=False, attention=0.8, pattern=0.9, pressure=0.0,
-    body=0.5, weight=0.4, density=0.5, rms=0.08, lufs=-24.0
+    t,
+    *,
+    silence=False,
+    attention=0.8,
+    pattern=0.9,
+    pressure=0.0,
+    body=0.5,
+    weight=0.4,
+    density=0.5,
+    rms=0.08,
+    lufs=-24.0,
 ):
     return {
         "t": t,
@@ -2337,12 +2817,20 @@ def test_boundary_candidates_are_separate_from_arc_transitions():
     for t in range(6, 12):
         stream.append(
             _boundary_frame(
-                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
-                density=0.0, rms=0.001, lufs=-68.0
+                t,
+                silence=True,
+                attention=0.1,
+                pattern=0.2,
+                pressure=-0.4,
+                density=0.0,
+                rms=0.001,
+                lufs=-68.0,
             )
         )
     for t in range(12, 20):
-        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+        stream.append(
+            _boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8)
+        )
 
     candidates = derive_boundary_candidates(stream, min_gap_sec=3.0, context_sec=4.0)
 
@@ -2364,14 +2852,24 @@ def test_boundary_candidates_accept_wrapped_stream_payload_and_hop():
     for t in [3.0, 3.5, 4.0, 4.5, 5.0, 5.5]:
         stream.append(
             _boundary_frame(
-                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
-                density=0.0, rms=0.001, lufs=-68.0
+                t,
+                silence=True,
+                attention=0.1,
+                pattern=0.2,
+                pressure=-0.4,
+                density=0.0,
+                rms=0.001,
+                lufs=-68.0,
             )
         )
     for t in [6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5]:
-        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+        stream.append(
+            _boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8)
+        )
 
-    candidates = derive_boundary_candidates({"stream_hop_sec": 0.5, "stream": stream}, min_gap_sec=3.0, context_sec=2.0)
+    candidates = derive_boundary_candidates(
+        {"stream_hop_sec": 0.5, "stream": stream}, min_gap_sec=3.0, context_sec=2.0
+    )
 
     assert len(candidates) == 1
     assert candidates[0]["start"] == 3.0
@@ -2385,13 +2883,17 @@ def test_boundary_candidates_mark_opening_and_closing_gaps():
     stream = []
     for t in range(0, 4):
         stream.append(
-            _boundary_frame(t, silence=True, attention=0.0, pattern=0.0, density=0.0, rms=0.0005, lufs=-70.0)
+            _boundary_frame(
+                t, silence=True, attention=0.0, pattern=0.0, density=0.0, rms=0.0005, lufs=-70.0
+            )
         )
     for t in range(4, 10):
         stream.append(_boundary_frame(t))
     for t in range(10, 14):
         stream.append(
-            _boundary_frame(t, silence=True, attention=0.0, pattern=0.0, density=0.0, rms=0.0005, lufs=-70.0)
+            _boundary_frame(
+                t, silence=True, attention=0.0, pattern=0.0, density=0.0, rms=0.0005, lufs=-70.0
+            )
         )
 
     candidates = derive_boundary_candidates(stream, min_gap_sec=3.0)
@@ -2399,18 +2901,43 @@ def test_boundary_candidates_mark_opening_and_closing_gaps():
     assert [candidate["kind"] for candidate in candidates] == ["opening_gap", "ending_gap"]
 
 
-
 def test_boundary_candidates_can_include_non_silent_reset_points():
     from galdr.boundary import derive_boundary_candidates
 
     stream = []
     for t in range(0, 8):
-        stream.append(_boundary_frame(t, attention=0.9, pattern=0.96, pressure=-0.08, body=0.43, weight=0.88, density=0.06, rms=0.07, lufs=-24.0))
+        stream.append(
+            _boundary_frame(
+                t,
+                attention=0.9,
+                pattern=0.96,
+                pressure=-0.08,
+                body=0.43,
+                weight=0.88,
+                density=0.06,
+                rms=0.07,
+                lufs=-24.0,
+            )
+        )
     for t in range(8, 16):
-        stream.append(_boundary_frame(t, attention=0.97, pattern=0.99, pressure=0.08, body=0.72, weight=0.55, density=0.31, rms=0.16, lufs=-19.0))
+        stream.append(
+            _boundary_frame(
+                t,
+                attention=0.97,
+                pattern=0.99,
+                pressure=0.08,
+                body=0.72,
+                weight=0.55,
+                density=0.31,
+                rms=0.16,
+                lufs=-19.0,
+            )
+        )
 
     gap_only = derive_boundary_candidates(stream, min_gap_sec=3.0)
-    with_resets = derive_boundary_candidates(stream, min_gap_sec=3.0, include_reset_points=True, reset_window_sec=4.0)
+    with_resets = derive_boundary_candidates(
+        stream, min_gap_sec=3.0, include_reset_points=True, reset_window_sec=4.0
+    )
 
     assert gap_only == []
     assert len(with_resets) == 1
@@ -2501,9 +3028,27 @@ def test_boundary_alignment_scores_known_section_starts_and_extras():
 
     candidates = [
         {"start": 0.0, "end": 5.0, "kind": "opening_gap", "confidence": 0.7, "reset_strength": 0.0},
-        {"start": 317.5, "end": 322.0, "kind": "probable_boundary", "confidence": 0.93, "reset_strength": 0.89},
-        {"start": 610.0, "end": 635.0, "kind": "probable_boundary", "confidence": 0.95, "reset_strength": 0.78},
-        {"start": 700.0, "end": 705.0, "kind": "interlude_gap", "confidence": 0.5, "reset_strength": 0.0},
+        {
+            "start": 317.5,
+            "end": 322.0,
+            "kind": "probable_boundary",
+            "confidence": 0.93,
+            "reset_strength": 0.89,
+        },
+        {
+            "start": 610.0,
+            "end": 635.0,
+            "kind": "probable_boundary",
+            "confidence": 0.95,
+            "reset_strength": 0.78,
+        },
+        {
+            "start": 700.0,
+            "end": 705.0,
+            "kind": "interlude_gap",
+            "confidence": 0.5,
+            "reset_strength": 0.0,
+        },
     ]
     sections = [
         {"start": 0.0, "title": "Section A"},
@@ -2530,9 +3075,27 @@ def test_section_boundary_report_keeps_chapters_and_acoustic_evidence_separate()
 
     candidates = [
         {"start": 0.0, "end": 4.0, "kind": "opening_gap", "confidence": 0.7, "reset_strength": 0.0},
-        {"start": 100.0, "end": 110.0, "kind": "probable_boundary", "confidence": 0.88, "reset_strength": 0.5},
-        {"start": 210.0, "end": 214.0, "kind": "possible_boundary", "confidence": 0.62, "reset_strength": 0.22},
-        {"start": 400.0, "end": 408.0, "kind": "interlude_gap", "confidence": 0.42, "reset_strength": 0.0},
+        {
+            "start": 100.0,
+            "end": 110.0,
+            "kind": "probable_boundary",
+            "confidence": 0.88,
+            "reset_strength": 0.5,
+        },
+        {
+            "start": 210.0,
+            "end": 214.0,
+            "kind": "possible_boundary",
+            "confidence": 0.62,
+            "reset_strength": 0.22,
+        },
+        {
+            "start": 400.0,
+            "end": 408.0,
+            "kind": "interlude_gap",
+            "confidence": 0.42,
+            "reset_strength": 0.0,
+        },
     ]
     sections = [
         {"start": 0.0, "title": "Opening"},
@@ -2541,7 +3104,9 @@ def test_section_boundary_report_keeps_chapters_and_acoustic_evidence_separate()
         {"start": 900.0, "title": "Declared only"},
     ]
 
-    report = build_section_boundary_report(candidates, sections, tolerance_sec=8.0, near_miss_sec=30.0)
+    report = build_section_boundary_report(
+        candidates, sections, tolerance_sec=8.0, near_miss_sec=30.0
+    )
 
     assert report["summary"] == {
         "declared_section_count": 4,
@@ -2553,18 +3118,27 @@ def test_section_boundary_report_keeps_chapters_and_acoustic_evidence_separate()
         "tolerance_sec": 8.0,
         "near_miss_sec": 30.0,
     }
-    assert [match["section"] for match in report["matched_declared_sections"]] == ["Opening", "Matched"]
-    assert report["near_misses"] == [{
-        "section": "Near miss",
-        "section_start": 185.0,
-        "nearest_candidate_start": 210.0,
-        "nearest_candidate_end": 214.0,
-        "nearest_candidate_kind": "possible_boundary",
-        "delta": 25.0,
-        "confidence": 0.62,
-    }]
-    assert report["sections_without_acoustic_boundary"] == [{"section": "Declared only", "start": 900.0}]
-    assert [candidate["start"] for candidate in report["acoustic_boundaries_without_declared_section"]] == [210.0, 400.0]
+    assert [match["section"] for match in report["matched_declared_sections"]] == [
+        "Opening",
+        "Matched",
+    ]
+    assert report["near_misses"] == [
+        {
+            "section": "Near miss",
+            "section_start": 185.0,
+            "nearest_candidate_start": 210.0,
+            "nearest_candidate_end": 214.0,
+            "nearest_candidate_kind": "possible_boundary",
+            "delta": 25.0,
+            "confidence": 0.62,
+        }
+    ]
+    assert report["sections_without_acoustic_boundary"] == [
+        {"section": "Declared only", "start": 900.0}
+    ]
+    assert [
+        candidate["start"] for candidate in report["acoustic_boundaries_without_declared_section"]
+    ] == [210.0, 400.0]
 
 
 # ── Section / Arc Events ─────────────────────────────────────────────────────
@@ -2596,29 +3170,57 @@ def test_section_arc_events_split_acoustic_boundary_from_reset_point():
     for t in range(6, 12):
         silence_stream.append(
             _boundary_frame(
-                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
-                density=0.0, rms=0.001, lufs=-68.0
+                t,
+                silence=True,
+                attention=0.1,
+                pattern=0.2,
+                pressure=-0.4,
+                density=0.0,
+                rms=0.001,
+                lufs=-68.0,
             )
         )
     for t in range(12, 20):
-        silence_stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+        silence_stream.append(
+            _boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8)
+        )
 
     boundary_events = derive_section_arc_events(silence_stream)
 
-    assert [event["label"] for event in boundary_events["acoustic_boundaries"]] == ["probable_boundary"]
+    assert [event["label"] for event in boundary_events["acoustic_boundaries"]] == [
+        "probable_boundary"
+    ]
     assert boundary_events["acoustic_boundaries"][0]["source"] == "acoustic_boundary"
     assert boundary_events["reset_points"] == []
 
     reset_stream = []
     for t in range(0, 8):
         reset_stream.append(
-            _boundary_frame(t, attention=0.9, pattern=0.96, pressure=-0.08, body=0.43, weight=0.88,
-                            density=0.06, rms=0.07, lufs=-24.0)
+            _boundary_frame(
+                t,
+                attention=0.9,
+                pattern=0.96,
+                pressure=-0.08,
+                body=0.43,
+                weight=0.88,
+                density=0.06,
+                rms=0.07,
+                lufs=-24.0,
+            )
         )
     for t in range(8, 16):
         reset_stream.append(
-            _boundary_frame(t, attention=0.97, pattern=0.99, pressure=0.08, body=0.72, weight=0.55,
-                            density=0.31, rms=0.16, lufs=-19.0)
+            _boundary_frame(
+                t,
+                attention=0.97,
+                pattern=0.99,
+                pressure=0.08,
+                body=0.72,
+                weight=0.55,
+                density=0.31,
+                rms=0.16,
+                lufs=-19.0,
+            )
         )
 
     reset_events = derive_section_arc_events(reset_stream)
@@ -2672,17 +3274,29 @@ def test_section_arc_events_align_declared_sections_without_merging_lanes():
     for t in range(6, 12):
         stream.append(
             _boundary_frame(
-                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
-                density=0.0, rms=0.001, lufs=-68.0
+                t,
+                silence=True,
+                attention=0.1,
+                pattern=0.2,
+                pressure=-0.4,
+                density=0.0,
+                rms=0.001,
+                lufs=-68.0,
             )
         )
     for t in range(12, 20):
-        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+        stream.append(
+            _boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8)
+        )
 
-    events = derive_section_arc_events(stream, declared_sections=[{"start": 12.0, "title": "Second movement"}])
+    events = derive_section_arc_events(
+        stream, declared_sections=[{"start": 12.0, "title": "Second movement"}]
+    )
 
     assert events["declared_alignment"]["summary"]["matched_count"] == 1
-    assert events["declared_alignment"]["matched_declared_sections"][0]["section"] == "Second movement"
+    assert (
+        events["declared_alignment"]["matched_declared_sections"][0]["section"] == "Second movement"
+    )
     assert events["acoustic_boundaries"][0]["source"] == "acoustic_boundary"
     assert "declared_alignment" not in events["acoustic_boundaries"][0]
 
@@ -2693,62 +3307,106 @@ def test_packet_builds_generic_evidence_container(tmp_path):
     slug = "packet-track"
     track_dir = tmp_path / slug
     track_dir.mkdir()
-    (track_dir / f"{slug}_report.json").write_text(json.dumps({
-        "track": slug,
-        "duration_seconds": 8.0,
-        "felt_pulse_bpm": 96.0,
-    }))
-    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
-        "track": slug,
-        "summary": {"mean_attention": 0.72, "mean_pattern": 0.81},
-    }))
-    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
-        "schema_version": "listener_state_v1",
-        "stream": [
-            {"t": 0.0, "attention": 0.7, "pattern": 0.8, "pressure": 0.0, "body": 0.7, "weight": 0.4},
-            {"t": 0.5, "attention": 0.7, "pattern": 0.8, "pressure": 0.0, "body": 0.7, "weight": 0.4},
-            {"t": 1.0, "attention": 0.8, "pattern": 0.9, "pressure": 0.4, "body": 0.8, "weight": 0.5},
-            {"t": 1.5, "attention": 0.8, "pattern": 0.9, "pressure": 0.4, "body": 0.8, "weight": 0.5},
-        ],
-    }))
-    (track_dir / "context.json").write_text(json.dumps({
-        "slug": slug,
-        "artist": "Packet Artist",
-        "title": "Packet Title",
-        "youtube_url": "https://www.youtube.com/watch?v=packet",
-        "lyrics": {
-            "source": "genius",
-            "confidence": "high",
-            "genius_url": "https://genius.example/packet",
-            "genius_text": "first line\nsecond line",
-        },
-        "artist_context": {
-            "found": True,
-            "confidence": "medium",
-            "use_in_prompt": True,
-            "extract": "Packet Artist is a test fixture.",
-        },
-        "song_context": {
-            "summary": "The song context is directly tied to the track.",
-            "claims": [
-                {
-                    "claim": "The artist described this as a breakup song.",
-                    "source_type": "artist_interview",
-                    "source_url": "https://example.test/song-interview",
+    (track_dir / f"{slug}_report.json").write_text(
+        json.dumps(
+            {
+                "track": slug,
+                "duration_seconds": 8.0,
+                "felt_pulse_bpm": 96.0,
+            }
+        )
+    )
+    (track_dir / f"{slug}_perception.json").write_text(
+        json.dumps(
+            {
+                "track": slug,
+                "summary": {"mean_attention": 0.72, "mean_pattern": 0.81},
+            }
+        )
+    )
+    (track_dir / f"{slug}_stream.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "listener_state_v1",
+                "stream": [
+                    {
+                        "t": 0.0,
+                        "attention": 0.7,
+                        "pattern": 0.8,
+                        "pressure": 0.0,
+                        "body": 0.7,
+                        "weight": 0.4,
+                    },
+                    {
+                        "t": 0.5,
+                        "attention": 0.7,
+                        "pattern": 0.8,
+                        "pressure": 0.0,
+                        "body": 0.7,
+                        "weight": 0.4,
+                    },
+                    {
+                        "t": 1.0,
+                        "attention": 0.8,
+                        "pattern": 0.9,
+                        "pressure": 0.4,
+                        "body": 0.8,
+                        "weight": 0.5,
+                    },
+                    {
+                        "t": 1.5,
+                        "attention": 0.8,
+                        "pattern": 0.9,
+                        "pressure": 0.4,
+                        "body": 0.8,
+                        "weight": 0.5,
+                    },
+                ],
+            }
+        )
+    )
+    (track_dir / "context.json").write_text(
+        json.dumps(
+            {
+                "slug": slug,
+                "artist": "Packet Artist",
+                "title": "Packet Title",
+                "youtube_url": "https://www.youtube.com/watch?v=packet",
+                "lyrics": {
+                    "source": "genius",
                     "confidence": "high",
-                }
-            ],
-            "lyric_references": [
-                {
-                    "reference": "the named character",
-                    "meaning": "a person in the artist's life",
-                    "source_url": "https://example.test/annotation",
-                }
-            ],
-            "source_notes": ["This source note is evidence context, not policy."],
-            "constraints": ["Do not quote lyrics directly."],
-        },
-    }))
+                    "genius_url": "https://genius.example/packet",
+                    "genius_text": "first line\nsecond line",
+                },
+                "artist_context": {
+                    "found": True,
+                    "confidence": "medium",
+                    "use_in_prompt": True,
+                    "extract": "Packet Artist is a test fixture.",
+                },
+                "song_context": {
+                    "summary": "The song context is directly tied to the track.",
+                    "claims": [
+                        {
+                            "claim": "The artist described this as a breakup song.",
+                            "source_type": "artist_interview",
+                            "source_url": "https://example.test/song-interview",
+                            "confidence": "high",
+                        }
+                    ],
+                    "lyric_references": [
+                        {
+                            "reference": "the named character",
+                            "meaning": "a person in the artist's life",
+                            "source_url": "https://example.test/annotation",
+                        }
+                    ],
+                    "source_notes": ["This source note is evidence context, not policy."],
+                    "constraints": ["Do not quote lyrics directly."],
+                },
+            }
+        )
+    )
 
     packet = build_packet_from_disk(slug, tmp_path)
 
@@ -2803,22 +3461,30 @@ def test_packet_marks_provider_timed_lyrics_as_distinct_timing_surface(tmp_path)
     slug = "packet-provider-timed-lyrics"
     track_dir = tmp_path / slug
     track_dir.mkdir()
-    (track_dir / f"{slug}_report.json").write_text(json.dumps({"track": slug, "duration_seconds": 8.0}))
-    (track_dir / "context.json").write_text(json.dumps({
-        "slug": slug,
-        "lyrics": {
-            "source": "genius+youtube-music-timed-lyrics",
-            "confidence": "high",
-            "genius_text": "clean text",
-            "full_text": "clean text",
-            "timed_lyrics_source": {
-                "provider_source": "Source: Musixmatch",
-                "lyrics_browse_id": "MPLYt_demo",
-            },
-            "timed_lines": [{"ts": "0:10.65", "start": 10.65, "text": "provider timed words"}],
-            "caption_lines": [],
-        },
-    }))
+    (track_dir / f"{slug}_report.json").write_text(
+        json.dumps({"track": slug, "duration_seconds": 8.0})
+    )
+    (track_dir / "context.json").write_text(
+        json.dumps(
+            {
+                "slug": slug,
+                "lyrics": {
+                    "source": "genius+youtube-music-timed-lyrics",
+                    "confidence": "high",
+                    "genius_text": "clean text",
+                    "full_text": "clean text",
+                    "timed_lyrics_source": {
+                        "provider_source": "Source: Musixmatch",
+                        "lyrics_browse_id": "MPLYt_demo",
+                    },
+                    "timed_lines": [
+                        {"ts": "0:10.65", "start": 10.65, "text": "provider timed words"}
+                    ],
+                    "caption_lines": [],
+                },
+            }
+        )
+    )
 
     packet = build_packet_from_disk(slug, tmp_path)
     lyrics = packet["collections"]["lyrics"]
@@ -2841,16 +3507,22 @@ def test_packet_marks_autocaptions_as_coarse_timing_surface(tmp_path):
     slug = "packet-autocaption-lyrics"
     track_dir = tmp_path / slug
     track_dir.mkdir()
-    (track_dir / f"{slug}_report.json").write_text(json.dumps({"track": slug, "duration_seconds": 8.0}))
-    (track_dir / "context.json").write_text(json.dumps({
-        "slug": slug,
-        "lyrics": {
-            "source": "youtube-auto-captions",
-            "confidence": "high",
-            "full_text": "caption words",
-            "caption_lines": [{"ts": "0:01", "start": 1.0, "text": "caption words"}],
-        },
-    }))
+    (track_dir / f"{slug}_report.json").write_text(
+        json.dumps({"track": slug, "duration_seconds": 8.0})
+    )
+    (track_dir / "context.json").write_text(
+        json.dumps(
+            {
+                "slug": slug,
+                "lyrics": {
+                    "source": "youtube-auto-captions",
+                    "confidence": "high",
+                    "full_text": "caption words",
+                    "caption_lines": [{"ts": "0:01", "start": 1.0, "text": "caption words"}],
+                },
+            }
+        )
+    )
 
     packet = build_packet_from_disk(slug, tmp_path)
     lyrics = packet["collections"]["lyrics"]
@@ -2870,14 +3542,22 @@ def test_packet_timeline_uses_section_arc_structural_events(tmp_path):
     slug = "packet-section-arc-track"
     track_dir = tmp_path / slug
     track_dir.mkdir()
-    (track_dir / f"{slug}_report.json").write_text(json.dumps({
-        "track": slug,
-        "duration_seconds": 36.0,
-    }))
-    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
-        "track": slug,
-        "summary": {"mean_attention": 0.72, "mean_pattern": 0.81},
-    }))
+    (track_dir / f"{slug}_report.json").write_text(
+        json.dumps(
+            {
+                "track": slug,
+                "duration_seconds": 36.0,
+            }
+        )
+    )
+    (track_dir / f"{slug}_perception.json").write_text(
+        json.dumps(
+            {
+                "track": slug,
+                "summary": {"mean_attention": 0.72, "mean_pattern": 0.81},
+            }
+        )
+    )
 
     stream = []
     for t in range(0, 6):
@@ -2885,27 +3565,57 @@ def test_packet_timeline_uses_section_arc_structural_events(tmp_path):
     for t in range(6, 12):
         stream.append(
             _boundary_frame(
-                t, silence=True, attention=0.1, pattern=0.2, pressure=-0.4,
-                density=0.0, rms=0.001, lufs=-68.0
+                t,
+                silence=True,
+                attention=0.1,
+                pattern=0.2,
+                pressure=-0.4,
+                density=0.0,
+                rms=0.001,
+                lufs=-68.0,
             )
         )
     for t in range(12, 20):
-        stream.append(_boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8))
+        stream.append(
+            _boundary_frame(t, attention=0.92, pattern=0.96, pressure=0.42, body=0.8, density=0.8)
+        )
     for t in range(20, 28):
         stream.append(
-            _boundary_frame(t, attention=0.9, pattern=0.96, pressure=-0.08, body=0.43, weight=0.88,
-                            density=0.06, rms=0.07, lufs=-24.0)
+            _boundary_frame(
+                t,
+                attention=0.9,
+                pattern=0.96,
+                pressure=-0.08,
+                body=0.43,
+                weight=0.88,
+                density=0.06,
+                rms=0.07,
+                lufs=-24.0,
+            )
         )
     for t in range(28, 36):
         stream.append(
-            _boundary_frame(t, attention=0.97, pattern=0.99, pressure=0.08, body=0.72, weight=0.55,
-                            density=0.31, rms=0.16, lufs=-19.0)
+            _boundary_frame(
+                t,
+                attention=0.97,
+                pattern=0.99,
+                pressure=0.08,
+                body=0.72,
+                weight=0.55,
+                density=0.31,
+                rms=0.16,
+                lufs=-19.0,
+            )
         )
 
-    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
-        "schema_version": "listener_state_v1",
-        "stream": stream,
-    }))
+    (track_dir / f"{slug}_stream.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "listener_state_v1",
+                "stream": stream,
+            }
+        )
+    )
     (track_dir / "context.json").write_text(json.dumps({"slug": slug}))
 
     packet = build_packet_from_disk(slug, tmp_path)
@@ -2914,8 +3624,12 @@ def test_packet_timeline_uses_section_arc_structural_events(tmp_path):
     assert any(item["kind"] == "arc_span" for item in structural)
     boundaries = [item for item in structural if item["kind"] == "boundary_candidate"]
     resets = [item for item in structural if item["kind"] == "reset_point"]
-    assert [(item["start"], item["end"], item["label"]) for item in boundaries] == [(6.0, 12.0, "probable_boundary")]
-    assert [(item["start"], item["end"], item["label"]) for item in resets] == [(22.0, 22.0, "reset_point")]
+    assert [(item["start"], item["end"], item["label"]) for item in boundaries] == [
+        (6.0, 12.0, "probable_boundary")
+    ]
+    assert [(item["start"], item["end"], item["label"]) for item in resets] == [
+        (22.0, 22.0, "reset_point")
+    ]
     starts = [item["start"] for item in structural]
     assert starts == sorted(starts)
 
@@ -2926,15 +3640,20 @@ def test_packet_cli_writes_json_file(tmp_path):
     slug = "packet-cli-track"
     track_dir = tmp_path / "analysis" / slug
     track_dir.mkdir(parents=True)
-    (track_dir / f"{slug}_report.json").write_text(json.dumps({"track": slug, "duration_seconds": 1.0}))
+    (track_dir / f"{slug}_report.json").write_text(
+        json.dumps({"track": slug, "duration_seconds": 1.0})
+    )
     output = tmp_path / "packet.json"
-    args = type("args", (), {"slug": slug, "analysis_dir": tmp_path / "analysis", "output": output})()
+    args = type(
+        "args", (), {"slug": slug, "analysis_dir": tmp_path / "analysis", "output": output}
+    )()
 
     cli.cmd_packet(args)
 
     data = json.loads(output.read_text())
     assert data["subject"]["slug"] == slug
     assert data["metadata"]["generator"] == "galdr.packet"
+
 
 # ── caption cue confidence helpers ────────────────────────────────────
 
@@ -3460,7 +4179,6 @@ class TestSurfaceFeatureBank:
         assert np.mean(click_bank["punch"]) > np.mean(tone_bank["punch"])
         assert np.mean(tone_bank["sustain_drone"]) > np.mean(click_bank["sustain_drone"])
 
-
     def test_surface_feature_bank_tracks_band_balance_and_brightness_tilt(self):
         from galdr.surface import compute_surface_feature_bank
 
@@ -3475,7 +4193,6 @@ class TestSurfaceFeatureBank:
         assert np.mean(bass_bank["bass_weight"]) > np.mean(air_bank["bass_weight"])
         assert np.mean(air_bank["air_weight"]) > np.mean(bass_bank["air_weight"])
         assert np.mean(air_bank["brightness_tilt"]) > np.mean(bass_bank["brightness_tilt"])
-
 
     def test_surface_punch_is_gated_by_audible_body(self):
         from galdr.surface import compute_surface_feature_bank

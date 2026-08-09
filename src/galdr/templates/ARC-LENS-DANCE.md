@@ -25,4 +25,4 @@ Do not retell lyric meaning, atmosphere, or the full sound arc merely to remain 
 
 Do not force dance language onto a track that only has a beat. If the movement contract is weak, write a compact boundary reading: what is dance-adjacent, what fails to become dance, and which sound facts prove that boundary.
 
-Shape: usually 4 to 7 paragraphs, no headings.
+Shape: usually 4 to 7 paragraphs and about 300–550 words for a normal track, no headings. A compact boundary reading may be 180–300 words. Spend length on changes in the movement contract, not repeated proof that a beat exists.

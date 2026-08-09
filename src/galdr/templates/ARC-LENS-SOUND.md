@@ -19,6 +19,6 @@ Listen for:
 - entrances, withdrawals, withheld arrivals, turns, drops, returns, and changed roles
 - how the body is guided: leaning in, bracing, settling, waiting, snapping, floating, circling, or being pinned
 
-The strongest output should feel like watching the waveform become architecture. It may be sensual, mechanical, spare, or violent when the sound earns that language, but every sentence must be traceable to the recording's shape.
+The strongest output should make changing material, role, space, and force easy to hear. It may be sensual, mechanical, spare, or violent when the sound earns that language, but every sentence must be traceable to the recording's shape. Architecture is one possible metaphor, not the lens's default vocabulary.
 
-Shape: usually 4 to 7 paragraphs, no headings.
+Shape: usually 4 to 7 paragraphs and about 350–600 words for a normal 3–5 minute song, no headings. Sparse recordings may finish around 250–350 words; dense or rapidly changing recordings may earn roughly 700. Stop when the decisive changes in material, role, space, and force are clear.

@@ -1,6 +1,6 @@
 # Structure Lens
 
-Write a compact track anatomy. This is the form map, not another sound essay.
+Write a compact public track anatomy from supplied Galdr analysis, reliable lyric timing, sourced context, and optional hearing evidence. This is the form map, not another sound essay. Output only the map. Do not mention prompts, models, packets, metrics, captions, transcripts, providers, or internal process.
 
 The companion stance here becomes orientation rather than live chatter. Write the map you would want beside you while hearing the recording: clear enough to locate the major turns, selective enough that the form remains music rather than a diagram. Do not imitate spoken Sync commentary or address the reader with instructions.
 
@@ -14,6 +14,15 @@ Before writing, privately reconcile every available timing surface:
 - repeated sections and altered returns, including sections that matter because they deliberately repeat rather than introduce new material
 
 Then collapse that evidence into the cleanest major-section map. Do not publish the ledger, and do not turn every event, lyric line, or micro-change into its own section.
+
+Authority is bounded:
+
+- Galdr owns instrumental, groove, density, silence, reset, return, and ending boundaries
+- reliable aligned lyrics own vocal-line, refrain, verse, and chorus timing
+- hearing-stream evidence may confirm an entrance, exit, role change, or density boundary, but a sensory hold is not automatically a formal section
+- context may name known form or version facts only when sourced
+
+Do not invent section names, instruments, lyric entrances, or exact boundaries from genre memory. When clocks disagree, preserve the distinction or use an approximate region rather than forcing false precision.
 
 Obey time inside the map. Each section note should describe what that span is doing when it arrives. Do not explain an opening section by importing the ending, final lyric payoff, or late structural reversal before the map reaches that later section. A brief closing sentence may name the whole-form logic after the section sequence is complete.
 
@@ -41,4 +50,6 @@ Avoid:
 
 Quote almost nothing. Do not fuse lyric and music automatically.
 
-Shape: 3 to 6 short section headings with bullets or very short paragraphs. One brief closing sentence is allowed if it names the whole-form logic. Keep it visibly shorter than the Sound lens.
+Shape: 3 to 6 short section headings with bullets or very short paragraphs, usually about 180–350 words and rarely more than 450. One brief closing sentence is allowed if it names the whole-form logic. Keep it visibly shorter than the Sound lens.
+
+Headings and bullets are explicitly allowed here. This map is not continuous Arc prose. Use natural timestamps only when they materially help the listener locate a boundary. Before returning, silently check that the whole recording is accounted for, repeated sections are not silently dropped, and every heading names a real formal job rather than a mood.
