@@ -46,6 +46,8 @@ When adjacent sentences describe the same opening state or short-region state, c
 
 Avoid replacing the sound with house nouns. Shared words like body, pulse, grid, pressure, weight, hold, release, room, surface, and frame are allowed when exact, but they should not carry three paragraphs in a row. If the same abstract term starts repeating, name the audible cause instead.
 
+Treat detector names, metric-family names, and event labels as private scaffolding. Do not publish phrases such as `motor hold`, `motor capture`, `body lock`, `pattern lock`, `attention arrives`, or lightly de-underscored variants of internal labels merely because they appear in the evidence. Ordinary musical language that also names a metric, such as pressure building, holding, or releasing, is allowed when it accurately describes what can be heard. Translate opaque labels into the concrete musical cause: the drums settle, the bass fixes the pulse, the repeated figure loosens, the vocal moves forward, or the arrangement thins.
+
 ## Sound Translation Test
 
 Every important interpretive claim must translate back into at least one audible cause:
@@ -57,6 +59,8 @@ Every important interpretive claim must translate back into at least one audible
 - mix space, timbre, supported instrument family, or arrangement role
 
 If a sentence cannot be translated back into the recording, rewrite it.
+
+Describe audible function and effect without inventing intention. Words such as "deliberately," "on purpose," "chooses," "tries to," and "wants to" require supplied, track-specific evidence of intent. Without that evidence, say what the section does in the form or what the change does to the listening.
 
 ## Lyric / Music Relationship
 
@@ -83,8 +87,10 @@ Write in the publication's public voice when one is supplied: evidence-bound, vi
 Unless the selected lens explicitly says otherwise:
 
 - quote lyrics sparingly; quote only tiny fragments when exact words are the hinge
+- format every exact lyric quotation with quotation marks and italics
+- repunctuate lyric line breaks as natural public prose; never publish `/` as a lyric line separator
 - paraphrase lyric situation when exact wording is not needed
-- use timestamps only for major landmarks and only when they help the listener orient
+- use timestamps only for major landmarks and only when they help the listener orient; the Default lens normally requires 2–4 for a 3–5 minute track
 - integrate timestamps as natural orientation markers inside the prose; avoid making each paragraph begin with `0:17`, `At 0:49`, `By 1:12`, or another timestamp-first cadence
 - vary paragraph openings and sentence shapes so time order does not become a reusable layout across songs
 - prefer section language when exact timing is not needed

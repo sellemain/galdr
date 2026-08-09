@@ -1035,7 +1035,9 @@ def test_assembly_provenance_reads_sparse_inner_ear_witness_model():
         assert "primary clock for lyric, vocal, verse, chorus" in prompt
         assert "Use Galdr/audio-state timestamps freely" in prompt
         assert "Treat timestamps as **orientation markers**, not beat-by-beat labels" in prompt
-        assert "Do **not** timestamp every event" in prompt
+        assert "include **2–4 explicit timestamps**" in prompt
+        assert "each timestamp must sit beside a concrete audible cause" in prompt
+        assert "Do **not** timestamp every event or begin every paragraph with a clock" in prompt
         assert "Obey time" in prompt
         assert "use only what the listener has heard up to that point" in prompt
         assert "A concluding paragraph is optional" in prompt
@@ -1268,6 +1270,7 @@ def test_assembly_provenance_reads_sparse_inner_ear_witness_model():
         for lens in [
             "default",
             "sound",
+            "sound-sync",
             "dance",
             "structure",
             "meaning",
