@@ -404,6 +404,40 @@ class TestAssemblePrompt:
         with pytest.raises(ValueError, match="literal_claim_allowed"):
             self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
 
+    def test_assembly_provenance_without_witness_records_galdr_version(self):
+        from galdr import __version__
+        from galdr.witness import assembly_provenance
+
+        assert assembly_provenance() == {
+            "schema": "galdr.assembly_provenance.v1",
+            "galdr_version": __version__,
+        }
+
+    def test_assembly_provenance_records_inner_ear_model_when_used(self):
+        from galdr import __version__
+        from galdr.witness import assembly_provenance
+
+        packet = {
+            "schema": "galdr.inner_ear_packet.v0",
+            "literal_claim_allowed": False,
+            "full_mix_first": True,
+            "witness": {
+                "kind": "model_audio",
+                "model": "google-ai-studio/gemini-3.1-flash-lite",
+            },
+            "hinges": [],
+        }
+
+        assert assembly_provenance(packet) == {
+            "schema": "galdr.assembly_provenance.v1",
+            "galdr_version": __version__,
+            "witness": {
+                "schema": "galdr.inner_ear_packet.v0",
+                "kind": "inner_ear_packet",
+                "model": "google-ai-studio/gemini-3.1-flash-lite",
+            },
+        }
+
     def test_full_mode_longer_than_blind(self):
         analysis = self._minimal_analysis()
         context = {

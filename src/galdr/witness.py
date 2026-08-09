@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from . import __version__
+
 
 INNER_EAR_PACKET_SCHEMA = "galdr.inner_ear_packet.v0"
 INNER_EAR_SUPPORT_MODES = {"galdr_and_audio", "audio_only", "galdr_only"}
@@ -33,3 +35,27 @@ def validate_witness_packet(packet: Any) -> dict:
                 f"witness packet hinge {index} support_mode must be one of: {choices}"
             )
     return packet
+
+
+def assembly_provenance(packet: dict | None = None) -> dict:
+    """Return exact Galdr and optional Inner Ear provenance for a document."""
+    result = {
+        "schema": "galdr.assembly_provenance.v1",
+        "galdr_version": __version__,
+    }
+    if packet is None:
+        return result
+
+    packet = validate_witness_packet(packet)
+    packet_witness = packet.get("witness")
+    packet_witness = packet_witness if isinstance(packet_witness, dict) else {}
+    witness = {
+        "schema": packet["schema"],
+        "kind": "inner_ear_packet",
+    }
+    for field in ("model", "prompt_version"):
+        value = packet.get(field) or packet_witness.get(field)
+        if isinstance(value, str) and value.strip():
+            witness[field] = value.strip()
+    result["witness"] = witness
+    return result
