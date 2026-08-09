@@ -75,6 +75,8 @@ def test_sound_sync_is_standalone_timed_audio_only_contract():
     assert "both an abrupt audible boundary and a large local contrast" in prompt
     assert "before state, the boundary, the after state" in prompt
     assert "general swell or thicker texture does not prove drums" in prompt
+    assert "This is a proof threshold, not a ban" in prompt
+    assert "Do not flatten a genuine rupture" in prompt
     assert "Do not wrap it in Markdown fences" in prompt
     assert "Does this sentence add more than it masks?" in prompt
 
@@ -125,6 +127,7 @@ def test_family_public_hygiene_carries_quote_metric_and_intent_guards():
     assert "Treat dramatic transition language as an evidence claim" in prompt
     assert "both an abrupt audible boundary and a large local contrast" in prompt
     assert "general swell or thicker texture does not prove" in prompt
+    assert "This is a proof threshold, not a ban" in prompt
 
 
 def test_default_lens_carries_quote_ceiling_and_ending_choices():
@@ -144,6 +147,7 @@ def test_standalone_structure_carries_intent_metric_and_quote_guards():
     assert "never publish `/` as a lyric line separator" in prompt
     assert "Treat dramatic transition language as an evidence claim" in prompt
     assert "both an abrupt audible boundary and a large local contrast" in prompt
+    assert "This is a proof threshold, not a ban" in prompt
 
 
 def test_standalone_meaning_carries_public_quote_formatting():
@@ -154,3 +158,4 @@ def test_standalone_meaning_carries_public_quote_formatting():
     assert "never publish `/` as a line separator" in prompt
     assert "Scale musical intensity language the same way" in prompt
     assert "require an abrupt audible boundary plus a large local contrast" in prompt
+    assert "This is a proof threshold, not a ban" in prompt

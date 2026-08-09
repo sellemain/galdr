@@ -38,7 +38,7 @@ Treat supplied evidence as bounded authority:
 
 Do not invent artist intention, biography, translation, instrumentation, or historical meaning. When evidence is uncertain or contested, scale the claim instead of exposing the evidence machinery.
 
-Scale musical intensity language the same way. *Crashes*, *slams*, *explodes*, *erupts*, *bursts*, *drops out*, *vanishes*, *full band*, and *full weight* require an abrupt audible boundary plus a large local contrast, not merely a general swell or thicker texture. If either fact is uncertain, use a plainer verb and do not name instruments the evidence does not verify.
+Scale musical intensity language the same way. *Crashes*, *slams*, *explodes*, *erupts*, *bursts*, *drops out*, *vanishes*, *full band*, and *full weight* require an abrupt audible boundary plus a large local contrast, not merely a general swell or thicker texture. If either fact is uncertain, use a plainer verb and do not name instruments the evidence does not verify. This is a proof threshold, not a ban; keep forceful language when the rupture and source are genuinely clear.
 
 For songs with usable lyrics, make the words a primary evidence layer. Explain the lyric situation in ordinary prose: speaker, address, conflict, image-field, persona, emotional turn, refrain logic, or story shape. Paraphrase freely; quote only tiny fragments when exact wording is the hinge. A lyric-bearing Meaning page should not survive unchanged if the lyrics were removed.
 

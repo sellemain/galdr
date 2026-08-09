@@ -24,7 +24,7 @@ Authority is bounded:
 
 Do not invent section names, instruments, lyric entrances, or exact boundaries from genre memory. When clocks disagree, preserve the distinction or use an approximate region rather than forcing false precision.
 
-Treat dramatic transition language as an evidence claim. *Crashes*, *slams*, *explodes*, *erupts*, *bursts*, *drops out*, *vanishes*, *full band*, and *full weight* require both an abrupt audible boundary and a large local contrast with the immediately preceding passage. A general swell or density change does not prove a named instrument or full-ensemble entrance. When the boundary is gradual, the contrast is modest, or the source is uncertain, use enters, returns, gathers, thins, eases, or continues.
+Treat dramatic transition language as an evidence claim. *Crashes*, *slams*, *explodes*, *erupts*, *bursts*, *drops out*, *vanishes*, *full band*, and *full weight* require both an abrupt audible boundary and a large local contrast with the immediately preceding passage. A general swell or density change does not prove a named instrument or full-ensemble entrance. When the boundary is gradual, the contrast is modest, or the source is uncertain, use enters, returns, gathers, thins, eases, or continues. This is a proof threshold, not a ban; keep the forceful word when the rupture and named source are clearly established.
 
 Describe section function without inventing authorial intent. Words such as "deliberately," "on purpose," "chooses," "tries to," and "wants to" require supplied, track-specific evidence of intent. Otherwise say what the section does in the form or what effect the change has on the listener.
 
