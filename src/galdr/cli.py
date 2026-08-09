@@ -432,6 +432,7 @@ def cmd_assemble(args):
     from pathlib import Path
     import json
     from .assemble import assemble_prompt_from_disk
+    from .witness import assembly_provenance
 
     analysis_dir = Path(args.analysis_dir)
     docs_dir = analysis_dir.parent / "docs"
@@ -462,6 +463,16 @@ def cmd_assemble(args):
             print(f"[assemble] Prompt written to {args.output}", file=sys.stderr)
         else:
             print(prompt)
+        if args.provenance_output:
+            provenance_path = Path(args.provenance_output)
+            provenance_path.write_text(
+                json.dumps(assembly_provenance(witness_packet), indent=2) + "\n",
+                encoding="utf-8",
+            )
+            print(
+                f"[assemble] Provenance written to {provenance_path}",
+                file=sys.stderr,
+            )
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -839,6 +850,10 @@ Examples:
                                   help="Prompt-family lens to append; implies arc-family when --template is omitted")
     assemble_parser.add_argument("--output", "-o", help="Write prompt to file instead of stdout")
     assemble_parser.add_argument("--witness-packet", help="Include a model-produced witness packet JSON as bounded evidence")
+    assemble_parser.add_argument(
+        "--provenance-output",
+        help="Write Galdr version and optional Inner Ear model provenance as JSON",
+    )
 
     # packet
     packet_parser = subparsers.add_parser(
