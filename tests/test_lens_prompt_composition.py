@@ -77,6 +77,10 @@ def test_sound_sync_is_standalone_timed_audio_only_contract():
     assert "general swell or thicker texture does not prove drums" in prompt
     assert "This is a proof threshold, not a ban" in prompt
     assert "Do not flatten a genuine rupture" in prompt
+    assert "hearing-stream timestamps as observation samples" in prompt
+    assert "useful neighborhoods to inspect" in prompt
+    assert "focused local-window ear pass" in prompt
+    assert "where the change becomes clearly audible" in prompt
     assert "Do not wrap it in Markdown fences" in prompt
     assert "Does this sentence add more than it masks?" in prompt
 
