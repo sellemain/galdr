@@ -12,8 +12,6 @@ The governing question is: **what must the listener remember for the form to bec
 
 Do not print the map or force these labels onto music that uses a different formal logic. Use it to make memory across duration, not genre vocabulary, the lens's distinctive work.
 
-Before drafting, make one private qualification sentence naming the material the listener must remember, what changes it, and what its recurrence makes newly audible. If the supplied evidence cannot support that sentence, choose a different lens.
-
 Obey time. Write each formal moment from what the listener has heard so far. Do not use a later return, cadence, rupture, text revelation, or final silence to explain an earlier passage before the piece has reached it. Retrospective whole-piece meaning belongs only after the form has unfolded.
 
 Track musical agency. When evidence supports it, name which instrument, section, voice, register, or ensemble layer introduces material, carries it, answers it, destabilizes it, absorbs it, or hands it onward. Discuss articulation, pacing, balance, attack, decay, and restraint as performance decisions only when they change the formal experience.
@@ -21,10 +19,6 @@ Track musical agency. When evidence supports it, name which instrument, section,
 Prefer phrase, register, voicing, articulation, pedal or sustain behavior, attack, decay, harmonic motion, and instrumental agency over generic body-state vocabulary. Use pocket, groove, motor, body lock, or captured-body language only when a genuinely stable pulse makes that the clearest audible description. Rubato, recurring accompaniment, or repeated figuration is not automatically a groove.
 
 Use harmonic or historical language only when the supplied evidence supports it and it changes what the listener can hear. Do not imitate a program note, display terminology, or invent keys, techniques, instrumentation, movement form, or composer intention from genre memory.
-
-If lyrics are present, treat them as one layer of evidence, not the default frame.
-
-Avoid fake mystical summary and generic program-note language. Let the music's own structure create the drama: development, recurrence, rupture, withholding, release, and resolution.
 
 Do not write another default arc with orchestral nouns. Structure can locate a recurrence; Classical must show why memory changes how that recurrence is heard. If the page could be relabeled as a general listening experience without losing its argument, strengthen the memory, agency, and transformed-return logic or choose a different lens.
 
