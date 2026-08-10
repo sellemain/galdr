@@ -42,7 +42,8 @@ def test_structure_is_a_standalone_prompt_contract():
     assert "# ARC Prompt Family Base" not in prompt
     assert "Headings and bullets are explicitly allowed here" in prompt
     assert "This map is not continuous Arc prose" in prompt
-    assert "hearing-stream evidence may confirm an entrance" in prompt
+    assert "hearing-stream evidence may suggest or confirm an entrance" in prompt
+    assert "sampled timestamps are neighborhoods rather than automatic onsets" in prompt
     assert "do not use headings or bullets" not in prompt
     assert "## Galdr Analysis" in prompt
 
@@ -68,9 +69,9 @@ def test_sound_sync_is_standalone_timed_audio_only_contract():
     assert "genre history, genre labels" in prompt
     assert "Adjacent target starts must leave obvious room" in prompt
     assert "For any gap around 20 seconds or longer" in prompt
-    assert "A gap around 40 seconds or longer normally requires a useful orientation cue" in prompt
+    assert "A gap around 40 seconds or longer requires an explicit review decision" in prompt
     assert "Do not let minute-scale gaps happen accidentally" in prompt
-    assert "This is a continuity guard, not a density quota" in prompt
+    assert "This is a continuity audit, not a density quota" in prompt
     assert "Treat dramatic transition language as an evidence claim" in prompt
     assert "both an abrupt audible boundary and a large local contrast" in prompt
     assert "before state, the boundary, the after state" in prompt
@@ -82,7 +83,8 @@ def test_sound_sync_is_standalone_timed_audio_only_contract():
     assert "focused local-window ear pass" in prompt
     assert "where the change becomes clearly audible" in prompt
     assert "Do not wrap it in Markdown fences" in prompt
-    assert "Does this sentence add more than it masks?" in prompt
+    assert "Does this sentence help the listener hear the active moment" in prompt
+    assert "requires an explicit review decision, not an automatic cue" in prompt
 
 
 def test_classical_suppresses_unearned_groove_language():
@@ -124,11 +126,10 @@ def test_family_public_hygiene_carries_quote_metric_and_intent_guards():
     assert "format every exact lyric fragment with italics alone" in prompt
     assert "do not wrap italic lyric fragments in quotation marks" in prompt
     assert "leave paraphrases in ordinary unquoted prose" in prompt
-    assert (
-        "Treat detector names, metric-family names, and event labels as private scaffolding"
-        in prompt
-    )
-    assert "`motor hold`" in prompt
+    assert "Named Galdr concepts are part of the listening vocabulary" in prompt
+    assert "A numeric score, metric-family name, snake-case event label" in prompt
+    assert "motor hold" in prompt
+    assert "Repetition is the failure, not use" in prompt
     assert "without inventing intention" in prompt
     assert "require supplied, track-specific evidence of intent" in prompt
     assert "Treat dramatic transition language as an evidence claim" in prompt
@@ -150,7 +151,8 @@ def test_standalone_structure_carries_intent_metric_and_quote_guards():
 
     assert "without inventing authorial intent" in prompt
     assert "require supplied, track-specific evidence of intent" in prompt
-    assert "Do not publish `motor hold`" in prompt
+    assert "Named Galdr concepts such as motor hold" in prompt
+    assert "Do not copy snake-case event labels" in prompt
     assert "never publish `/` as a lyric line separator" in prompt
     assert "Treat dramatic transition language as an evidence claim" in prompt
     assert "both an abrupt audible boundary and a large local contrast" in prompt

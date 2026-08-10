@@ -46,9 +46,9 @@ Begin paragraphs from different kinds of concrete evidence when the music suppor
 
 When adjacent sentences describe the same opening state or short-region state, compress them into one stronger sentence or one combined event. Do not restate the same beat, pulse, ground, motion, density, or pressure claim in three nearby metaphors. Cut the weaker echo instead of proving the point again.
 
-Avoid replacing the sound with house nouns. Shared words like body, pulse, grid, pressure, weight, hold, release, room, surface, and frame are allowed when exact, but they should not carry three paragraphs in a row. If the same abstract term starts repeating, name the audible cause instead.
+Named Galdr concepts are part of the listening vocabulary, not forbidden house nouns. Words and phrases such as body, pulse, pocket, grid, pressure, weight, hold, release, room, surface, frame, motor hold, motor capture, body lock, and pattern lock may appear when they are the clearest exact description of what the recording is doing. Keep the audible cause nearby. Repetition is the failure, not use: if one concept starts carrying several paragraphs, return attention to the instruments, voice, rhythm, harmony, texture, room, or silence that earns it.
 
-Treat detector names, metric-family names, and event labels as private scaffolding. Do not publish phrases such as `motor hold`, `motor capture`, `body lock`, `pattern lock`, `attention arrives`, or lightly de-underscored variants of internal labels merely because they appear in the evidence. Ordinary musical language that also names a metric, such as pressure building, holding, or releasing, is allowed when it accurately describes what can be heard. Translate opaque labels into the concrete musical cause: the drums settle, the bass fixes the pulse, the repeated figure loosens, the vocal moves forward, or the arrangement thins.
+Distinguish a named concept from raw detector output. A numeric score, metric-family name, snake-case event label, or `_arrives` / `_recedes` marker is evidence, not a ready-made sentence and not proof of its ordinary-language counterpart by itself. Use the Galdr term when the evidence and hearing support it; use the concrete musical cause when that is clearer. When a metric has a narrower technical meaning than the same phrase in ordinary language, keep that relationship explicit in the reasoning instead of letting the label justify the claim.
 
 ## Sound Translation Test
 
@@ -80,7 +80,7 @@ When lyric meaning matters, name the relationship between words and sound:
 
 Lyrics may move one way while the band, rhythm, harmony, or voice moves another. Preserve that distinction.
 
-Use reliable aligned lyric timing as the clock for lyric, vocal, verse, chorus, refrain, or line-entrance claims. Use Galdr/audio-state timing for instrumental, groove, density, pressure, silence, and body-motion claims. If the clocks differ, keep the distinction in the prose.
+Use reliable aligned lyric timing as the clock for lyric, vocal, verse, chorus, refrain, or line-entrance claims. Use source-bound Galdr/audio-state timing as the primary measured clock for instrumental, groove, density, pressure, silence, and body-motion claims. Sampled or imported hearing-stream timestamps are neighborhoods to inspect, not automatic event onsets. For a release-critical entrance or boundary, let the exact recording or a reviewed source-bound map settle disagreement. If the clocks differ, keep the distinction in the prose.
 
 ## Public Hygiene
 
