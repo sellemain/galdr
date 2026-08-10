@@ -90,8 +90,11 @@ def test_classical_suppresses_unearned_groove_language():
 
     assert "Prefer phrase, register, voicing, articulation" in prompt
     assert "repeated figuration is not automatically a groove" in prompt
-    assert "one private qualification sentence" in prompt
     assert "why memory changes how that recurrence is heard" in prompt
+    assert "Perceptual salience guide" not in prompt
+    assert "### Arc structure" not in prompt
+    assert "### Metric glossary" not in prompt
+    assert "### How to read galdr" not in prompt
 
 
 def test_ritual_has_one_public_output_contract():

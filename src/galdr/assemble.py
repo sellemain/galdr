@@ -760,7 +760,7 @@ def _build_arc_structure(stream: list[dict]) -> str | None:
     return "\n".join(lines)
 
 
-def _build_metrics(analysis: dict) -> str:
+def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
     """Build core galdr metrics section."""
     report = analysis.get("report") or {}
     perception = analysis.get("perception") or {}
@@ -792,7 +792,7 @@ def _build_metrics(analysis: dict) -> str:
     entrainment = report.get("body")
     entrainment_state = report.get("body_state")
     entrainment_note = report.get("entrainment_note")
-    if entrainment is not None:
+    if entrainment is not None and not compact:
         line = f"{display_name('body')}: {float(entrainment):.3f}"
         if entrainment_state:
             line += f" ({entrainment_state})"
@@ -801,7 +801,7 @@ def _build_metrics(analysis: dict) -> str:
         lines.append(line)
     weight = report.get("weight")
     weight_state = report.get("weight_state")
-    if weight is not None:
+    if weight is not None and not compact:
         line = f"{display_name('weight')}: {float(weight):.3f}"
         if weight_state:
             line += f" ({weight_state})"
@@ -814,7 +814,7 @@ def _build_metrics(analysis: dict) -> str:
     metric_tension = report.get("metric_tension")
     metric_tension_state = report.get("metric_tension_state")
     metric_tension_note = report.get("metric_tension_note")
-    if metric_tension is not None:
+    if metric_tension is not None and not compact:
         line = f"{display_name('metric_tension')}: {float(metric_tension):.3f}"
         if metric_tension_state:
             line += f" ({metric_tension_state})"
@@ -825,7 +825,7 @@ def _build_metrics(analysis: dict) -> str:
     # Perception summary — handles both new schema (mean_pattern) and
     # old schema (mean_surprise = disruption, pattern = 1 - surprise)
     summary = perception.get("summary", {})
-    if summary:
+    if summary and not compact:
         attention = summary.get("mean_attention", 0)
         pattern = summary.get("mean_pattern", 0)
         pressure_building = summary.get("pressure_building_pct", 0)
@@ -899,7 +899,7 @@ def _build_metrics(analysis: dict) -> str:
             "conflict_notes",
         )
     )
-    if has_salience_context:
+    if has_salience_context and not compact:
         lines.append("\nPerceptual salience guide (advisory, not a filter):")
         lines.append(f"Primary contract: {primary_contract}")
         secondary_contracts = salience.get("secondary_contracts") or []
@@ -941,7 +941,7 @@ def _build_metrics(analysis: dict) -> str:
         lines.append("\n" + boundary_candidates)
 
     arc_structure = _build_arc_structure(perception.get("stream", []))
-    if arc_structure:
+    if arc_structure and not compact:
         lines.append("\n" + arc_structure)
 
     # Surface balance derived from report harmonic/percussive weight ratio
@@ -977,32 +977,33 @@ def _build_metrics(analysis: dict) -> str:
                 "(pitch-tracking support; not a vocal claim)"
             )
 
-    lines.append("\n### Metric glossary\n")
-    lines.append(
-        "Use the `Use as` phrases as translation cues, not canned wording. "
-        "Prefer audible description over metric names, and check each caveat before making a strong prose claim."
-    )
-    lines.extend(glossary_lines())
-    lines.append("\n### How to read galdr\n")
-    lines.append(
-        "Galdr traces listener-state pressure: pulse availability, bodily coupling, "
-        "pattern stability, harmonic warmth, local phrase motion, rupture, and release. "
-        "Treat these as evidence of felt experience, not detector facts to recite."
-    )
-    lines.append(
-        "Macro events change the listening landscape: attention, motor entrainment, weight, "
-        "surface change, pressure movement, pattern break, and silence. Phrase events "
-        "are local motion inside that landscape and usually become surface balance within a paragraph."
-    )
-    lines.append(
-        "Metric families: pattern / pulse = reliability and carried time; "
-        "body = whether the pulse has the body or merely offers itself; "
-        "metric tension = cross-rhythm/accent pressure against a stable pulse; "
-        "weight / weight arc = hold, suspension, or macro weight; "
-        "pressure = heard pressure movement; surface_balance = harmonic warmth vs percussive edge; "
-        "harmonic pull / chroma motion = tonal restlessness, drift, or pitch-color movement; "
-        "phrase dynamics = local lift, drop, or flash, usually not structure."
-    )
+    if not compact:
+        lines.append("\n### Metric glossary\n")
+        lines.append(
+            "Use the `Use as` phrases as translation cues, not canned wording. "
+            "Prefer audible description over metric names, and check each caveat before making a strong prose claim."
+        )
+        lines.extend(glossary_lines())
+        lines.append("\n### How to read galdr\n")
+        lines.append(
+            "Galdr traces listener-state pressure: pulse availability, bodily coupling, "
+            "pattern stability, harmonic warmth, local phrase motion, rupture, and release. "
+            "Treat these as evidence of felt experience, not detector facts to recite."
+        )
+        lines.append(
+            "Macro events change the listening landscape: attention, motor entrainment, weight, "
+            "surface change, pressure movement, pattern break, and silence. Phrase events "
+            "are local motion inside that landscape and usually become surface balance within a paragraph."
+        )
+        lines.append(
+            "Metric families: pattern / pulse = reliability and carried time; "
+            "body = whether the pulse has the body or merely offers itself; "
+            "metric tension = cross-rhythm/accent pressure against a stable pulse; "
+            "weight / weight arc = hold, suspension, or macro weight; "
+            "pressure = heard pressure movement; surface_balance = harmonic warmth vs percussive edge; "
+            "harmonic pull / chroma motion = tonal restlessness, drift, or pitch-color movement; "
+            "phrase dynamics = local lift, drop, or flash, usually not structure."
+        )
 
     # Unified timeline: stream-local narrative anchors and structural events share
     # one chronological surface so prose models do not reconcile separate clocks.
@@ -1437,7 +1438,7 @@ def assemble_prompt(
             sections.append(header)
 
     # Galdr metrics (always included)
-    sections.append(_build_metrics(analysis))
+    sections.append(_build_metrics(analysis, compact=lens == "classical"))
 
     # Lyrics
     if flags["lyrics"]:
