@@ -42,6 +42,8 @@ def test_structure_is_a_standalone_prompt_contract():
     assert "# ARC Prompt Family Base" not in prompt
     assert "Headings and bullets are explicitly allowed here" in prompt
     assert "This map is not continuous Arc prose" in prompt
+    assert "Every section heading must begin with a source-bound timestamp or range" in prompt
+    assert "do not emit an untimestamped section heading" in prompt
     assert "hearing-stream evidence may suggest or confirm an entrance" in prompt
     assert "sampled timestamps are neighborhoods rather than automatic onsets" in prompt
     assert "do not use headings or bullets" not in prompt
