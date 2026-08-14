@@ -1157,6 +1157,8 @@ def test_assembly_provenance_reads_sparse_inner_ear_witness_model():
         assert "visibly shorter than the Sound lens" in prompt
         assert "companion stance here becomes orientation rather than live chatter" in prompt
         assert "Headings and bullets are explicitly allowed here" in prompt
+        assert "Every section heading must begin with a source-bound timestamp or range" in prompt
+        assert "do not emit an untimestamped section heading" in prompt
         assert "hearing-stream evidence may confirm an entrance" in prompt
         assert "do not use headings or bullets" not in prompt
 
