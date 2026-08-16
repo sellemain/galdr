@@ -50,6 +50,8 @@ This lens is allowed to say what the song is about when lyrics or context suppor
 
 When you use sound, use it as proof or complication of the meaning claim — arrangement, voice, harmony, rhythm, tension, release, texture, density, silence, or repetition — not as a second guided tour.
 
+Do not default to the stock proof sentence in which a lyric or voice changes while “the band keeps” a floor, road, ground, pulse, frame, or motion steady, moving, or intact underneath. Name the specific audible behavior and the exact pressure it puts on the meaning claim, or leave the generic contrast out.
+
 Do not let context become a biography dump. Use history when the song activates it. If the packet only provides source notes or confidence caveats, use those to scale certainty, not as prose instructions.
 
 ## Listen for

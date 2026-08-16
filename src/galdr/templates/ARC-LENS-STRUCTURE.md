@@ -34,6 +34,8 @@ Obey time inside the map. Each section note should describe what that span is do
 
 Vary section language. The map may use functional verbs, but do not make every heading the same small list of "establishes / narrows / opens / returns / resolves" when the track gives more specific jobs. Name the section's real function: introducing the voice, proving a refrain, delaying a drop, making repetition do work, shifting lyric perspective, emptying the frame, or reloading the same contract.
 
+Do not use the stock section explanation in which the lyric or voice changes while “the band keeps” a floor, road, ground, pulse, frame, or motion steady, moving, or intact underneath. State the exact repeated material and the formal job its continuation performs, or omit the generic contrast.
+
 Account for the whole track. A repeated verse/chorus cycle, post-solo reset, reprise, or chorus return can be a real formal section even when it reuses earlier material. Do not skip those spans just because the section job is "prove the frame still works" or "return the song to its contract."
 
 Prefer:

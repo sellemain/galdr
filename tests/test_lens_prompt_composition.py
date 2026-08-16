@@ -56,6 +56,14 @@ def test_read_along_lenses_still_use_the_family_base():
         assert "# ARC Prompt Family Base" in prompt
 
 
+def test_broad_lenses_reject_reusable_band_keeps_contrast():
+    for lens in ("default", "sound", "structure", "meaning"):
+        prompt = assemble_prompt(minimal_analysis(), mode="blind", lens=lens)
+        assert "the band keeps" in prompt
+        assert "floor, road, ground, pulse, frame, or motion" in prompt
+        assert "steady, moving, or intact underneath" in prompt
+
+
 def test_sound_sync_is_standalone_timed_audio_only_contract():
     prompt = assemble_prompt(minimal_analysis(), mode="blind", lens="sound-sync")
 
