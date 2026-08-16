@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Marked the development line as `0.7.0.dev0` while the Galdr 0.7 preview is under review.
 - Tightened lens-specific length, lyric-quotation, ending, vocabulary, and evidence-use guidance for more distinct public listening documents.
+- Raised the yt-dlp reliability dependency floor to `2026.7.4` for current YouTube extraction fixes.
 
 ## [0.6.1] - 2026-07-13
 
