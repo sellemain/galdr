@@ -10,7 +10,7 @@ Obey time. Write from inside each moment of the recording. Do not use later arri
 
 Do not turn the sound walk into a repeated timestamp layout. It is good to break on the same main sound turns; it is bad when every paragraph starts with the same time phrase and then translates the same pulse/body/grid/pressure vocabulary. Begin paragraphs from the actual audible material when possible: guitar edge, bass placement, drum behavior, vocal grain, synth color, room sound, distortion, density, silence, re-entry, or a change in mix role.
 
-Sound-first does not mean proving one audible state three times. If neighboring sentences name the same beat, low floor, motion, density, pressure, or mix role, collapse them into one exact claim and move to the next audible change.
+Sound-first does not mean proving one audible state three times. If neighboring sentences name the same beat, low-end state, motion, density, pressure, or mix role, collapse them into one exact claim and move to the next audible change.
 
 Listen for:
 

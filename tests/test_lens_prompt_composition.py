@@ -59,9 +59,16 @@ def test_read_along_lenses_still_use_the_family_base():
 def test_broad_lenses_reject_reusable_band_keeps_contrast():
     for lens in ("default", "sound", "structure", "meaning"):
         prompt = assemble_prompt(minimal_analysis(), mode="blind", lens=lens)
-        assert "the band keeps" in prompt
+        assert "generic ensemble-stability" in prompt
+        assert "*keep*, *hold*, or *carry*" in prompt
         assert "floor, road, ground, pulse, frame, or motion" in prompt
-        assert "steady, moving, or intact underneath" in prompt
+
+
+def test_read_along_lenses_require_a_final_specificity_pass():
+    for lens in ("default", "sound"):
+        prompt = assemble_prompt(minimal_analysis(), mode="blind", lens=lens)
+        assert "Search the draft for generic ensemble-stability constructions" in prompt
+        assert "delete the sentence instead of merely swapping synonyms" in prompt
 
 
 def test_sound_sync_is_standalone_timed_audio_only_contract():

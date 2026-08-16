@@ -20,7 +20,7 @@ Before writing, privately build a simple event ledger:
 - where lyric and music match, resist, ignore, tighten, undercut, delay, or jump
 - what each interpretation can point back to in concrete sound
 
-Use that ledger as the floor. Interpretation may rise from the evidence, but it must not arrive before the audible behavior that earns it.
+Use that ledger as private scaffolding. Interpretation may rise from the evidence, but it must not arrive before the audible behavior that earns it.
 
 **Match the claim to the evidence at this moment.** Song memory, genre expectation, later climaxes, and “how this track usually goes” are not proof of what is sounding now. Soft is not strained. Clean is not screamed. Controlled is not at the limit. One instrument is not the full band. If the strong word is only true later, save it for later. Prefer plain physical description over borrowed peak language.
 
@@ -44,9 +44,9 @@ Time order is not an outline format. Let the page walk through the track, but do
 
 Begin paragraphs from different kinds of concrete evidence when the music supports it: a voice entering, a low line changing function, a guitar edge, drum behavior, synth color, string motion, room tone, silence, a lyric image, a density change, a harmonic turn, a repeated phrase, or an instrument role. Use timestamps as anchors inside that prose, not as paragraph templates.
 
-When adjacent sentences describe the same opening state or short-region state, compress them into one stronger sentence or one combined event. Do not restate the same beat, pulse, ground, motion, density, or pressure claim in three nearby metaphors. Cut the weaker echo instead of proving the point again.
+When adjacent sentences describe the same opening state or short-region state, compress them into one stronger sentence or one combined event. Do not restate the same rhythmic state, low-end behavior, density, motion, or pressure claim in three nearby metaphors. Cut the weaker echo instead of proving the point again.
 
-Do not use the reusable lyric/voice contrast template in which the words or singer change while “the band keeps” a floor, road, ground, pulse, frame, or motion steady, moving, or intact underneath. If that contrast matters, name the specific audible behavior and what its continued presence changes at this moment. If nothing specific changes, cut the sentence. This is a corpus-level anti-template rule, not a ban on accurately describing steady accompaniment.
+Reject generic ensemble-stability contrasts: the words or singer change while an unnamed accompaniment remains steady. Do not express that relationship with a generic ensemble subject followed by *keep*, *hold*, or *carry* plus a floor, road, ground, pulse, frame, or motion metaphor. If the contrast matters, name the specific audible behavior and what its continuation changes at this moment. If nothing specific changes, cut the sentence. This is a corpus-level anti-template rule, not a ban on accurately describing steady accompaniment.
 
 Named Galdr concepts are part of the listening vocabulary, not forbidden house nouns. Words and phrases such as body, pulse, pocket, grid, pressure, weight, hold, release, room, surface, frame, motor hold, motor capture, body lock, and pattern lock may appear when they are the clearest exact description of what the recording is doing. Keep the audible cause nearby. Repetition is the failure, not use: if one concept starts carrying several paragraphs, return attention to the instruments, voice, rhythm, harmony, texture, room, or silence that earns it.
 
@@ -104,6 +104,6 @@ Unless the selected lens explicitly says otherwise:
 - do not include a source line
 - do not use headings or bullets in the generated body
 
-Before returning the draft, make one silent editorial pass: identify the three most useful things the reading helps a listener notice, confirm that each has a concrete audible cause, cut repeated interpretations, remove any sentence or paragraph whose loss costs no important event, and confirm that the selected lens contributes something the default reading would not.
+Before returning the draft, make one silent editorial pass: identify the three most useful things the reading helps a listener notice, confirm that each has a concrete audible cause, cut repeated interpretations, remove any sentence or paragraph whose loss costs no important event, and confirm that the selected lens contributes something the default reading would not. Search the draft for generic ensemble-stability constructions during this pass. Name a supported source and a changed local function, or delete the sentence instead of merely swapping synonyms.
 
 Output only the requested body.
