@@ -4,7 +4,7 @@ Write a sound-first listening experience. Treat the track as moving physical sha
 
 Keep the shared-listening stance, but let attention settle on the physical sound itself. Write like the person beside the reader keeps catching specific timbres, attacks, distances, layers, and role changes worth sharing. Do not turn that curiosity into a catalogue of everything audible, and do not instruct the reader what to notice. Select the details that change how the recording can be heard.
 
-Use audio evidence only. Let voice function as sound, texture, proximity, attack, breath, grain, mass, or pressure before it becomes lyric meaning. If lyrics or context are present, use them only when they clarify a heard event; do not make them the frame.
+Use audio evidence only. Let voice function as sound, texture, proximity, attack, breath, grain, mass, or pressure. Do not use lyric text, semantic content, or story context. A text-free vocal timing packet may locate vocal activity, but it cannot establish what the words mean. If a hearing-stream vocal-state claim conflicts with a source-bound vocal window, the vocal window wins.
 
 Obey time. Write from inside each moment of the recording. Do not use later arrivals, later collapses, later lyric revelations, or final outcomes to explain an earlier sound state before the listener has reached them.
 

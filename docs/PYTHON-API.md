@@ -29,6 +29,20 @@ To use the ARC prompt-family lenses:
 ```python
 prompt = analysis.to_prompt(template="arc-family", lens="default", mode="full")
 prompt = analysis.to_prompt(template="arc-family", lens="dance", mode="blind")
+
+# Sound-only alignment can receive timestamp geometry without lyric text.
+prompt = analysis.to_prompt(
+    template="arc-family",
+    lens="sound-sync",
+    mode="blind",
+    vocal_timing_packet={
+        "schema": "galdr.vocal_timing.v1",
+        "durationSec": 180.0,
+        "windows": [
+            {"start": 45.16, "end": 51.16, "endKind": "observed"}
+        ],
+    },
+)
 ```
 
 ## Load existing analysis

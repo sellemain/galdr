@@ -116,11 +116,11 @@ Catalog state lives at `~/.galdr/catalog_state.json`.
 ### assemble — build a model prompt from analysis data
 
 ```bash
-galdr assemble <track-name> [--template arc|arc-family|first|inner-ear|none] [--lens default|sound|sound-sync|dance|structure|meaning|lyrics-study|classical|ritual] [--mode blind|lyrics|context|full] [--witness-packet PATH]
+galdr assemble <track-name> [--template arc|arc-family|first|inner-ear|none] [--lens default|sound|sound-sync|dance|structure|meaning|lyrics-study|classical|ritual] [--mode blind|lyrics|context|full] [--witness-packet PATH] [--vocal-timing-packet PATH]
 galdr inner-ear <track-name> --audio PATH [-o PACKET] [--provider gemini|openrouter] [--model MODEL]
 ```
 
-Build a model prompt from analysis data. Template controls voice/format instructions; mode controls which data sections to include. `--lens` selects an ARC reading contract and implies `--template arc-family` routing when no template is supplied. Read-along lenses may share grounding instructions; Meaning and Structure are standalone contracts.
+Build a model prompt from analysis data. Template controls voice/format instructions; mode controls which data sections to include. `--lens` selects an ARC reading contract and implies `--template arc-family` routing when no template is supplied. Read-along lenses may share grounding instructions; Meaning and Structure are standalone contracts. `--vocal-timing-packet` adds schema-validated, text-free vocal activity windows; use it with `--mode blind` for Sound and Sound Sync.
 
 `--template inner-ear` emits a provider-neutral listening contract without Galdr measurements or fetched context. `--witness-packet PATH` reconciles the resulting independent JSON with Galdr evidence in a later assembly pass. See [INNER-EAR.md](INNER-EAR.md).
 

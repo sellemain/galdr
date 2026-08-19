@@ -484,6 +484,16 @@ def cmd_assemble(args):
             print(f"Error: could not load witness packet: {exc}", file=sys.stderr)
             sys.exit(1)
 
+    vocal_timing_packet = None
+    if args.vocal_timing_packet:
+        try:
+            vocal_timing_packet = json.loads(
+                Path(args.vocal_timing_packet).read_text(encoding="utf-8")
+            )
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"Error: could not load vocal timing packet: {exc}", file=sys.stderr)
+            sys.exit(1)
+
     try:
         prompt = assemble_prompt_from_disk(
             slug=_validate_slug(args.slug),
@@ -493,6 +503,7 @@ def cmd_assemble(args):
             docs_dir=docs_dir if docs_dir.exists() else None,
             lens=args.lens,
             witness_packet=witness_packet,
+            vocal_timing_packet=vocal_timing_packet,
         )
         if args.output:
             Path(args.output).write_text(prompt)
@@ -502,7 +513,10 @@ def cmd_assemble(args):
         if args.provenance_output:
             provenance_path = Path(args.provenance_output)
             provenance_path.write_text(
-                json.dumps(assembly_provenance(witness_packet), indent=2) + "\n",
+                json.dumps(
+                    assembly_provenance(witness_packet, vocal_timing_packet), indent=2
+                )
+                + "\n",
                 encoding="utf-8",
             )
             print(
@@ -934,7 +948,7 @@ Templates prepend instruction rules to the data block:
 Prompt-family lenses:
   default       Public lyric/pop/general listening page
   sound         Sound-as-shape page: pressure, density, space, body, motion
-  sound-sync    Sparse timed sound commentary; use --mode lyrics for vocal alignment
+  sound-sync    Sparse timed sound commentary; use text-free vocal timing for alignment
   dance         Movement contract: groove, build/drop, repetition, bodily use
   structure     Compact audit/debug witness
   meaning       Human situation carried by sound
@@ -951,6 +965,7 @@ Examples:
   galdr assemble 7-helvegen --template inner-ear > inner-ear-prompt.md
   galdr assemble 7-helvegen --template arc --witness-packet inner-ear.json
   galdr assemble 7-helvegen --template arc --witness-packet hearing-stream.json
+  galdr assemble 7-helvegen --lens sound-sync --mode blind --vocal-timing-packet vocal-timing.json
 """,
     )
     assemble_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
@@ -987,6 +1002,10 @@ Examples:
     assemble_parser.add_argument(
         "--witness-packet",
         help="Include optional model witness JSON (inner-ear packet or hearing stream) as bounded evidence",
+    )
+    assemble_parser.add_argument(
+        "--vocal-timing-packet",
+        help="Include text-free vocal activity windows as bounded alignment evidence",
     )
     assemble_parser.add_argument(
         "--provenance-output",

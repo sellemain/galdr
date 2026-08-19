@@ -9,6 +9,7 @@ Output structure (controlled by mode):
   [Background]             <- artist background + song context (full, context)
   [Galdr analysis]         <- metrics, events, melody        (all modes)
   [Lyrics]                 <- timed lyrics / captions         (full, lyrics)
+  [Vocal timing]           <- optional text-free activity windows
   [Frame descriptions]     <- vision descriptions at events  (full, if present)
   [Optional witness]       <- inner-ear packet or hearing stream (when provided)
 
@@ -30,6 +31,8 @@ Default template is none.
 """
 
 import json
+import math
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from importlib import resources as pkg_resources
@@ -53,6 +56,7 @@ MODES = {
 
 DEFAULT_MODE = "full"
 DEFAULT_TEMPLATE = "none"
+VOCAL_TIMING_SCHEMA = "galdr.vocal_timing.v1"
 
 BUNDLED_TEMPLATES = {
     "arc": "ARC-PROMPT.md",
@@ -1187,6 +1191,115 @@ def _build_lyrics(context: dict) -> str | None:
     return "\n\n".join(sections)
 
 
+def validate_vocal_timing(packet: dict | None) -> dict | None:
+    """Validate a text-free vocal activity packet used for sound-only lenses."""
+    if packet is None:
+        return None
+    if not isinstance(packet, dict) or packet.get("schema") != VOCAL_TIMING_SCHEMA:
+        raise ValueError(f"vocal timing packet must use schema {VOCAL_TIMING_SCHEMA}")
+    allowed_root = {"schema", "durationSec", "source", "audioSha256", "windows"}
+    extra_root = sorted(set(packet) - allowed_root)
+    if extra_root:
+        raise ValueError(
+            "vocal timing packet contains unsupported fields: " + ", ".join(extra_root)
+        )
+    duration = packet.get("durationSec")
+    if not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration <= 0:
+        raise ValueError("vocal timing packet durationSec must be positive")
+    source = packet.get("source")
+    if source is not None and (
+        not isinstance(source, str)
+        or re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,63}", source) is None
+    ):
+        raise ValueError("vocal timing packet source must be a short provenance token")
+    audio_sha = packet.get("audioSha256")
+    if audio_sha is not None and (
+        not isinstance(audio_sha, str)
+        or re.fullmatch(r"[0-9a-f]{64}", audio_sha) is None
+    ):
+        raise ValueError("vocal timing packet audioSha256 must be lowercase SHA-256")
+    windows = packet.get("windows")
+    if not isinstance(windows, list) or not windows:
+        raise ValueError("vocal timing packet windows must be a non-empty array")
+    allowed_window = {"start", "end", "confidence", "endKind"}
+    previous_start = -1.0
+    for index, window in enumerate(windows):
+        if not isinstance(window, dict):
+            raise ValueError(f"vocal timing window {index} must be an object")
+        extra = sorted(set(window) - allowed_window)
+        if extra:
+            raise ValueError(
+                f"vocal timing window {index} contains unsupported fields: "
+                + ", ".join(extra)
+            )
+        start = window.get("start")
+        if (
+            not isinstance(start, (int, float))
+            or not math.isfinite(start)
+            or start < 0
+            or start > duration
+        ):
+            raise ValueError(f"vocal timing window {index} start is out of range")
+        if start < previous_start:
+            raise ValueError("vocal timing windows must be ordered by start")
+        previous_start = float(start)
+        end = window.get("end")
+        if end is not None and (
+            not isinstance(end, (int, float))
+            or not math.isfinite(end)
+            or end <= start
+            or end > duration
+        ):
+            raise ValueError(f"vocal timing window {index} end is out of range")
+        end_kind = window.get("endKind")
+        if end_kind not in {"observed", "inferred", "unknown"}:
+            raise ValueError(
+                f"vocal timing window {index} endKind must be observed, inferred, or unknown"
+            )
+        if end is None and end_kind != "unknown":
+            raise ValueError(
+                f"vocal timing window {index} without an end must use endKind unknown"
+            )
+        confidence = window.get("confidence")
+        if confidence is not None and (
+            not isinstance(confidence, str)
+            or re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,63}", confidence) is None
+        ):
+            raise ValueError(
+                f"vocal timing window {index} confidence must be a short provenance token"
+            )
+    return packet
+
+
+def _fmt_precise_time(seconds: float) -> str:
+    minutes, remainder = divmod(float(seconds), 60)
+    return f"{int(minutes)}:{remainder:06.3f}"
+
+
+def _build_vocal_timing(packet: dict) -> str:
+    """Render vocal geometry without exposing lyric text or semantic content."""
+    lines = [
+        "## Vocal activity windows (lyric text withheld)",
+        "",
+        "These windows are private alignment evidence for vocal presence only. "
+        "Inside a window, do not claim that the voice is absent, has dropped out, "
+        "or that the passage is instrumental. Gaps outside the windows are only "
+        "candidate vocal-free spans and still require confirmation from the audio. "
+        "An unknown or inferred end is weaker than an observed end.",
+        "",
+    ]
+    for window in packet["windows"]:
+        start = _fmt_precise_time(float(window["start"]))
+        end = window.get("end")
+        end_text = _fmt_precise_time(float(end)) if end is not None else "?"
+        details = [f"end {window['endKind']}"]
+        confidence = window.get("confidence")
+        if isinstance(confidence, str) and confidence.strip():
+            details.append(f"confidence {confidence.strip()}")
+        lines.append(f"- {start}–{end_text} | {' | '.join(details)}")
+    return "\n".join(lines)
+
+
 def _build_frames(context: dict) -> str | None:
     """Build video frame descriptions section if present.
 
@@ -1389,6 +1502,7 @@ def assemble_prompt(
     docs_dir: Path | None = None,
     lens: str | None = None,
     witness_packet: dict | None = None,
+    vocal_timing_packet: dict | None = None,
 ) -> str:
     """Assemble a model prompt from analysis data and optional context.
 
@@ -1403,6 +1517,7 @@ def assemble_prompt(
         docs_dir: optional path to docs/ directory for local template overrides
         lens:     optional prompt-family lens: default, sound, sound-sync, dance, structure, meaning, lyrics-study, classical, ritual
         witness_packet: optional model-produced listening evidence
+        vocal_timing_packet: optional text-free vocal activity windows
 
     Returns:
         Complete prompt string ready to send to a model.
@@ -1416,6 +1531,7 @@ def assemble_prompt(
         return prompt.strip()
     if witness_packet is not None:
         witness_packet = validate_witness_packet(witness_packet)
+    vocal_timing_packet = validate_vocal_timing(vocal_timing_packet)
 
     flags = MODES[mode]
     ctx = context or {}
@@ -1450,6 +1566,9 @@ def assemble_prompt(
         if lyr:
             sections.append(lyr)
 
+    if vocal_timing_packet:
+        sections.append(_build_vocal_timing(vocal_timing_packet))
+
     # Frame descriptions
     if flags["frames"]:
         frames = _build_frames(ctx)
@@ -1470,6 +1589,7 @@ def assemble_prompt_from_disk(
     docs_dir: Path | None = None,
     lens: str | None = None,
     witness_packet: dict | None = None,
+    vocal_timing_packet: dict | None = None,
 ) -> str:
     """Assemble a prompt by loading data from disk for a given slug.
 
@@ -1482,6 +1602,7 @@ def assemble_prompt_from_disk(
         template:     "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir:     optional path to docs/ for local template overrides
         lens:         optional prompt-family lens: default, sound, sound-sync, dance, structure, meaning, lyrics-study, classical, ritual
+        vocal_timing_packet: optional text-free vocal activity windows
 
     Returns:
         Complete prompt string ready to send to a model.
@@ -1494,6 +1615,7 @@ def assemble_prompt_from_disk(
             docs_dir=docs_dir,
             lens=lens,
             witness_packet=witness_packet,
+            vocal_timing_packet=vocal_timing_packet,
         )
     analysis = load_analysis(slug, analysis_dir)
     context = load_context(slug, analysis_dir)
@@ -1511,4 +1633,5 @@ def assemble_prompt_from_disk(
         docs_dir=docs_dir,
         lens=lens,
         witness_packet=witness_packet,
+        vocal_timing_packet=vocal_timing_packet,
     )

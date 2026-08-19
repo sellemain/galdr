@@ -105,8 +105,8 @@ def test_sound_sync_is_standalone_timed_audio_only_contract():
 
     assert "# Sound Sync Lens" in prompt
     assert "# ARC Prompt Family Base" not in prompt
-    assert "Timed lyrics may be supplied as private vocal-alignment evidence" in prompt
-    assert "do not quote, paraphrase, summarize, or interpret the words" in prompt
+    assert "text-free vocal timing packet" in prompt
+    assert "Do not quote, paraphrase, summarize, or interpret words" in prompt
     assert "No lyric quotations or semantic references" in prompt
     assert '"lens": "sound-sync"' in prompt
     assert '"musicalAnchorMs"' in prompt
@@ -131,6 +131,56 @@ def test_sound_sync_is_standalone_timed_audio_only_contract():
     assert "Do not wrap it in Markdown fences" in prompt
     assert "Does this sentence help the listener hear the active moment" in prompt
     assert "requires an explicit review decision, not an automatic cue" in prompt
+
+
+def test_vocal_timing_packet_exposes_geometry_without_lyric_text():
+    packet = {
+        "schema": "galdr.vocal_timing.v1",
+        "durationSec": 180.0,
+        "source": "same-recording-captions",
+        "audioSha256": "a" * 64,
+        "windows": [
+            {
+                "start": 45.16,
+                "end": 51.16,
+                "endKind": "observed",
+                "confidence": "same-recording-caption",
+            },
+            {"start": 70.68, "end": None, "endKind": "unknown"},
+        ],
+    }
+
+    prompt = assemble_prompt(
+        minimal_analysis(), mode="blind", lens="sound-sync", vocal_timing_packet=packet
+    )
+
+    assert "## Vocal activity windows (lyric text withheld)" in prompt
+    assert "0:45.160–0:51.160" in prompt
+    assert "1:10.680–?" in prompt
+    assert "candidate vocal-free spans" in prompt
+    assert "same-recording-caption" in prompt
+
+
+def test_vocal_timing_packet_rejects_text_fields():
+    packet = {
+        "schema": "galdr.vocal_timing.v1",
+        "durationSec": 180.0,
+        "windows": [
+            {
+                "start": 45.16,
+                "end": 51.16,
+                "endKind": "observed",
+                "text": "words must not cross this boundary",
+            }
+        ],
+    }
+
+    try:
+        assemble_prompt(minimal_analysis(), mode="blind", vocal_timing_packet=packet)
+    except ValueError as exc:
+        assert "unsupported fields: text" in str(exc)
+    else:
+        raise AssertionError("vocal timing packets must reject lyric text")
 
 
 def test_classical_suppresses_unearned_groove_language():
