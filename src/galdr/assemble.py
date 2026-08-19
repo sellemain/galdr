@@ -1354,10 +1354,10 @@ def _build_inner_ear_packet_section(packet: dict) -> str:
     return "\n".join([
         "## Optional witness packet",
         "",
-        "This is model-produced evidence, not Galdr measurement. Treat its timed claims as "
-        "candidates unless Galdr supports them. It may add timbre, space, grain, vocal body, "
-        "and other directly heard surface detail; it must not silently override Galdr timing "
-        "or structure.",
+        "This is model-produced listening evidence, not Galdr measurement. It may report "
+        "directly heard events, timbre, space, grain, vocal body, and other qualities the "
+        "analysis does not capture. Use both witnesses for what they can support, and preserve "
+        "meaningful timing or structure disagreements for source review.",
         "",
         "Simultaneous-evidence reminder: words, music, and sound-as-heard are happening together. "
         "Use this packet as one partial view, then write the reunited moment the lens needs.",
@@ -1402,14 +1402,18 @@ def assemble_prompt(
         template: "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir: optional path to docs/ directory for local template overrides
         lens:     optional prompt-family lens: default, sound, sound-sync, dance, structure, meaning, lyrics-study, classical, ritual
-        witness_packet: optional model-produced listening evidence; Galdr remains the
-                        timing and structure authority
+        witness_packet: optional model-produced listening evidence
 
     Returns:
         Complete prompt string ready to send to a model.
     """
     if mode not in MODES:
         raise ValueError(f"Unknown mode '{mode}'. Choose from: {', '.join(MODES)}")
+    if template == "inner-ear":
+        prompt = resolve_template(template, docs_dir, lens=lens)
+        if not prompt:
+            raise ValueError("Inner Ear prompt is unavailable")
+        return prompt.strip()
     if witness_packet is not None:
         witness_packet = validate_witness_packet(witness_packet)
 

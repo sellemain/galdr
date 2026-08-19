@@ -521,25 +521,35 @@ class TestAssemblePrompt:
 
     def test_inner_ear_template_defines_witness_role(self):
         result = self.fn(self._minimal_analysis(), mode="blind", template="inner-ear")
-        assert "You are a listening witness, not the final author" in result
+        assert "You are an independent listening witness, not the final author" in result
         assert "galdr.inner_ear_packet.v0" in result
+        assert "## Galdr Analysis" not in result
 
     def test_witness_packet_is_bounded_and_included(self):
         packet = {
             "schema": "galdr.inner_ear_packet.v0",
+            "subject": {"slug": "example"},
+            "witness": {"kind": "model_audio", "model": "example-model"},
             "literal_claim_allowed": False,
             "full_mix_first": True,
+            "opening": {},
             "hinges": [
                 {
                     "time_sec": 12.5,
+                    "kind": "layer_entry",
                     "claim": "a dry pulse enters",
-                    "support_mode": "audio_only",
+                    "confidence": 0.8,
+                    "suspect": False,
                 }
             ],
+            "surface": {},
+            "uncertainties": [],
+            "suspect_claims": [],
+            "assembler_notes": [],
         }
         result = self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
         assert "## Optional witness packet" in result
-        assert "model-produced evidence, not Galdr measurement" in result
+        assert "model-produced listening evidence, not Galdr measurement" in result
         assert '"time_sec": 12.5' in result
 
     def test_witness_packet_rejects_unbounded_literal_claims(self):
@@ -705,13 +715,19 @@ def test_assembly_provenance_reads_sparse_inner_ear_witness_model():
 
     packet = {
         "schema": "galdr.inner_ear_packet.v0",
+        "subject": {"slug": "example"},
         "literal_claim_allowed": False,
         "full_mix_first": True,
         "witness": {
             "kind": "model_audio",
             "model": "google-ai-studio/gemini-3.1-flash-lite",
         },
+        "opening": {},
         "hinges": [],
+        "surface": {},
+        "uncertainties": [],
+        "suspect_claims": [],
+        "assembler_notes": [],
     }
 
     assert assembly_provenance(packet)["witness"] == {

@@ -81,9 +81,16 @@ def test_assemble_accepts_witness_packet():
         mode="blind",
         witness_packet={
             "schema": "galdr.inner_ear_packet.v0",
+            "subject": {"slug": "demo"},
+            "witness": {"kind": "model_audio", "model": "example-model"},
             "literal_claim_allowed": False,
             "full_mix_first": True,
+            "opening": {},
             "hinges": [],
+            "surface": {},
+            "uncertainties": [],
+            "suspect_claims": [],
+            "assembler_notes": [],
         },
     )
 
@@ -105,9 +112,16 @@ def test_analysis_object_accepts_witness_packet(tmp_path):
     )
     packet = {
         "schema": "galdr.inner_ear_packet.v0",
+        "subject": {"slug": "demo"},
+        "witness": {"kind": "model_audio", "model": "example-model"},
         "literal_claim_allowed": False,
         "full_mix_first": True,
+        "opening": {},
         "hinges": [],
+        "surface": {},
+        "uncertainties": [],
+        "suspect_claims": [],
+        "assembler_notes": [],
     }
 
     prompt = assemble(analysis, mode="blind", witness_packet=packet)

@@ -8,13 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Optional direct Gemini and OpenRouter adapters behind an explicit `galdr inner-ear` command for generating validated, provenance-bound audio witness packets without changing Galdr's local default workflow.
 - Preview support for dense `galdr.hearing_stream.v0` audio-model witnesses, including a frozen JSON Schema, strict validation, compact prompt rendering, and exact witness provenance.
 - Standalone Meaning and Structure writing contracts so those lenses can follow their own evidence and form rules without inheriting chronological Arc prose.
 
 ### Changed
+- Kept the Inner Ear prompt and packet contract provider-neutral while removing private batch/release assumptions from the public workflow.
 - Marked the development line as `0.7.0.dev0` while the Galdr 0.7 preview is under review.
 - Tightened lens-specific length, lyric-quotation, ending, vocabulary, and evidence-use guidance for more distinct public listening documents.
 - Raised the yt-dlp reliability dependency floor to `2026.7.4` for current YouTube extraction fixes.
+
+### Fixed
+- Enforced the published Inner Ear packet shape during local validation instead of accepting incomplete hinge and provenance objects.
+- Bounded Gemini file processing and surfaced temporary-upload cleanup failures instead of allowing silent hangs or silent retention.
 
 ## [0.6.1] - 2026-07-13
 

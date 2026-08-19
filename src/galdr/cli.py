@@ -514,6 +514,48 @@ def cmd_assemble(args):
         sys.exit(1)
 
 
+def cmd_inner_ear(args):
+    """Generate an optional model-audio witness packet."""
+    import json
+
+    from .inner_ear import (
+        DEFAULT_GEMINI_MODEL,
+        DEFAULT_OPENROUTER_MODEL,
+        generate_gemini_witness,
+        generate_openrouter_witness,
+    )
+
+    output_path = Path(args.output)
+    if output_path.exists() and not args.force:
+        print(f"Error: {output_path} already exists; use --force to replace it", file=sys.stderr)
+        sys.exit(1)
+    try:
+        generator = (
+            generate_openrouter_witness
+            if args.provider == "openrouter"
+            else generate_gemini_witness
+        )
+        packet = generator(
+            slug=_validate_slug(args.slug),
+            audio_path=args.audio,
+            model=args.model
+            or (
+                DEFAULT_OPENROUTER_MODEL
+                if args.provider == "openrouter"
+                else DEFAULT_GEMINI_MODEL
+            ),
+        )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(packet, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        print(f"[inner-ear] Witness packet written to {output_path}", file=sys.stderr)
+    except (OSError, RuntimeError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
 def cmd_packet(args):
     """Build a generic evidence packet from analysis + context data."""
     import json
@@ -951,6 +993,46 @@ Examples:
         help="Write Galdr version and optional witness model provenance as JSON",
     )
 
+    # inner-ear
+    inner_ear_parser = subparsers.add_parser(
+        "inner-ear",
+        help="Generate an optional audio-model witness packet",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="""
+Generate a bounded Inner Ear evidence packet by sending only the source audio
+and listening contract to an audio-capable model. This command is optional,
+uploads audio, and may incur provider charges. Normal Galdr analysis remains
+local and requires no model API.
+
+Gemini direct requires the optional dependency and GEMINI_API_KEY. OpenRouter
+works with the base Galdr install, uses inline audio, and requires
+OPENROUTER_API_KEY:
+  pip install "galdr[gemini]"
+  export GEMINI_API_KEY=...
+  export OPENROUTER_API_KEY=...
+
+Example:
+  galdr inner-ear 7-helvegen --audio audio/7-helvegen.mp3 -o inner-ear.json
+""",
+    )
+    inner_ear_parser.add_argument("slug", help="Track slug recorded in packet provenance")
+    inner_ear_parser.add_argument("--audio", required=True, help="Exact source audio file")
+    inner_ear_parser.add_argument(
+        "--provider", choices=("gemini", "openrouter"), default="gemini",
+        help="Audio-model transport (default: gemini)",
+    )
+    inner_ear_parser.add_argument(
+        "--model",
+        default=None,
+        help="Model ID (provider default when omitted)",
+    )
+    inner_ear_parser.add_argument(
+        "--output", "-o", default="inner-ear.json", help="Packet output path"
+    )
+    inner_ear_parser.add_argument(
+        "--force", action="store_true", help="Replace an existing output packet"
+    )
+
     # packet
     packet_parser = subparsers.add_parser(
         "packet",
@@ -1051,6 +1133,8 @@ Examples:
         cmd_cache(args)
     elif args.command == "assemble":
         cmd_assemble(args)
+    elif args.command == "inner-ear":
+        cmd_inner_ear(args)
     elif args.command == "packet":
         cmd_packet(args)
     elif args.command == "frames":

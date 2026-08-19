@@ -148,7 +148,7 @@ jq '.summary' analysis/my-track/my-track_perception.json
 
 The assembled prompt includes source context, structural events, harmonic and melodic data, lyrics when available, and video-frame descriptions when present. Automated lyrics, provider-timed lyrics, and captions are context, not proof; verify central words for release-quality prose.
 
-For models that accept audio, Galdr can also assemble a provider-neutral Inner Ear discovery prompt and later include the resulting witness packet as bounded evidence. See [Inner Ear witness packets](docs/INNER-EAR.md).
+For models that accept audio, Galdr can request an independent Inner Ear listen and later reconcile that witness packet with its computed analysis. Optional Gemini and OpenRouter adapters provide an explicit end-to-end command while normal analysis stays local and credential-free. See [Inner Ear witness packets](docs/INNER-EAR.md).
 
 ## Listening experiences
 
