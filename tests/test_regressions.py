@@ -701,6 +701,16 @@ def test_assemble_unknown_slug_raises(tmp_path):
         assemble_prompt_from_disk("missing-slug", tmp_path)
 
 
+def test_inner_ear_template_does_not_require_analysis(tmp_path):
+    """The standalone listening contract should work before local analysis exists."""
+    from galdr.assemble import assemble_prompt_from_disk
+
+    prompt = assemble_prompt_from_disk("missing-slug", tmp_path, template="inner-ear")
+
+    assert "independent listening witness" in prompt.lower()
+    assert "galdr.inner_ear_packet.v0" in prompt
+
+
 def test_assemble_context_only_reports_missing_structural_analysis(tmp_path):
     """Context-only tracks should not emit fabricated zero-valued metrics."""
     from galdr.assemble import assemble_prompt_from_disk
