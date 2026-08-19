@@ -52,6 +52,8 @@ When you use sound, use it as proof or complication of the meaning claim — arr
 
 Reject generic ensemble-stability proof: a lyric or voice changes while an unnamed accompaniment remains steady. Do not express it with a generic ensemble subject followed by *keep*, *hold*, or *carry* plus a floor, road, ground, pulse, frame, or motion metaphor. Name the specific audible behavior and the exact pressure it puts on the meaning claim, or leave the generic contrast out.
 
+Vary the shape according to the claim. One thought may stand in one plain sentence; another may need two linked sentences; a layered reading may earn three or more before the paragraph turns. These are options, not a quota. Do not repeat a lyric claim, an unchanged-accompaniment contrast, and an abstract conclusion in the same order across the page. Keep the strongest instance and let the other paragraph enter through context, voice, image, sound, or residue as the evidence requires.
+
 Do not let context become a biography dump. Use history when the song activates it. If the packet only provides source notes or confidence caveats, use those to scale certainty, not as prose instructions.
 
 ## Listen for
@@ -73,4 +75,4 @@ Name the decisive meaning claim, show the strongest lyric/context/history eviden
 
 Final check before return: if the draft could be mistaken for a short Arc page, rewrite it as residue and claim.
 
-Before returning, silently check that the page has one governing claim, that sound is evidence rather than a second tour, and that removing the lyrics or context would materially change a lyric/context-bearing reading.
+Before returning, silently check that the page has one governing claim, that sound is evidence rather than a second tour, that removing the lyrics or context would materially change a lyric/context-bearing reading, and that neighboring paragraphs do not share the same internal argument pattern merely with different nouns.

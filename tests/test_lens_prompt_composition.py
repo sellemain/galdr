@@ -71,6 +71,35 @@ def test_read_along_lenses_require_a_final_specificity_pass():
         assert "delete the sentence instead of merely swapping synonyms" in prompt
 
 
+def test_read_along_lenses_vary_response_shape_without_a_quota():
+    for lens in ("default", "sound"):
+        prompt = assemble_prompt(minimal_analysis(), mode="blind", lens=lens)
+        assert "One observation may need one plain sentence" in prompt
+        assert "A real unfolding may earn three or more" in prompt
+        assert "not a sequence or quota" in prompt
+        assert "Do not make neighboring paragraphs run the same rhetorical program" in prompt
+        assert "synonym replacement alone is not variety" in prompt
+
+
+def test_lyric_relationship_is_selective_not_a_required_template():
+    prompt = assemble_prompt(minimal_analysis(), mode="full", lens="default")
+
+    assert "Most lyric passages do not need one" in prompt
+    assert "already musical evidence" in prompt
+    assert "the prose must not imply that the band was expected to react" in prompt
+    assert "Never append an unchanged-band clause" in prompt
+    assert "return only when its audible function changes" in prompt
+
+
+def test_meaning_varies_argument_shape_without_forcing_length():
+    prompt = assemble_prompt(minimal_analysis(), mode="full", lens="meaning")
+
+    assert "One thought may stand in one plain sentence" in prompt
+    assert "a layered reading may earn three or more" in prompt
+    assert "These are options, not a quota" in prompt
+    assert "same internal argument pattern" in prompt
+
+
 def test_sound_sync_is_standalone_timed_audio_only_contract():
     prompt = assemble_prompt(minimal_analysis(), mode="blind", lens="sound-sync")
 

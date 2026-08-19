@@ -12,12 +12,12 @@ Imagine the finished use: the reader has the same recording playing and is readi
 
 The broad lenses are read-along pages, not synchronized voice cues. They do not need Sync's exact speech-placement rules. When a lens walks the recording, its chronology should still respect discovery: let the page encounter entrances, returns, lyric turns, and surprises in the order the recording reveals them. Meaning does not walk the recording; it writes after the listen. Avoid habitual audience directions such as "listen to," "notice how," or "here comes." Prefer the direct observation or thought you would naturally share with someone already hearing it, or — for Meaning — the takeaway you would share after the song ends.
 
-Before writing, privately build a simple event ledger:
+Before interpreting the words, privately build a simple musical event ledger. Establish what the recording does in sound and form first; then add only the lyric turns that materially change that hearing. Do not begin from the lyric sequence and ask what the accompaniment is doing under every line.
 
 - what enters, exits, thickens, thins, repeats, breaks, brightens, darkens, rises, drops, stops, returns, or changes role
 - the first sustained arrival
 - major vocal, instrumental, density, silence, re-entry, and ending turns
-- where lyric and music match, resist, ignore, tighten, undercut, delay, or jump
+- lyric or vocal turns whose timing, delivery, repetition, or changed setting alters the experience
 - what each interpretation can point back to in concrete sound
 
 Use that ledger as private scaffolding. Interpretation may rise from the evidence, but it must not arrive before the audible behavior that earns it.
@@ -46,6 +46,10 @@ Begin paragraphs from different kinds of concrete evidence when the music suppor
 
 When adjacent sentences describe the same opening state or short-region state, compress them into one stronger sentence or one combined event. Do not restate the same rhythmic state, low-end behavior, density, motion, or pressure claim in three nearby metaphors. Cut the weaker echo instead of proving the point again.
 
+Vary the scale and job of the prose according to the moment. One observation may need one plain sentence. Another may need two linked sentences. A real unfolding may earn three or more. These are available shapes, not a sequence or quota; do not cycle through them mechanically. A paragraph may stay with sound, vocal delivery, a decisive lyric, form, repetition, or an earned reflection without proving that it noticed every other layer.
+
+Do not make neighboring paragraphs run the same rhetorical program: observation, contrast or negation, then abstract takeaway; lyric paraphrase, steady accompaniment, then interpretation; event label, metaphor, then bodily consequence. Any one instance may be good. Repetition is the defect. Keep the strongest instance, and let later material change the subject, sentence count, internal order, level of detail, or simply remain unspoken when it adds no new hearing.
+
 Reject generic ensemble-stability contrasts: the words or singer change while an unnamed accompaniment remains steady. Do not express that relationship with a generic ensemble subject followed by *keep*, *hold*, or *carry* plus a floor, road, ground, pulse, frame, or motion metaphor. If the contrast matters, name the specific audible behavior and what its continuation changes at this moment. If nothing specific changes, cut the sentence. This is a corpus-level anti-template rule, not a ban on accurately describing steady accompaniment.
 
 Named Galdr concepts are part of the listening vocabulary, not forbidden house nouns. Words and phrases such as body, pulse, pocket, grid, pressure, weight, hold, release, room, surface, frame, motor hold, motor capture, body lock, and pattern lock may appear when they are the clearest exact description of what the recording is doing. Keep the audible cause nearby. Repetition is the failure, not use: if one concept starts carrying several paragraphs, return attention to the instruments, voice, rhythm, harmony, texture, room, or silence that earns it.
@@ -68,19 +72,9 @@ Describe audible function and effect without inventing intention. Words such as 
 
 ## Lyric / Music Relationship
 
-Do not assume the lyric and music are doing the same thing.
+Do not assume lyric and music are doing the same thing, opposing each other, or demanding a relationship verdict at every turn. Most lyric passages do not need one. Vocal melody, phrasing, grain, register, timing, and delivery are already musical evidence; a decisive word or vocal gesture may stand alone when an accompaniment gloss would add nothing.
 
-When lyric meaning matters, name the relationship between words and sound:
-
-- matching
-- resisting
-- ignoring
-- tightening
-- undercutting
-- delaying
-- jumping
-
-Lyrics may move one way while the band, rhythm, harmony, or voice moves another. Preserve that distinction.
+Name a lyric/music relationship only when a specific audible interaction materially changes the hearing. Describe that interaction rather than selecting a reusable label for it. An accompaniment continuing through a dramatic line is not automatically a meaningful contrast, and the prose must not imply that the band was expected to react. Never append an unchanged-band clause merely to make a lyric reading look musically grounded. If one relationship persists across several verses, establish it once and return only when its audible function changes.
 
 Use reliable aligned lyric timing as the clock for lyric, vocal, verse, chorus, refrain, or line-entrance claims. Use source-bound Galdr/audio-state timing as the primary measured clock for instrumental, groove, density, pressure, silence, and body-motion claims. Sampled or imported hearing-stream timestamps are neighborhoods to inspect, not automatic event onsets. For a release-critical entrance or boundary, let the exact recording or a reviewed source-bound map settle disagreement. If the clocks differ, keep the distinction in the prose.
 
@@ -104,6 +98,6 @@ Unless the selected lens explicitly says otherwise:
 - do not include a source line
 - do not use headings or bullets in the generated body
 
-Before returning the draft, make one silent editorial pass: identify the three most useful things the reading helps a listener notice, confirm that each has a concrete audible cause, cut repeated interpretations, remove any sentence or paragraph whose loss costs no important event, and confirm that the selected lens contributes something the default reading would not. Search the draft for generic ensemble-stability constructions during this pass. Name a supported source and a changed local function, or delete the sentence instead of merely swapping synonyms.
+Before returning the draft, make one silent editorial pass: identify the three most useful things the reading helps a listener notice, confirm that each has a concrete audible cause, cut repeated interpretations, remove any sentence or paragraph whose loss costs no important event, and confirm that the selected lens contributes something the default reading would not. Compare neighboring paragraph jobs, sentence counts, internal order, and rhetorical landings. If the same construction recurs, preserve the strongest use and reshape, refocus, combine, or cut the others; synonym replacement alone is not variety. Search the draft for generic ensemble-stability constructions during this pass. Name a supported source and a changed local function, or delete the sentence instead of merely swapping synonyms.
 
 Output only the requested body.
