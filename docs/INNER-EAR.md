@@ -2,29 +2,48 @@
 
 Galdr measures the listen. An audio-capable model can optionally hear the source audio and add sensory evidence that deterministic analysis does not name well: timbre, room, grain, vocal body, distortion color, felt pulse, and layer entrances.
 
-The default production shape is deliberately split:
+The workflow is deliberately split:
 
 1. Galdr analyzes the audio and assembles an Inner Ear discovery prompt.
-2. An external runner attaches the audio and sends that prompt to an audio-capable model.
+2. Galdr's optional Gemini adapter, or another runner, attaches the audio and sends that prompt to an audio-capable model.
 3. The model returns `galdr.inner_ear_packet.v0` JSON.
 4. Galdr assembles the final writing prompt from its analysis plus that packet.
 5. A separate editorial model writes the listening experience.
 
-Galdr does not choose providers, manage credentials, spend quota, or call the model. This keeps the packet portable and lets an operator use a cheap listening model with a larger writing model.
+The packet and prompt are provider-neutral. Galdr also ships one optional Gemini adapter for people who want a working end-to-end command without building their own transport. Normal analysis remains local and does not install a model SDK, read an API key, upload audio, or spend quota.
+
+## Generate a packet with Gemini
+
+Install the optional adapter and provide its credential through the environment:
+
+```bash
+pip install "galdr[inner-ear]"
+export GEMINI_API_KEY=your-key
+
+galdr inner-ear my-track \
+  --audio audio/my-track.mp3 \
+  --output inner-ear.json
+```
+
+`GOOGLE_API_KEY` is accepted as a compatibility fallback. Set only one credential in a given environment. Use `--model` to select another audio-capable Gemini model and `--force` to deliberately replace an existing packet.
+
+The command defaults to `--mode blind`: the listening model receives Galdr analysis and the audio, but not fetched background or lyric text. This keeps sensory evidence separate from story and transcription. The other assembly modes remain available when that context is deliberately wanted.
+
+This command uploads the exact audio file to Google and may incur provider charges. Galdr deletes the temporary provider file after the request, records the model plus audio and prompt hashes in the packet, validates the response locally, and refuses to overwrite an existing packet by default.
 
 ## Create the discovery prompt
 
 ```bash
-galdr assemble my-track --template inner-ear --mode full > inner-ear-prompt.md
+galdr assemble my-track --template inner-ear --mode blind > inner-ear-prompt.md
 ```
 
-Send `inner-ear-prompt.md` and the track audio to a model that accepts audio. Ask for JSON only. Model catalogs are often stale; prove audio support with a bounded live probe before automating a route.
+Send `inner-ear-prompt.md` and the track audio to any model that accepts audio. Ask for JSON only. This manual route is the extension point for other providers and local models. Model catalogs are often stale; prove audio support with a bounded live probe before automating a route.
 
 ### Choosing the listening model
 
 Prefer the smallest model that can reliably hear the whole track, follow timestamps, and return valid structured output. The packet is evidence collection, not the finished prose. Spend larger-model tokens on the editorial pass unless a difficult track needs an escalated listening pass.
 
-Gemini audio-input models are one tested route, both through Google directly and through compatible gateways. The transport differs by provider: some accept inline audio, while others require a files API or an audio content part. Galdr deliberately emits text and local evidence references rather than prescribing one request format.
+The transport differs by provider: some accept inline audio, while others require a files API or an audio content part. The prompt and JSON packet do not depend on that transport.
 
 For a batch pipeline, live-probe each allowlisted model before relying on it. Record provider, exact model ID, audio-input support, maximum duration/size, structured-output behavior, and the last successful probe. “Multimodal” does not necessarily mean audio.
 
@@ -50,11 +69,11 @@ The JSON Schema is at [`schemas/inner-ear-packet-v0.schema.json`](schemas/inner-
 - `audio_only`: directly heard but not supported by Galdr
 - `galdr_only`: Galdr marks the event but the audio witness could not confidently characterize it
 
-Cache generated packets using at least the audio hash, Galdr evidence hash, discovery-prompt version, provider, and model. A changed input should produce a new packet rather than silently overwriting provenance.
+Cache generated packets using at least the audio hash, discovery-prompt hash/version, provider, and model. A changed input should produce a new packet rather than silently overwriting provenance.
 
-## What belongs outside Galdr
+## What belongs outside the core workflow
 
-Batch generation for a private catalog, model routing, free-tier health, retries, cost limits, and publication policy belong in the consuming pipeline. Video frames, deterministic sounds-like tags, and model audio witnesses can all become optional evidence artifacts without making Galdr a provider SDK.
+Large batch orchestration, multi-provider routing, account health, retry policy, budget enforcement, and publication policy belong in the consuming application. Galdr provides one explicit optional request at a time and a portable packet boundary; it is not a general model gateway.
 
 ## Hearing stream as optional Arc witness
 
