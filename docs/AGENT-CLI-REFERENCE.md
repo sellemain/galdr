@@ -117,14 +117,14 @@ Catalog state lives at `~/.galdr/catalog_state.json`.
 
 ```bash
 galdr assemble <track-name> [--template arc|arc-family|first|inner-ear|none] [--lens default|sound|sound-sync|dance|structure|meaning|lyrics-study|classical|ritual] [--mode blind|lyrics|context|full] [--witness-packet PATH]
-galdr inner-ear <track-name> --audio PATH [-o PACKET] [--model MODEL]
+galdr inner-ear <track-name> --audio PATH [-o PACKET] [--provider gemini|openrouter] [--model MODEL]
 ```
 
 Build a model prompt from analysis data. Template controls voice/format instructions; mode controls which data sections to include. `--lens` selects an ARC reading contract and implies `--template arc-family` routing when no template is supplied. Read-along lenses may share grounding instructions; Meaning and Structure are standalone contracts.
 
 `--template inner-ear` emits a provider-neutral listening contract without Galdr measurements or fetched context. `--witness-packet PATH` reconciles the resulting independent JSON with Galdr evidence in a later assembly pass. See [INNER-EAR.md](INNER-EAR.md).
 
-`galdr inner-ear` is the optional Gemini convenience adapter. It requires `galdr[inner-ear]` plus `GEMINI_API_KEY`, uploads the named audio file with only the listening contract, and writes a validated packet. It is never invoked by `listen` or `assemble`.
+`galdr inner-ear` supports direct Gemini (`galdr[inner-ear]` plus `GEMINI_API_KEY`) and OpenRouter (`OPENROUTER_API_KEY`). Both send only the named audio and listening contract, then write the same validated packet. It is never invoked by `listen` or `assemble`.
 
 ### fetch — download audio and context
 

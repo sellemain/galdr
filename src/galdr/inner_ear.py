@@ -7,6 +7,9 @@ import json
 import mimetypes
 import os
 import time
+import urllib.error
+import urllib.request
+import base64
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -16,6 +19,7 @@ from .witness import INNER_EAR_PACKET_SCHEMA, validate_witness_packet
 
 
 DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_OPENROUTER_MODEL = "google/gemini-3.7-flash"
 INNER_EAR_PROMPT_VERSION = "galdr-inner-ear-independent-v1"
 REQUIRED_PACKET_FIELDS = {
     "opening",
@@ -86,10 +90,17 @@ def _load_response_schema() -> dict[str, Any]:
     }
 
 
-def _api_key() -> str:
+def _gemini_api_key() -> str:
     key = os.environ.get("GEMINI_API_KEY")
     if not key:
         raise ValueError("set GEMINI_API_KEY to use Gemini")
+    return key
+
+
+def _openrouter_api_key() -> str:
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if not key:
+        raise ValueError("set OPENROUTER_API_KEY to use OpenRouter")
     return key
 
 
@@ -132,7 +143,7 @@ def generate_gemini_witness(
         raise RuntimeError("bundled Inner Ear prompt is unavailable")
     audio_sha256 = _sha256_file(audio_path)
     mime_type = mimetypes.guess_type(audio_path.name)[0] or "application/octet-stream"
-    client = genai.Client(api_key=_api_key())
+    client = genai.Client(api_key=_gemini_api_key())
     uploaded = None
     try:
         uploaded = client.files.upload(
@@ -175,6 +186,83 @@ def generate_gemini_witness(
     packet["witness"] = {
         "kind": "model_audio",
         "provider": "google-ai-studio",
+        "model": model,
+        "prompt_version": INNER_EAR_PROMPT_VERSION,
+        "prompt_sha256": _sha256_bytes(prompt.encode("utf-8")),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    packet["literal_claim_allowed"] = False
+    packet["full_mix_first"] = True
+    return validate_witness_packet(packet)
+
+
+def generate_openrouter_witness(
+    slug: str,
+    audio_path: str | Path,
+    model: str = DEFAULT_OPENROUTER_MODEL,
+) -> dict[str, Any]:
+    """Send inline audio through OpenRouter and return a validated packet."""
+    audio_path = Path(audio_path)
+    if not audio_path.is_file():
+        raise ValueError(f"audio file not found: {audio_path}")
+
+    prompt = resolve_template("inner-ear")
+    if not prompt:
+        raise RuntimeError("bundled Inner Ear prompt is unavailable")
+    audio_bytes = audio_path.read_bytes()
+    audio_format = audio_path.suffix.lower().lstrip(".")
+    if not audio_format:
+        raise ValueError("audio file extension is required for OpenRouter")
+
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "input_audio",
+                        "input_audio": {
+                            "data": base64.b64encode(audio_bytes).decode("ascii"),
+                            "format": audio_format,
+                        },
+                    },
+                ],
+            }
+        ],
+        "response_format": {"type": "json_object"},
+        "provider": {"require_parameters": True},
+    }
+    request = urllib.request.Request(
+        "https://openrouter.ai/api/v1/chat/completions",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {_openrouter_api_key()}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=300) as response:
+            result = json.loads(response.read())
+        text = result["choices"][0]["message"]["content"]
+        packet = _parse_response_text(type("Response", (), {"text": text})())
+    except (urllib.error.URLError, json.JSONDecodeError, KeyError, IndexError) as exc:
+        detail = getattr(exc, "reason", exc)
+        if isinstance(exc, urllib.error.HTTPError):
+            detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"OpenRouter request failed: {detail}") from exc
+
+    packet["schema"] = INNER_EAR_PACKET_SCHEMA
+    packet["subject"] = {
+        **(packet.get("subject") if isinstance(packet.get("subject"), dict) else {}),
+        "slug": slug,
+        "audio_sha256": _sha256_bytes(audio_bytes),
+    }
+    packet["witness"] = {
+        "kind": "model_audio",
+        "provider": "openrouter",
         "model": model,
         "prompt_version": INNER_EAR_PROMPT_VERSION,
         "prompt_sha256": _sha256_bytes(prompt.encode("utf-8")),

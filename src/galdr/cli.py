@@ -518,17 +518,32 @@ def cmd_inner_ear(args):
     """Generate an optional model-audio witness packet."""
     import json
 
-    from .inner_ear import generate_gemini_witness
+    from .inner_ear import (
+        DEFAULT_GEMINI_MODEL,
+        DEFAULT_OPENROUTER_MODEL,
+        generate_gemini_witness,
+        generate_openrouter_witness,
+    )
 
     output_path = Path(args.output)
     if output_path.exists() and not args.force:
         print(f"Error: {output_path} already exists; use --force to replace it", file=sys.stderr)
         sys.exit(1)
     try:
-        packet = generate_gemini_witness(
+        generator = (
+            generate_openrouter_witness
+            if args.provider == "openrouter"
+            else generate_gemini_witness
+        )
+        packet = generator(
             slug=_validate_slug(args.slug),
             audio_path=args.audio,
-            model=args.model,
+            model=args.model
+            or (
+                DEFAULT_OPENROUTER_MODEL
+                if args.provider == "openrouter"
+                else DEFAULT_GEMINI_MODEL
+            ),
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(
@@ -989,9 +1004,11 @@ and listening contract to an audio-capable model. This command is optional,
 uploads audio, and may incur provider charges. Normal Galdr analysis remains
 local and requires no model API.
 
-Requires the optional dependency and a Gemini API key:
+Gemini direct requires the optional dependency and GEMINI_API_KEY. OpenRouter
+uses inline audio and requires OPENROUTER_API_KEY:
   pip install "galdr[inner-ear]"
   export GEMINI_API_KEY=...
+  export OPENROUTER_API_KEY=...
 
 Example:
   galdr inner-ear 7-helvegen --audio audio/7-helvegen.mp3 -o inner-ear.json
@@ -1000,9 +1017,13 @@ Example:
     inner_ear_parser.add_argument("slug", help="Track slug recorded in packet provenance")
     inner_ear_parser.add_argument("--audio", required=True, help="Exact source audio file")
     inner_ear_parser.add_argument(
+        "--provider", choices=("gemini", "openrouter"), default="gemini",
+        help="Audio-model transport (default: gemini)",
+    )
+    inner_ear_parser.add_argument(
         "--model",
-        default="gemini-3.5-flash-lite",
-        help="Gemini model ID (default: gemini-3.5-flash-lite)",
+        default=None,
+        help="Model ID (provider default when omitted)",
     )
     inner_ear_parser.add_argument(
         "--output", "-o", default="inner-ear.json", help="Packet output path"

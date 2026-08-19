@@ -1,6 +1,7 @@
 import json
 import sys
 import types as module_types
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -119,3 +120,52 @@ def test_parse_response_rejects_incomplete_packet():
     response = module_types.SimpleNamespace(text='{"hinges": []}')
     with pytest.raises(ValueError, match="missing fields"):
         inner_ear._parse_response_text(response)
+
+
+def test_generate_openrouter_witness_sends_inline_audio(tmp_path, monkeypatch):
+    audio = tmp_path / "track.mp3"
+    audio.write_bytes(b"audio")
+    captured = {}
+
+    class _HTTPResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def read(self):
+            body = {"choices": [{"message": {"content": json.dumps(_response())}}]}
+            return json.dumps(body).encode()
+
+    def fake_urlopen(request, timeout):
+        captured["request"] = request
+        captured["timeout"] = timeout
+        return _HTTPResponse()
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "independent prompt")
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    packet = inner_ear.generate_openrouter_witness(
+        "track", audio, model="google/gemini-test"
+    )
+
+    payload = json.loads(captured["request"].data)
+    audio_part = payload["messages"][0]["content"][1]
+    assert audio_part["input_audio"]["data"] == "YXVkaW8="
+    assert audio_part["input_audio"]["format"] == "mp3"
+    assert payload["response_format"] == {"type": "json_object"}
+    assert payload["provider"]["require_parameters"] is True
+    assert packet["witness"]["provider"] == "openrouter"
+    assert packet["witness"]["model"] == "google/gemini-test"
+
+
+def test_generate_openrouter_witness_requires_key(tmp_path, monkeypatch):
+    audio = tmp_path / "track.mp3"
+    audio.write_bytes(b"audio")
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "prompt")
+
+    with pytest.raises(ValueError, match="OPENROUTER_API_KEY"):
+        inner_ear.generate_openrouter_witness("track", audio)

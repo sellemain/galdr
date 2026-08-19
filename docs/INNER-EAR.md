@@ -27,6 +27,20 @@ galdr inner-ear my-track \
 
 Use `--model` to select another audio-capable Gemini model and `--force` to deliberately replace an existing packet.
 
+If Google AI Studio is unavailable, use OpenRouter with the same listening
+contract and packet schema:
+
+```bash
+export OPENROUTER_API_KEY=your-key
+galdr inner-ear my-track --provider openrouter \
+  --audio path/to/audio.mp3 --output inner-ear.json
+```
+
+The OpenRouter default is `google/gemini-3.7-flash`. Audio is sent inline as
+base64 rather than through Google's temporary Files API. Use `--model` to
+override the model. The adapter requests JSON mode and applies the same packet
+validation locally; provider-side JSON Schema translation varies by endpoint.
+
 The listening model does not receive Galdr analysis, fetched background, or lyric text. This keeps its sensory account independent until the later assembly step.
 
 This command uploads the exact audio file to Google and may incur provider charges. Galdr deletes the temporary provider file after the request, records the model plus audio and prompt hashes in the packet, validates the response locally, and refuses to overwrite an existing packet by default.
