@@ -1486,6 +1486,15 @@ def assemble_prompt_from_disk(
     Returns:
         Complete prompt string ready to send to a model.
     """
+    if template == "inner-ear":
+        return assemble_prompt(
+            {},
+            mode=mode,
+            template=template,
+            docs_dir=docs_dir,
+            lens=lens,
+            witness_packet=witness_packet,
+        )
     analysis = load_analysis(slug, analysis_dir)
     context = load_context(slug, analysis_dir)
     if mode in {"full", "lyrics"}:
