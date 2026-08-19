@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tightened lens-specific length, lyric-quotation, ending, vocabulary, and evidence-use guidance for more distinct public listening documents.
 - Raised the yt-dlp reliability dependency floor to `2026.7.4` for current YouTube extraction fixes.
 
+### Fixed
+- Enforced the published Inner Ear packet shape during local validation instead of accepting incomplete hinge and provenance objects.
+- Bounded Gemini file processing and surfaced temporary-upload cleanup failures instead of allowing silent hangs or silent retention.
+
 ## [0.6.1] - 2026-07-13
 
 ### Added

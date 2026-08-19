@@ -10,6 +10,7 @@ import os
 import time
 import urllib.error
 import urllib.request
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ from .witness import INNER_EAR_PACKET_SCHEMA, validate_witness_packet
 DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_OPENROUTER_MODEL = "google/gemini-3.7-flash"
 INNER_EAR_PROMPT_VERSION = "galdr-inner-ear-independent-v1"
+GEMINI_PROCESSING_TIMEOUT_SEC = 300
 REQUIRED_PACKET_FIELDS = {
     "opening",
     "hinges",
@@ -120,6 +122,19 @@ def _parse_response_text(response: Any, provider: str = "audio model") -> dict[s
     return packet
 
 
+def _wait_for_gemini_file(client: Any, uploaded: Any) -> Any:
+    """Wait for a Gemini Files API upload without hanging indefinitely."""
+    deadline = time.monotonic() + GEMINI_PROCESSING_TIMEOUT_SEC
+    while getattr(getattr(uploaded, "state", None), "name", None) == "PROCESSING":
+        if time.monotonic() >= deadline:
+            raise RuntimeError("Gemini audio processing timed out")
+        time.sleep(2)
+        uploaded = client.files.get(name=uploaded.name)
+    if getattr(getattr(uploaded, "state", None), "name", None) == "FAILED":
+        raise RuntimeError("Gemini could not process the uploaded audio")
+    return uploaded
+
+
 def generate_gemini_witness(
     slug: str,
     audio_path: str | Path,
@@ -150,12 +165,7 @@ def generate_gemini_witness(
             file=str(audio_path),
             config=types.UploadFileConfig(mime_type=mime_type),
         )
-        while getattr(getattr(uploaded, "state", None), "name", None) == "PROCESSING":
-            time.sleep(2)
-            uploaded = client.files.get(name=uploaded.name)
-        state = getattr(getattr(uploaded, "state", None), "name", None)
-        if state == "FAILED":
-            raise RuntimeError("Gemini could not process the uploaded audio")
+        uploaded = _wait_for_gemini_file(client, uploaded)
 
         response = client.models.generate_content(
             model=model,
@@ -175,7 +185,11 @@ def generate_gemini_witness(
             try:
                 client.files.delete(name=uploaded.name)
             except Exception:
-                pass
+                warnings.warn(
+                    "Gemini temporary upload could not be deleted; check the provider Files API",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
 
     packet["schema"] = INNER_EAR_PACKET_SCHEMA
     packet["subject"] = {
@@ -250,7 +264,15 @@ def generate_openrouter_witness(
         packet = _parse_response_text(
             type("Response", (), {"text": text})(), "OpenRouter"
         )
-    except (urllib.error.URLError, json.JSONDecodeError, KeyError, IndexError) as exc:
+    except (
+        urllib.error.URLError,
+        TimeoutError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        KeyError,
+        IndexError,
+        TypeError,
+    ) as exc:
         detail = str(getattr(exc, "reason", exc))
         if isinstance(exc, urllib.error.HTTPError):
             try:

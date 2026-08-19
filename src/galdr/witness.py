@@ -39,12 +39,61 @@ def _validate_inner_ear_packet(packet: dict) -> dict:
     if packet.get("full_mix_first") is not True:
         raise ValueError("witness packet must set full_mix_first to true")
 
+    subject = packet.get("subject")
+    if not isinstance(subject, dict):
+        raise ValueError("witness packet subject must be an object")
+    slug = subject.get("slug")
+    if not isinstance(slug, str) or not slug.strip():
+        raise ValueError("witness packet subject must include non-empty slug")
+
+    witness = packet.get("witness")
+    if not isinstance(witness, dict):
+        raise ValueError("witness packet witness must be an object")
+    if witness.get("kind") != "model_audio":
+        raise ValueError("witness packet witness kind must be model_audio")
+    model = witness.get("model")
+    if not isinstance(model, str) or not model.strip():
+        raise ValueError("witness packet witness must include non-empty model")
+
+    for field in ("opening", "surface"):
+        if not isinstance(packet.get(field), dict):
+            raise ValueError(f"witness packet {field} must be an object")
+
+    for field in ("uncertainties", "suspect_claims"):
+        values = packet.get(field)
+        if not isinstance(values, list) or any(not isinstance(value, dict) for value in values):
+            raise ValueError(f"witness packet {field} must be an array of objects")
+
+    assembler_notes = packet.get("assembler_notes")
+    if not isinstance(assembler_notes, list) or any(
+        not isinstance(note, str) for note in assembler_notes
+    ):
+        raise ValueError("witness packet assembler_notes must be an array of strings")
+
     hinges = packet.get("hinges")
     if not isinstance(hinges, list):
         raise ValueError("witness packet hinges must be an array")
     for index, hinge in enumerate(hinges):
         if not isinstance(hinge, dict):
             raise ValueError(f"witness packet hinge {index} must be an object")
+        time_sec = hinge.get("time_sec")
+        if isinstance(time_sec, bool) or not isinstance(time_sec, (int, float)) or time_sec < 0:
+            raise ValueError(f"witness packet hinge {index} time_sec must be non-negative")
+        for field in ("kind", "claim"):
+            value = hinge.get(field)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(
+                    f"witness packet hinge {index} must include non-empty {field}"
+                )
+        confidence = hinge.get("confidence")
+        if (
+            isinstance(confidence, bool)
+            or not isinstance(confidence, (int, float))
+            or not 0 <= confidence <= 1
+        ):
+            raise ValueError(f"witness packet hinge {index} confidence must be between 0 and 1")
+        if not isinstance(hinge.get("suspect"), bool):
+            raise ValueError(f"witness packet hinge {index} suspect must be a boolean")
     return packet
 
 

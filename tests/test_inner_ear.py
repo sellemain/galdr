@@ -118,10 +118,64 @@ def test_generate_gemini_witness_requires_key(tmp_path, monkeypatch):
         inner_ear.generate_gemini_witness("track", audio)
 
 
+def test_generate_gemini_witness_warns_when_upload_cleanup_fails(tmp_path, monkeypatch):
+    audio = tmp_path / "track.mp3"
+    audio.write_bytes(b"audio")
+    client = _Client(_response())
+
+    def fail_delete(_name):
+        raise OSError("cleanup failed")
+
+    client.files.delete = fail_delete
+    _install_fake_google(monkeypatch, client)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "independent prompt")
+
+    with pytest.warns(RuntimeWarning, match="temporary upload could not be deleted"):
+        inner_ear.generate_gemini_witness("track", audio)
+
+
+def test_wait_for_gemini_file_times_out(monkeypatch):
+    uploaded = _Uploaded()
+    uploaded.state = module_types.SimpleNamespace(name="PROCESSING")
+    client = _Client(_response())
+    monkeypatch.setattr(inner_ear, "GEMINI_PROCESSING_TIMEOUT_SEC", 1)
+    monotonic_values = iter((10.0, 11.0))
+    monkeypatch.setattr(inner_ear.time, "monotonic", lambda: next(monotonic_values))
+    monkeypatch.setattr(inner_ear.time, "sleep", lambda _seconds: None)
+
+    with pytest.raises(RuntimeError, match="processing timed out"):
+        inner_ear._wait_for_gemini_file(client, uploaded)
+
+
 def test_parse_response_rejects_incomplete_packet():
     response = module_types.SimpleNamespace(text='{"hinges": []}')
     with pytest.raises(ValueError, match="missing fields"):
         inner_ear._parse_response_text(response)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda packet: packet.pop("subject"), "subject must be an object"),
+        (lambda packet: packet["hinges"][0].update(time_sec=-1), "time_sec"),
+        (lambda packet: packet["hinges"][0].update(confidence=2), "confidence"),
+        (lambda packet: packet.update(uncertainties=["maybe"]), "uncertainties"),
+    ],
+)
+def test_validate_inner_ear_packet_rejects_schema_shape_errors(mutation, message):
+    packet = {
+        "schema": "galdr.inner_ear_packet.v0",
+        "subject": {"slug": "track"},
+        "witness": {"kind": "model_audio", "model": "gemini-test"},
+        "literal_claim_allowed": False,
+        "full_mix_first": True,
+        **_response(),
+    }
+    mutation(packet)
+
+    with pytest.raises(ValueError, match=message):
+        inner_ear.validate_witness_packet(packet)
 
 
 def test_generate_openrouter_witness_sends_inline_audio(tmp_path, monkeypatch):
