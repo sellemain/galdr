@@ -5,12 +5,12 @@ Galdr measures the listen. An audio-capable model can optionally hear the source
 The workflow is deliberately split so the two witnesses remain independent:
 
 1. Galdr analyzes the audio locally.
-2. Galdr's optional Gemini adapter, or another runner, sends only the audio and Inner Ear listening contract to an audio-capable model.
+2. Galdr's optional Gemini or OpenRouter adapter, or another runner, sends only the audio and Inner Ear listening contract to an audio-capable model.
 3. The model returns `galdr.inner_ear_packet.v0` JSON.
 4. Galdr assembles the final writing prompt from its analysis plus that independent packet.
 5. A separate editorial model writes the listening experience.
 
-The packet and prompt are provider-neutral. Galdr also ships one optional Gemini adapter for people who want a working end-to-end command without building their own transport. Normal analysis remains local and does not install a model SDK, read an API key, upload audio, or spend quota.
+The packet and prompt are provider-neutral. Galdr ships optional Gemini and OpenRouter adapters for people who want a working end-to-end command without building their own transport. Normal analysis remains local and does not install a model SDK, read an API key, upload audio, or spend quota.
 
 ## Generate a packet with Gemini
 
@@ -43,7 +43,7 @@ validation locally; provider-side JSON Schema translation varies by endpoint.
 
 The listening model does not receive Galdr analysis, fetched background, or lyric text. This keeps its sensory account independent until the later assembly step.
 
-This command uploads the exact audio file to Google and may incur provider charges. Galdr deletes the temporary provider file after the request, records the model plus audio and prompt hashes in the packet, validates the response locally, and refuses to overwrite an existing packet by default.
+This command uploads the exact audio file to the selected provider and may incur provider charges. Direct Gemini uploads use Google's temporary Files API and Galdr attempts to delete that file after the request; OpenRouter receives the audio inline. Both routes record the model plus audio and prompt hashes, validate the response locally, and refuse to overwrite an existing packet by default.
 
 ## Create the discovery prompt
 

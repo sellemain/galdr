@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Optional `galdr[inner-ear]` Gemini adapter and explicit `galdr inner-ear` command for generating validated, provenance-bound audio witness packets without changing Galdr's local default workflow.
+- Optional direct Gemini and OpenRouter adapters behind an explicit `galdr inner-ear` command for generating validated, provenance-bound audio witness packets without changing Galdr's local default workflow.
 - Preview support for dense `galdr.hearing_stream.v0` audio-model witnesses, including a frozen JSON Schema, strict validation, compact prompt rendering, and exact witness provenance.
 - Standalone Meaning and Structure writing contracts so those lenses can follow their own evidence and form rules without inheriting chronological Arc prose.
 

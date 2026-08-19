@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import mimetypes
@@ -9,7 +10,6 @@ import os
 import time
 import urllib.error
 import urllib.request
-import base64
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -104,19 +104,19 @@ def _openrouter_api_key() -> str:
     return key
 
 
-def _parse_response_text(response: Any) -> dict[str, Any]:
+def _parse_response_text(response: Any, provider: str = "audio model") -> dict[str, Any]:
     text = getattr(response, "text", None)
     if not isinstance(text, str) or not text.strip():
-        raise ValueError("Gemini returned no JSON response")
+        raise ValueError(f"{provider} returned no JSON response")
     try:
         packet = json.loads(text)
     except json.JSONDecodeError as exc:
-        raise ValueError(f"Gemini returned invalid JSON: {exc}") from exc
+        raise ValueError(f"{provider} returned invalid JSON: {exc}") from exc
     if not isinstance(packet, dict):
-        raise ValueError("Gemini response must be a JSON object")
+        raise ValueError(f"{provider} response must be a JSON object")
     missing = sorted(REQUIRED_PACKET_FIELDS - packet.keys())
     if missing:
-        raise ValueError("Gemini response is missing fields: " + ", ".join(missing))
+        raise ValueError(f"{provider} response is missing fields: " + ", ".join(missing))
     return packet
 
 
@@ -165,7 +165,7 @@ def generate_gemini_witness(
                 response_json_schema=_load_response_schema(),
             ),
         )
-        packet = _parse_response_text(response)
+        packet = _parse_response_text(response, "Gemini")
     except Exception as exc:
         if isinstance(exc, RuntimeError):
             raise
@@ -247,11 +247,17 @@ def generate_openrouter_witness(
         with urllib.request.urlopen(request, timeout=300) as response:
             result = json.loads(response.read())
         text = result["choices"][0]["message"]["content"]
-        packet = _parse_response_text(type("Response", (), {"text": text})())
+        packet = _parse_response_text(
+            type("Response", (), {"text": text})(), "OpenRouter"
+        )
     except (urllib.error.URLError, json.JSONDecodeError, KeyError, IndexError) as exc:
-        detail = getattr(exc, "reason", exc)
+        detail = str(getattr(exc, "reason", exc))
         if isinstance(exc, urllib.error.HTTPError):
-            detail = exc.read().decode("utf-8", errors="replace")
+            try:
+                error = json.loads(exc.read())
+                detail = str(error.get("error", {}).get("message") or exc.reason)
+            except (json.JSONDecodeError, AttributeError, TypeError):
+                detail = str(exc.reason)
         raise RuntimeError(f"OpenRouter request failed: {detail}") from exc
 
     packet["schema"] = INNER_EAR_PACKET_SCHEMA

@@ -1,6 +1,8 @@
+import io
 import json
 import sys
 import types as module_types
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -169,3 +171,24 @@ def test_generate_openrouter_witness_requires_key(tmp_path, monkeypatch):
 
     with pytest.raises(ValueError, match="OPENROUTER_API_KEY"):
         inner_ear.generate_openrouter_witness("track", audio)
+
+
+def test_generate_openrouter_witness_sanitizes_http_error(tmp_path, monkeypatch):
+    audio = tmp_path / "track.mp3"
+    audio.write_bytes(b"audio")
+    body = json.dumps(
+        {"error": {"message": "Provider returned error", "user_id": "private-id"}}
+    ).encode()
+
+    def fake_urlopen(request, timeout):
+        raise urllib.error.HTTPError(
+            request.full_url, 400, "Bad Request", {}, io.BytesIO(body)
+        )
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "prompt")
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    with pytest.raises(RuntimeError, match="Provider returned error") as exc_info:
+        inner_ear.generate_openrouter_witness("track", audio)
+    assert "private-id" not in str(exc_info.value)
