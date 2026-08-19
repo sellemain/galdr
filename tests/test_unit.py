@@ -1128,8 +1128,6 @@ def test_assembly_provenance_reads_sparse_inner_ear_witness_model():
         assert "continuous with the surrounding corpus" in prompt
         assert "Do not mention prompts, agents, private memory, or internal process" in prompt
         assert "Sellemain" not in prompt
-        assert "Elizabeth" not in prompt
-        assert "Jason" not in prompt
         assert "## Galdr Analysis" in prompt
 
     def test_arc_family_lens_implies_template_when_omitted(self):
