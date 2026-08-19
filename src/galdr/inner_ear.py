@@ -16,7 +16,7 @@ from .witness import INNER_EAR_PACKET_SCHEMA, validate_witness_packet
 
 
 DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
-INNER_EAR_PROMPT_VERSION = "galdr-inner-ear-v0"
+INNER_EAR_PROMPT_VERSION = "galdr-inner-ear-independent-v1"
 REQUIRED_PACKET_FIELDS = {
     "opening",
     "hinges",
