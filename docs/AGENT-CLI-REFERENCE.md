@@ -124,7 +124,7 @@ Build a model prompt from analysis data. Template controls voice/format instruct
 
 `--template inner-ear` builds a provider-neutral evidence-discovery prompt for an audio-capable model. `--witness-packet PATH` includes the resulting JSON as bounded model evidence in a later assembly pass. See [INNER-EAR.md](INNER-EAR.md).
 
-`galdr inner-ear` is the optional Gemini convenience adapter. It requires `galdr[inner-ear]` plus `GEMINI_API_KEY` or `GOOGLE_API_KEY`, uploads the named audio file, and writes a validated packet. It is never invoked by `listen` or `assemble`.
+`galdr inner-ear` is the optional Gemini convenience adapter. It requires `galdr[inner-ear]` plus `GEMINI_API_KEY`, uploads the named audio file, and writes a validated packet. It is never invoked by `listen` or `assemble`.
 
 ### fetch — download audio and context
 

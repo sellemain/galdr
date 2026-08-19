@@ -1354,10 +1354,10 @@ def _build_inner_ear_packet_section(packet: dict) -> str:
     return "\n".join([
         "## Optional witness packet",
         "",
-        "This is model-produced evidence, not Galdr measurement. Treat its timed claims as "
-        "candidates unless Galdr supports them. It may add timbre, space, grain, vocal body, "
-        "and other directly heard surface detail; it must not silently override Galdr timing "
-        "or structure.",
+        "This is model-produced listening evidence, not Galdr measurement. It may report "
+        "directly heard events, timbre, space, grain, vocal body, and other qualities the "
+        "analysis does not capture. Use both witnesses for what they can support, and preserve "
+        "meaningful timing or structure disagreements for source review.",
         "",
         "Simultaneous-evidence reminder: words, music, and sound-as-heard are happening together. "
         "Use this packet as one partial view, then write the reunited moment the lens needs.",

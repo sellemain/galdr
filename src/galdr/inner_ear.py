@@ -94,9 +94,9 @@ def _load_response_schema() -> dict[str, Any]:
 
 
 def _api_key() -> str:
-    key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    key = os.environ.get("GEMINI_API_KEY")
     if not key:
-        raise ValueError("set GEMINI_API_KEY (preferred) or GOOGLE_API_KEY to use Gemini")
+        raise ValueError("set GEMINI_API_KEY to use Gemini")
     return key
 
 

@@ -110,7 +110,6 @@ def test_generate_gemini_witness_requires_key(tmp_path, monkeypatch):
     audio.write_bytes(b"audio")
     _install_fake_google(monkeypatch, _Client(_response()))
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
-    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     monkeypatch.setattr(inner_ear, "assemble_prompt_from_disk", lambda **kwargs: "prompt")
 
     with pytest.raises(ValueError, match="GEMINI_API_KEY"):

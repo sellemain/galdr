@@ -539,7 +539,7 @@ class TestAssemblePrompt:
         }
         result = self.fn(self._minimal_analysis(), mode="blind", witness_packet=packet)
         assert "## Optional witness packet" in result
-        assert "model-produced evidence, not Galdr measurement" in result
+        assert "model-produced listening evidence, not Galdr measurement" in result
         assert '"time_sec": 12.5' in result
 
     def test_witness_packet_rejects_unbounded_literal_claims(self):

@@ -25,7 +25,7 @@ galdr inner-ear my-track \
   --output inner-ear.json
 ```
 
-`GOOGLE_API_KEY` is accepted as a compatibility fallback. Set only one credential in a given environment. Use `--model` to select another audio-capable Gemini model and `--force` to deliberately replace an existing packet.
+Use `--model` to select another audio-capable Gemini model and `--force` to deliberately replace an existing packet.
 
 The command defaults to `--mode blind`: the listening model receives Galdr analysis and the audio, but not fetched background or lyric text. This keeps sensory evidence separate from story and transcription. The other assembly modes remain available when that context is deliberately wanted.
 
@@ -57,7 +57,7 @@ galdr assemble my-track \
   > final-writing-prompt.md
 ```
 
-The witness packet is marked as model-produced evidence. Galdr remains authoritative for measured timing and structure. Audio-only structural claims stay candidates; surface descriptions can lead when they describe directly heard qualities.
+The witness packet is marked as model-produced evidence. Galdr reports computed measurements; the audio witness reports what it directly hears. Either may reveal something the other misses. When they disagree about an important moment, keep both accounts visible for source review instead of silently choosing one.
 
 ## Packet contract
 
@@ -105,5 +105,5 @@ Writer rules for hearing streams:
 - Do not publish the stream.
 - Do not paraphrase the 4-second grid into prose.
 - Remember that words, music, and sound-as-heard are simultaneous.
-- Prefer Galdr for timing/structure; prefer the stream for surface/voice/local intensity.
+- Use Galdr for computed measurements and the stream for directly heard qualities and events; preserve meaningful disagreements.
 - Star a few decisive moments and write the lens contract.
