@@ -148,6 +148,31 @@ def test_wait_for_gemini_file_times_out(monkeypatch):
         inner_ear._wait_for_gemini_file(client, uploaded)
 
 
+def test_generate_gemini_witness_cleans_up_after_processing_timeout(
+    tmp_path, monkeypatch
+):
+    audio = tmp_path / "track.mp3"
+    audio.write_bytes(b"audio")
+    client = _Client(_response())
+    processing = _Uploaded()
+    processing.state = module_types.SimpleNamespace(name="PROCESSING")
+    client.files.upload = lambda **_kwargs: processing
+    client.files.get = lambda name: processing
+    _install_fake_google(monkeypatch, client)
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "prompt")
+    monkeypatch.setattr(inner_ear, "GEMINI_PROCESSING_TIMEOUT_SEC", 1)
+    monotonic_values = iter((10.0, 10.5, 11.0))
+    monkeypatch.setattr(inner_ear.time, "monotonic", lambda: next(monotonic_values))
+    monkeypatch.setattr(inner_ear.time, "sleep", lambda _seconds: None)
+
+    with pytest.raises(RuntimeError, match="processing timed out"):
+        inner_ear.generate_gemini_witness("track", audio)
+
+    assert client.files.deleted == "files/example"
+    assert client.models.request is None
+
+
 def test_parse_response_rejects_incomplete_packet():
     response = module_types.SimpleNamespace(text='{"hinges": []}')
     with pytest.raises(ValueError, match="missing fields"):
