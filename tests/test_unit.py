@@ -521,8 +521,9 @@ class TestAssemblePrompt:
 
     def test_inner_ear_template_defines_witness_role(self):
         result = self.fn(self._minimal_analysis(), mode="blind", template="inner-ear")
-        assert "You are a listening witness, not the final author" in result
+        assert "You are an independent listening witness, not the final author" in result
         assert "galdr.inner_ear_packet.v0" in result
+        assert "## Galdr Analysis" not in result
 
     def test_witness_packet_is_bounded_and_included(self):
         packet = {
@@ -533,7 +534,6 @@ class TestAssemblePrompt:
                 {
                     "time_sec": 12.5,
                     "claim": "a dry pulse enters",
-                    "support_mode": "audio_only",
                 }
             ],
         }

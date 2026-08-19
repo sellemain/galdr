@@ -1402,14 +1402,18 @@ def assemble_prompt(
         template: "none" | "arc" | "first" | "arc-family" | file path (default: "none")
         docs_dir: optional path to docs/ directory for local template overrides
         lens:     optional prompt-family lens: default, sound, sound-sync, dance, structure, meaning, lyrics-study, classical, ritual
-        witness_packet: optional model-produced listening evidence; Galdr remains the
-                        timing and structure authority
+        witness_packet: optional model-produced listening evidence
 
     Returns:
         Complete prompt string ready to send to a model.
     """
     if mode not in MODES:
         raise ValueError(f"Unknown mode '{mode}'. Choose from: {', '.join(MODES)}")
+    if template == "inner-ear":
+        prompt = resolve_template(template, docs_dir, lens=lens)
+        if not prompt:
+            raise ValueError("Inner Ear prompt is unavailable")
+        return prompt.strip()
     if witness_packet is not None:
         witness_packet = validate_witness_packet(witness_packet)
 

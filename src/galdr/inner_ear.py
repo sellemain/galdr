@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .assemble import assemble_prompt_from_disk
+from .assemble import resolve_template
 from .witness import INNER_EAR_PACKET_SCHEMA, validate_witness_packet
 
 
@@ -21,7 +21,7 @@ REQUIRED_PACKET_FIELDS = {
     "opening",
     "hinges",
     "surface",
-    "disagreements",
+    "uncertainties",
     "suspect_claims",
     "assembler_notes",
 }
@@ -66,8 +66,6 @@ def _load_response_schema() -> dict[str, Any]:
                         "time_sec",
                         "kind",
                         "claim",
-                        "support_mode",
-                        "galdr_support",
                         "confidence",
                         "suspect",
                     ],
@@ -75,18 +73,13 @@ def _load_response_schema() -> dict[str, Any]:
                         "time_sec": {"type": "number", "minimum": 0},
                         "kind": {"type": "string"},
                         "claim": {"type": "string"},
-                        "support_mode": {
-                            "type": "string",
-                            "enum": ["galdr_and_audio", "audio_only", "galdr_only"],
-                        },
-                        "galdr_support": {"type": "array", "items": {"type": "string"}},
                         "confidence": {"type": "number", "minimum": 0, "maximum": 1},
                         "suspect": {"type": "boolean"},
                     },
                 },
             },
             "surface": {"type": "object"},
-            "disagreements": {"type": "array", "items": {"type": "object"}},
+            "uncertainties": {"type": "array", "items": {"type": "object"}},
             "suspect_claims": {"type": "array", "items": {"type": "object"}},
             "assembler_notes": {"type": "array", "items": {"type": "string"}},
         },
@@ -119,9 +112,7 @@ def _parse_response_text(response: Any) -> dict[str, Any]:
 def generate_gemini_witness(
     slug: str,
     audio_path: str | Path,
-    analysis_dir: str | Path = "analysis",
     model: str = DEFAULT_GEMINI_MODEL,
-    mode: str = "blind",
 ) -> dict[str, Any]:
     """Upload audio to Gemini and return a locally validated Inner Ear packet."""
     try:
@@ -136,12 +127,9 @@ def generate_gemini_witness(
     if not audio_path.is_file():
         raise ValueError(f"audio file not found: {audio_path}")
 
-    prompt = assemble_prompt_from_disk(
-        slug=slug,
-        analysis_dir=Path(analysis_dir),
-        mode=mode,
-        template="inner-ear",
-    )
+    prompt = resolve_template("inner-ear")
+    if not prompt:
+        raise RuntimeError("bundled Inner Ear prompt is unavailable")
     audio_sha256 = _sha256_file(audio_path)
     mime_type = mimetypes.guess_type(audio_path.name)[0] or "application/octet-stream"
     client = genai.Client(api_key=_api_key())

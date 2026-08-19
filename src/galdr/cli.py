@@ -528,9 +528,7 @@ def cmd_inner_ear(args):
         packet = generate_gemini_witness(
             slug=_validate_slug(args.slug),
             audio_path=args.audio,
-            analysis_dir=args.analysis_dir,
             model=args.model,
-            mode=args.mode,
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(
@@ -986,8 +984,8 @@ Examples:
         help="Generate an optional audio-model witness packet",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="""
-Generate a bounded Inner Ear evidence packet by sending the source audio and
-Galdr's discovery prompt to an audio-capable model. This command is optional,
+Generate a bounded Inner Ear evidence packet by sending only the source audio
+and listening contract to an audio-capable model. This command is optional,
 uploads audio, and may incur provider charges. Normal Galdr analysis remains
 local and requires no model API.
 
@@ -999,21 +997,12 @@ Example:
   galdr inner-ear 7-helvegen --audio audio/7-helvegen.mp3 -o inner-ear.json
 """,
     )
-    inner_ear_parser.add_argument("slug", help="Analyzed track slug")
+    inner_ear_parser.add_argument("slug", help="Track slug recorded in packet provenance")
     inner_ear_parser.add_argument("--audio", required=True, help="Exact source audio file")
-    inner_ear_parser.add_argument(
-        "--analysis-dir", default="analysis", help="Analysis directory (default: analysis)"
-    )
     inner_ear_parser.add_argument(
         "--model",
         default="gemini-3.5-flash-lite",
         help="Gemini model ID (default: gemini-3.5-flash-lite)",
-    )
-    inner_ear_parser.add_argument(
-        "--mode",
-        default="blind",
-        choices=["blind", "full", "lyrics", "context"],
-        help="Evidence context sent to the listening model (default: blind)",
     )
     inner_ear_parser.add_argument(
         "--output", "-o", default="inner-ear.json", help="Packet output path"

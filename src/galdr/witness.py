@@ -9,7 +9,6 @@ from . import __version__
 
 INNER_EAR_PACKET_SCHEMA = "galdr.inner_ear_packet.v0"
 HEARING_STREAM_SCHEMA = "galdr.hearing_stream.v0"
-INNER_EAR_SUPPORT_MODES = {"galdr_and_audio", "audio_only", "galdr_only"}
 WITNESS_SCHEMAS = {INNER_EAR_PACKET_SCHEMA, HEARING_STREAM_SCHEMA}
 HEARING_VOICE_INTENSITIES = {"none", "soft", "medium", "hard", "screamed"}
 HEARING_DENSITIES = {"thin", "medium", "thick", "wall"}
@@ -46,10 +45,6 @@ def _validate_inner_ear_packet(packet: dict) -> dict:
     for index, hinge in enumerate(hinges):
         if not isinstance(hinge, dict):
             raise ValueError(f"witness packet hinge {index} must be an object")
-        support_mode = hinge.get("support_mode")
-        if support_mode not in INNER_EAR_SUPPORT_MODES:
-            choices = ", ".join(sorted(INNER_EAR_SUPPORT_MODES))
-            raise ValueError(f"witness packet hinge {index} support_mode must be one of: {choices}")
     return packet
 
 

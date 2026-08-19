@@ -117,14 +117,14 @@ Catalog state lives at `~/.galdr/catalog_state.json`.
 
 ```bash
 galdr assemble <track-name> [--template arc|arc-family|first|inner-ear|none] [--lens default|sound|sound-sync|dance|structure|meaning|lyrics-study|classical|ritual] [--mode blind|lyrics|context|full] [--witness-packet PATH]
-galdr inner-ear <track-name> --audio PATH [-o PACKET] [--model MODEL] [--mode blind|full|lyrics|context]
+galdr inner-ear <track-name> --audio PATH [-o PACKET] [--model MODEL]
 ```
 
 Build a model prompt from analysis data. Template controls voice/format instructions; mode controls which data sections to include. `--lens` selects an ARC reading contract and implies `--template arc-family` routing when no template is supplied. Read-along lenses may share grounding instructions; Meaning and Structure are standalone contracts.
 
-`--template inner-ear` builds a provider-neutral evidence-discovery prompt for an audio-capable model. `--witness-packet PATH` includes the resulting JSON as bounded model evidence in a later assembly pass. See [INNER-EAR.md](INNER-EAR.md).
+`--template inner-ear` emits a provider-neutral listening contract without Galdr measurements or fetched context. `--witness-packet PATH` reconciles the resulting independent JSON with Galdr evidence in a later assembly pass. See [INNER-EAR.md](INNER-EAR.md).
 
-`galdr inner-ear` is the optional Gemini convenience adapter. It requires `galdr[inner-ear]` plus `GEMINI_API_KEY`, uploads the named audio file, and writes a validated packet. It is never invoked by `listen` or `assemble`.
+`galdr inner-ear` is the optional Gemini convenience adapter. It requires `galdr[inner-ear]` plus `GEMINI_API_KEY`, uploads the named audio file with only the listening contract, and writes a validated packet. It is never invoked by `listen` or `assemble`.
 
 ### fetch — download audio and context
 
