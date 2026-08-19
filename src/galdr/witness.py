@@ -173,25 +173,35 @@ def witness_kind(packet: dict) -> str:
     return "unknown"
 
 
-def assembly_provenance(packet: dict | None = None) -> dict:
+def assembly_provenance(
+    packet: dict | None = None, vocal_timing_packet: dict | None = None
+) -> dict:
     """Return exact Galdr and optional witness provenance for a generated document."""
     result = {
         "schema": "galdr.assembly_provenance.v1",
         "galdr_version": __version__,
     }
-    if packet is None:
-        return result
-
-    packet = validate_witness_packet(packet)
-    witness = {
-        "schema": packet["schema"],
-        "kind": witness_kind(packet),
-    }
-    packet_witness = packet.get("witness")
-    packet_witness = packet_witness if isinstance(packet_witness, dict) else {}
-    for field in ("model", "prompt_version"):
-        value = packet.get(field) or packet_witness.get(field)
-        if isinstance(value, str) and value.strip():
-            witness[field] = value.strip()
-    result["witness"] = witness
+    if packet is not None:
+        packet = validate_witness_packet(packet)
+        witness = {
+            "schema": packet["schema"],
+            "kind": witness_kind(packet),
+        }
+        packet_witness = packet.get("witness")
+        packet_witness = packet_witness if isinstance(packet_witness, dict) else {}
+        for field in ("model", "prompt_version"):
+            value = packet.get(field) or packet_witness.get(field)
+            if isinstance(value, str) and value.strip():
+                witness[field] = value.strip()
+        result["witness"] = witness
+    if vocal_timing_packet is not None:
+        timing = {
+            "schema": vocal_timing_packet.get("schema"),
+            "window_count": len(vocal_timing_packet.get("windows") or []),
+        }
+        for field in ("source", "audioSha256"):
+            value = vocal_timing_packet.get(field)
+            if isinstance(value, str) and value.strip():
+                timing[field] = value.strip()
+        result["vocal_timing"] = timing
     return result

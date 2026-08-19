@@ -114,6 +114,7 @@ class Analysis:
         template: str = "none",
         lens: str | None = None,
         witness_packet: dict | None = None,
+        vocal_timing_packet: dict | None = None,
     ) -> str:
         """Assemble this analysis into a model prompt."""
         return assemble_prompt_from_disk(
@@ -123,6 +124,7 @@ class Analysis:
             template=template,
             lens=lens,
             witness_packet=witness_packet,
+            vocal_timing_packet=vocal_timing_packet,
         )
 
     def to_dataframes(self) -> dict[str, Any]:
@@ -204,6 +206,7 @@ def assemble(
     template: str = "none",
     lens: str | None = None,
     witness_packet: dict | None = None,
+    vocal_timing_packet: dict | None = None,
 ) -> str:
     """Assemble a prompt from an ``Analysis``, raw data dict, or slug."""
     if isinstance(analysis, Analysis):
@@ -212,6 +215,7 @@ def assemble(
             template=template,
             lens=lens,
             witness_packet=witness_packet,
+            vocal_timing_packet=vocal_timing_packet,
         )
     if isinstance(analysis, str):
         return assemble_prompt_from_disk(
@@ -221,6 +225,7 @@ def assemble(
             template=template,
             lens=lens,
             witness_packet=witness_packet,
+            vocal_timing_packet=vocal_timing_packet,
         )
     return assemble_prompt(
         analysis,
@@ -229,6 +234,7 @@ def assemble(
         template=template,
         lens=lens,
         witness_packet=witness_packet,
+        vocal_timing_packet=vocal_timing_packet,
     )
 
 

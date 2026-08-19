@@ -107,7 +107,21 @@ galdr assemble my-track --template arc-family --lens meaning --mode full | claud
 galdr assemble my-track --mode full
 ```
 
-The ARC prompt family routes to a deliberate reading contract. Read-along lenses share a grounding base where that posture fits; `meaning`, `structure`, and `sound-sync` use standalone contracts so they do not inherit prose rules that contradict their jobs. Available lenses are `default`, `sound`, `sound-sync`, `dance`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual`. `sound-sync` produces sparse timed sound commentary and should normally use `--mode lyrics`: lyric timestamps improve vocal alignment, while its contract forbids quoting or interpreting the words. Use `arc` for the standard listening-experience prompt; use `arc-family` when you want a deliberate reading mode.
+The ARC prompt family routes to a deliberate reading contract. Read-along lenses share a grounding base where that posture fits; `meaning`, `structure`, and `sound-sync` use standalone contracts so they do not inherit prose rules that contradict their jobs. Available lenses are `default`, `sound`, `sound-sync`, `dance`, `structure`, `meaning`, `lyrics-study`, `classical`, and `ritual`. `sound` and `sound-sync` should use `--mode blind`; when exact vocal alignment matters, add a `galdr.vocal_timing.v1` packet with `--vocal-timing-packet`. The packet accepts only timestamps and provenance, rejects lyric text fields, and treats gaps as candidates that still require audio confirmation. Use `arc` for the standard listening-experience prompt; use `arc-family` when you want a deliberate reading mode.
+
+```json
+{
+  "schema": "galdr.vocal_timing.v1",
+  "durationSec": 180.0,
+  "source": "same-recording-captions",
+  "windows": [
+    {"start": 45.16, "end": 51.16, "endKind": "observed"},
+    {"start": 70.68, "end": null, "endKind": "unknown"}
+  ]
+}
+```
+
+Unknown ends remain unknown. Galdr does not invent a duration. A downstream pipeline may provide an explicitly inferred end, but must label it `inferred`.
 
 ## Analyze a local file
 

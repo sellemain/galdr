@@ -59,7 +59,7 @@ Default workflow:
 
 Use lenses when the user asks for a specific reading:
 - `--template arc-family --lens sound --mode blind` for sound as shape, density, pressure, space, body, and motion.
-- `--lens sound-sync --mode lyrics` for sparse synchronized commentary using sound evidence; lyric timestamps are private vocal-alignment evidence, not public content.
+- `--lens sound-sync --mode blind --vocal-timing-packet vocal-timing.json` for sparse synchronized commentary using sound evidence plus optional text-free vocal windows.
 - `--template arc-family --lens dance --mode blind` for groove, build/drop, repetition, and bodily use.
 - `--template arc-family --lens structure --mode blind` for form, transitions, and mechanical witness.
 - `--template arc-family --lens meaning --mode full` for human situation carried by sound, lyrics, and arrangement.
