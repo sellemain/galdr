@@ -124,7 +124,7 @@ Build a model prompt from analysis data. Template controls voice/format instruct
 
 `--template inner-ear` emits a provider-neutral listening contract without Galdr measurements or fetched context. `--witness-packet PATH` reconciles the resulting independent JSON with Galdr evidence in a later assembly pass. See [INNER-EAR.md](INNER-EAR.md).
 
-`galdr inner-ear` supports direct Gemini (`galdr[inner-ear]` plus `GEMINI_API_KEY`) and OpenRouter (`OPENROUTER_API_KEY`). Both send only the named audio and listening contract, then write the same validated packet. It is never invoked by `listen` or `assemble`.
+`galdr inner-ear` supports direct Gemini (`galdr[gemini]` plus `GEMINI_API_KEY`) and OpenRouter (base Galdr plus `OPENROUTER_API_KEY`). Both send only the named audio and listening contract, then write the same validated packet. It is never invoked by `listen` or `assemble`.
 
 ### fetch — download audio and context
 

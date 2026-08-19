@@ -131,7 +131,7 @@ def generate_gemini_witness(
         from google.genai import types
     except ImportError as exc:
         raise RuntimeError(
-            'Gemini support is optional; install it with: pip install "galdr[inner-ear]"'
+            'Gemini support is optional; install it with: pip install "galdr[gemini]"'
         ) from exc
 
     audio_path = Path(audio_path)

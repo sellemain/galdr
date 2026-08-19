@@ -1005,8 +1005,9 @@ uploads audio, and may incur provider charges. Normal Galdr analysis remains
 local and requires no model API.
 
 Gemini direct requires the optional dependency and GEMINI_API_KEY. OpenRouter
-uses inline audio and requires OPENROUTER_API_KEY:
-  pip install "galdr[inner-ear]"
+works with the base Galdr install, uses inline audio, and requires
+OPENROUTER_API_KEY:
+  pip install "galdr[gemini]"
   export GEMINI_API_KEY=...
   export OPENROUTER_API_KEY=...
 

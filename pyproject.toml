@@ -57,7 +57,7 @@ Changelog = "https://github.com/sellemain/galdr/blob/main/CHANGELOG.md"
 galdr = "galdr.cli:main"
 
 [project.optional-dependencies]
-inner-ear = [
+gemini = [
     "google-genai>=2.0.0,<3",
 ]
 data = [

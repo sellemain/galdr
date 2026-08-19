@@ -17,7 +17,7 @@ The packet and prompt are provider-neutral. Galdr ships optional Gemini and Open
 Install the optional adapter and provide its credential through the environment:
 
 ```bash
-pip install "galdr[inner-ear]"
+pip install "galdr[gemini]"
 export GEMINI_API_KEY=your-key
 
 galdr inner-ear my-track \
@@ -35,6 +35,9 @@ export OPENROUTER_API_KEY=your-key
 galdr inner-ear my-track --provider openrouter \
   --audio path/to/audio.mp3 --output inner-ear.json
 ```
+
+OpenRouter works with the base `pip install galdr` package; it does not require
+the Gemini SDK extra.
 
 The OpenRouter default is `google/gemini-3.7-flash`. Audio is sent inline as
 base64 rather than through Google's temporary Files API. Use `--model` to
