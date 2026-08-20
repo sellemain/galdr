@@ -93,6 +93,17 @@ galdr update-deps
 
 `galdr doctor` shows the active Python environment, yt-dlp version, ffmpeg, JavaScript runtime, and impersonation support. `galdr update-deps` upgrades `yt-dlp[default,curl-cffi]` in that same Python environment.
 
+For a source that requires an authenticated YouTube session, explicitly opt in to
+an installed browser profile:
+
+```bash
+galdr fetch '<youtube-url>' --cookies-from-browser chrome --analyze
+```
+
+The value is passed to yt-dlp for metadata, audio, and caption requests. Profile
+selection follows yt-dlp syntax, such as `chrome:Profile 1`. Galdr never reads
+browser cookies unless this flag is supplied.
+
 If captions fail but audio succeeds, analysis can still continue. If audio cannot be downloaded, `galdr fetch --analyze` fails: the music is the analysis surface, while lyrics and Wikipedia context are optional context. To intentionally fetch context without audio analysis, use `--no-download`:
 
 ```bash

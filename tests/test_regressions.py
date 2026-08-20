@@ -655,6 +655,41 @@ def test_fetch_analyze_passes_hop_sec_to_listen(monkeypatch, tmp_path):
     }
 
 
+def test_fetch_forwards_browser_cookie_profile(monkeypatch, tmp_path):
+    """The CLI opt-in should reach the fetch pipeline without implicit fallback."""
+    from argparse import Namespace
+    from galdr import cli
+
+    captured = {}
+
+    def fake_fetch_track(**kwargs):
+        captured.update(kwargs)
+
+    monkeypatch.setattr("galdr.fetch.fetch_track", fake_fetch_track)
+
+    cli.cmd_fetch(
+        Namespace(
+            url="https://www.youtube.com/watch?v=X7drilHsM6c",
+            name="browser-auth",
+            artist="Example Artist",
+            title="Example Track",
+            audio_dir=str(tmp_path / "audio"),
+            analysis_dir=str(tmp_path / "analysis"),
+            analyze=False,
+            no_download=False,
+            no_wikipedia=True,
+            no_lyrics=True,
+            wiki_artist=None,
+            wiki_song=None,
+            censor=False,
+            cookies_from_browser="chrome:Profile 1",
+            hop_sec=0.5,
+        )
+    )
+
+    assert captured["cookies_from_browser"] == "chrome:Profile 1"
+
+
 def test_fetch_analyze_errors_when_audio_download_missing(monkeypatch, tmp_path, capsys):
     """fetch --analyze must fail when music is unavailable; context alone is not galdr."""
     from argparse import Namespace
@@ -800,6 +835,35 @@ def test_download_youtube_caption_failure_keeps_audio(monkeypatch, tmp_path):
     assert result["audio_file"] == str(tmp_path / f"{slug}.mp3")
     assert result["captions_file"] is None
     assert "429" in result["captions_stderr"]
+
+
+def test_download_youtube_passes_browser_cookies_to_all_yt_dlp_calls(monkeypatch, tmp_path):
+    """Opt-in browser authentication should cover audio and caption requests."""
+    from galdr import fetch as fetch_mod
+
+    slug = "browser-cookies"
+    calls = []
+
+    def fake_run(cmd, capture_output, text, timeout):
+        calls.append(cmd)
+        if "--skip-download" not in cmd:
+            (tmp_path / f"{slug}.mp3").write_bytes(b"fake mp3")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(fetch_mod.subprocess, "run", fake_run)
+
+    result = fetch_mod.download_youtube(
+        "https://www.youtube.com/watch?v=X7drilHsM6c",
+        tmp_path,
+        slug,
+        cookies_from_browser="chrome:Profile 1",
+    )
+
+    assert result["download_ok"] is True
+    assert len(calls) == 3
+    for call in calls:
+        index = call.index("--cookies-from-browser")
+        assert call[index + 1] == "chrome:Profile 1"
 
 
 def test_download_youtube_prefers_original_language_manual_caption(tmp_path):

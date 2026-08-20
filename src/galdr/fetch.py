@@ -245,14 +245,17 @@ def slugify(text: str) -> str:
     return text[:80]  # reasonable max length
 
 
-def get_youtube_metadata(url: str) -> dict:
+def get_youtube_metadata(url: str, cookies_from_browser: str | None = None) -> dict:
     """Fetch video metadata from YouTube without downloading audio.
 
     Returns dict with 'title', 'uploader', 'channel' keys (strings).
     Raises RuntimeError on failure (with stderr context).
     """
     url = validate_youtube_url(url)
-    result = _run_yt_dlp(["--dump-json", "--no-playlist", url], timeout=60)
+    args = ["--dump-json", "--no-playlist", url]
+    if cookies_from_browser:
+        args[0:0] = ["--cookies-from-browser", cookies_from_browser]
+    result = _run_yt_dlp(args, timeout=60)
     if result.returncode != 0:
         raise RuntimeError(f"yt-dlp metadata failed: {result.stderr[:300]}")
     info = json.loads(result.stdout)
@@ -309,7 +312,12 @@ def _preferred_caption_file(candidates: list[Path], slug: str) -> Path | None:
     return usable[0]
 
 
-def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
+def download_youtube(
+    url: str,
+    audio_dir: Path,
+    slug: str,
+    cookies_from_browser: str | None = None,
+) -> dict:
     """Download audio and captions from a YouTube URL via yt-dlp.
 
     Audio and captions are deliberately separate calls. YouTube caption requests
@@ -329,6 +337,8 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
         "--no-playlist",
         url,
     ]
+    if cookies_from_browser:
+        audio_args[0:0] = ["--cookies-from-browser", cookies_from_browser]
 
     print(f"  [yt-dlp] {url}")
     audio_result = _run_yt_dlp(audio_args, timeout=300)
@@ -356,6 +366,8 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
             "--no-playlist",
             url,
         ]
+        if cookies_from_browser:
+            manual_captions_args[0:0] = ["--cookies-from-browser", cookies_from_browser]
         captions_result = _run_yt_dlp(manual_captions_args, timeout=120)
         if captions_result.returncode != 0:
             captions_stderr = captions_result.stderr[:500]
@@ -371,6 +383,8 @@ def download_youtube(url: str, audio_dir: Path, slug: str) -> dict:
                 "--no-playlist",
                 url,
             ]
+            if cookies_from_browser:
+                auto_captions_args[0:0] = ["--cookies-from-browser", cookies_from_browser]
             captions_result = _run_yt_dlp(auto_captions_args, timeout=120)
             if captions_result.returncode != 0:
                 captions_stderr = captions_result.stderr[:500]
@@ -939,6 +953,7 @@ def fetch_track(
     wiki_artist: str | None = None,
     wiki_song: str | None = None,
     censor: bool = False,
+    cookies_from_browser: str | None = None,
 ) -> dict:
     """Full fetch pipeline. Returns context dict and writes context.json."""
     slug = validate_slug(slug)
@@ -963,7 +978,12 @@ def fetch_track(
     timed_caption_lines: list[dict] = []
     if url and not skip_download:
         print(f"\n[fetch] Downloading: {artist} — {title}")
-        dl = download_youtube(url, audio_dir, slug)
+        dl = download_youtube(
+            url,
+            audio_dir,
+            slug,
+            cookies_from_browser=cookies_from_browser,
+        )
         context["download"] = dl
         if dl["audio_file"]:
             context["audio_file"] = dl["audio_file"]

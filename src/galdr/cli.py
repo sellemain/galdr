@@ -394,7 +394,10 @@ def cmd_fetch(args):
     if args.url and (not name or not artist or not title):
         print(f"[fetch] Fetching metadata from YouTube...")
         try:
-            meta = get_youtube_metadata(args.url)
+            meta = get_youtube_metadata(
+                args.url,
+                cookies_from_browser=getattr(args, "cookies_from_browser", None),
+            )
             derived_artist, derived_title = derive_artist_title(meta["title"], meta["uploader"])
             if not artist:
                 artist = derived_artist
@@ -429,6 +432,7 @@ def cmd_fetch(args):
         wiki_artist=getattr(args, "wiki_artist", None),
         wiki_song=getattr(args, "wiki_song", None),
         censor=args.censor,
+        cookies_from_browser=getattr(args, "cookies_from_browser", None),
     )
 
     if args.analyze and not args.no_download:
@@ -909,6 +913,14 @@ def main():
     )
     fetch_parser.add_argument(
         "--no-download", action="store_true", help="Skip audio download (context only)"
+    )
+    fetch_parser.add_argument(
+        "--cookies-from-browser",
+        metavar="BROWSER[:PROFILE]",
+        help=(
+            "Load YouTube cookies from an installed browser profile via yt-dlp "
+            "(explicit opt-in; for example: chrome or firefox:default-release)"
+        ),
     )
     fetch_parser.add_argument("--no-wikipedia", action="store_true", help="Skip Wikipedia fetch")
     fetch_parser.add_argument("--no-lyrics", action="store_true", help="Skip lyrics/captions")
