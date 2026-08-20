@@ -129,10 +129,13 @@ Build a model prompt from analysis data. Template controls voice/format instruct
 ### fetch — download audio and context
 
 ```bash
-galdr fetch <url> [--name NAME] [--analyze]
+galdr fetch <url> [--name NAME] [--cookies-from-browser BROWSER[:PROFILE]] [--analyze]
 ```
 
 Download audio and context via yt-dlp. With `--analyze`, runs the full analysis pipeline after download. Audio, YouTube Music timed lyrics, and captions are fetched separately, so lyric/caption failures do not block audio analysis.
+
+`--cookies-from-browser` explicitly loads an installed browser profile through
+yt-dlp for metadata, audio, and caption requests. It is never enabled implicitly.
 
 ### frames — extract video frames at structural moments
 

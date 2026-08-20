@@ -3762,7 +3762,7 @@ def test_fetch_does_not_promote_rejected_autocaptions_to_lyric_timestamps(tmp_pa
     analysis_dir = tmp_path / "analysis"
     vtt_path = audio_dir / "demo-song.en.vtt"
 
-    def fake_download_youtube(url, audio_dir_arg, slug):
+    def fake_download_youtube(url, audio_dir_arg, slug, cookies_from_browser=None):
         audio_dir_arg.mkdir(parents=True, exist_ok=True)
         vtt_path.write_text(
             "WEBVTT\n\n"
@@ -3816,7 +3816,7 @@ def test_fetch_stores_provider_timed_lyrics_with_genius(tmp_path, monkeypatch):
     audio_dir = tmp_path / "audio"
     analysis_dir = tmp_path / "analysis"
 
-    def fake_download_youtube(url, audio_dir_arg, slug):
+    def fake_download_youtube(url, audio_dir_arg, slug, cookies_from_browser=None):
         audio_dir_arg.mkdir(parents=True, exist_ok=True)
         return {
             "audio_file": str(audio_dir_arg / f"{slug}.mp3"),
@@ -3887,7 +3887,7 @@ def test_fetch_uses_provider_timed_lyrics_when_genius_missing(tmp_path, monkeypa
     audio_dir = tmp_path / "audio"
     analysis_dir = tmp_path / "analysis"
 
-    def fake_download_youtube(url, audio_dir_arg, slug):
+    def fake_download_youtube(url, audio_dir_arg, slug, cookies_from_browser=None):
         audio_dir_arg.mkdir(parents=True, exist_ok=True)
         return {
             "audio_file": str(audio_dir_arg / f"{slug}.mp3"),
