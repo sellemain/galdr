@@ -11,6 +11,7 @@ import html
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import time
@@ -52,6 +53,22 @@ def _validate_slug(slug: str) -> str:
 def _path_default(env_name: str, fallback: str) -> str:
     """Return a CLI path default with an optional environment override."""
     return os.environ.get(env_name, fallback)
+
+
+def _promote_analysis_dir(staging_dir: Path, output_dir: Path) -> None:
+    """Promote a complete staged analysis while preserving any prior result."""
+    backup_dir = staging_dir.with_name(f"{staging_dir.name}.previous")
+    had_previous = output_dir.exists()
+    if had_previous:
+        output_dir.rename(backup_dir)
+    try:
+        staging_dir.rename(output_dir)
+    except BaseException:
+        if had_previous and backup_dir.exists() and not output_dir.exists():
+            backup_dir.rename(output_dir)
+        raise
+    if had_previous:
+        shutil.rmtree(backup_dir)
 
 
 _module_failed = False
@@ -152,7 +169,43 @@ a {{ color: inherit; }}
 
 
 def cmd_listen(args):
-    """Run full analysis pipeline on an audio file."""
+    """Run analysis in a sibling staging directory, then promote it on success."""
+    audio_path = args.audio
+    if not Path(audio_path).exists():
+        print(f"Error: {audio_path} not found")
+        sys.exit(1)
+
+    track_name = _validate_slug(args.name or Path(audio_path).stem)
+    analysis_root = Path(args.analysis_dir)
+    analysis_root.mkdir(parents=True, exist_ok=True)
+    output_dir = analysis_root / track_name
+    staging_dir = Path(tempfile.mkdtemp(prefix=f".{track_name}.tmp-", dir=analysis_root))
+
+    try:
+        results = _run_listen(args, track_name, staging_dir, output_dir)
+        if not results:
+            return
+        completion_path = staging_dir / "galdr-complete.json"
+        completion_path.write_text(
+            json.dumps(
+                {
+                    "status": "complete",
+                    "track": track_name,
+                    "modules": list(results),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _promote_analysis_dir(staging_dir, output_dir)
+    finally:
+        if staging_dir.exists():
+            shutil.rmtree(staging_dir)
+
+
+def _run_listen(args, track_name: str, staging_dir: Path, output_dir: Path):
+    """Run the analysis modules into a private staging directory."""
     from .analyze import analyze_track, detect_null_signal
     from .audio_context import load_audio_context
     from .perceive import generate_perception_stream
@@ -164,14 +217,7 @@ def cmd_listen(args):
     global _module_failed
     _module_failed = False
     audio_path = args.audio
-    if not Path(audio_path).exists():
-        print(f"Error: {audio_path} not found")
-        sys.exit(1)
-
-    track_name = _validate_slug(args.name or Path(audio_path).stem)
-    output_dir = str(Path(args.analysis_dir) / track_name)
-    completion_path = Path(output_dir) / "galdr-complete.json"
-    completion_path.unlink(missing_ok=True)
+    staged_output_dir = str(staging_dir)
 
     # Determine which modules to run
     all_modules = ["report", "perceive", "harmony", "melody", "overtone"]
@@ -225,7 +271,7 @@ def cmd_listen(args):
 
     if "report" in modules:
         result = run_module(
-            "Audio Analysis", analyze_track, audio_path, output_dir, track_name, audio=audio
+            "Audio Analysis", analyze_track, audio_path, staged_output_dir, track_name, audio=audio
         )
         if result:
             results["report"] = result
@@ -238,7 +284,7 @@ def cmd_listen(args):
             "Perception",
             generate_perception_stream,
             audio_path,
-            output_dir,
+            staged_output_dir,
             track_name,
             args.hop_sec,
             audio=audio,
@@ -248,34 +294,34 @@ def cmd_listen(args):
 
     if "harmony" in modules:
         result = run_module(
-            "Harmony", analyze_harmony, audio_path, output_dir, track_name, audio=audio
+            "Harmony", analyze_harmony, audio_path, staged_output_dir, track_name, audio=audio
         )
         if result:
             results["harmony"] = result
 
     if "melody" in modules:
         result = run_module(
-            "Melody", analyze_melody, audio_path, output_dir, track_name, audio=audio
+            "Melody", analyze_melody, audio_path, staged_output_dir, track_name, audio=audio
         )
         if result:
             results["melody"] = result
 
     if "overtone" in modules:
         result = run_module(
-            "Overtone", analyze_overtones, audio_path, output_dir, track_name, audio=audio
+            "Overtone", analyze_overtones, audio_path, staged_output_dir, track_name, audio=audio
         )
         if result:
             results["overtone"] = result
 
     try:
-        plot_index = _write_plot_index(output_dir, track_name)
+        plot_index = _write_plot_index(staging_dir, track_name)
         if plot_index:
-            print(f"  Plot index saved: {plot_index}")
+            print(f"  Plot index saved: {output_dir / plot_index.name}")
     except Exception as e:
         print(f"  Plot index failed: {e}")
 
     # Catalog indexing
-    if not args.no_catalog and results:
+    if not args.no_catalog and results and not _module_failed:
         print(f"\n{'=' * 60}")
         print(f"  CATALOG INDEXING")
         print(f"{'=' * 60}")
@@ -363,27 +409,13 @@ def cmd_listen(args):
             f"neither={cp.get('neither', '?')}%"
         )
 
-    if not _module_failed and results:
-        completion_path.parent.mkdir(parents=True, exist_ok=True)
-        completion_path.write_text(
-            json.dumps(
-                {
-                    "status": "complete",
-                    "track": track_name,
-                    "modules": list(results),
-                },
-                indent=2,
-            )
-            + "\n",
-            encoding="utf-8",
-        )
-
     print(f"\n  Analysis files: {output_dir}/")
     print(f"  Total time: {total_elapsed:.1f}s")
     print()
 
     if _module_failed:
         sys.exit(1)
+    return results
 
 
 def cmd_cache(args):
