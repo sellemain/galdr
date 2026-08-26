@@ -261,9 +261,7 @@ def generate_openrouter_witness(
         with urllib.request.urlopen(request, timeout=300) as response:
             result = json.loads(response.read())
         text = result["choices"][0]["message"]["content"]
-        packet = _parse_response_text(
-            type("Response", (), {"text": text})(), "OpenRouter"
-        )
+        packet = _parse_response_text(type("Response", (), {"text": text})(), "OpenRouter")
     except (
         urllib.error.URLError,
         TimeoutError,

@@ -80,7 +80,12 @@ class CatalogState:
             elif "moment_count" in t:
                 del t["moment_count"]
             # Remove old harmony fields no longer produced
-            for old_key in ["mean_consonance", "mean_temperament_alignment", "mean_consonance_series", "mean_tension"]:
+            for old_key in [
+                "mean_consonance",
+                "mean_temperament_alignment",
+                "mean_consonance_series",
+                "mean_tension",
+            ]:
                 t.pop(old_key, None)
             # Remove chord-related fields (no longer produced)
             for old_key in ["top_chords", "primary_tonal_center", "mean_harmonic_rhythm"]:
@@ -91,15 +96,18 @@ class CatalogState:
         self.catalog_dir.mkdir(parents=True, exist_ok=True)
         data = {
             "tracks": dict(self.tracks),
-            "stats": {k: {kk: vv for kk, vv in v.items() if kk != "values"}
-                      for k, v in self.stats.items()},
+            "stats": {
+                k: {kk: vv for kk, vv in v.items() if kk != "values"} for k, v in self.stats.items()
+            },
             "track_count": len(self.tracks),
         }
         with open(self.state_path, "w") as f:
             json.dump(data, f, indent=2)
         print(f"Catalog saved: {len(self.tracks)} tracks")
 
-    def index_track(self, track_name, perception=None, harmony=None, melody=None, overtone=None, report=None):
+    def index_track(
+        self, track_name, perception=None, harmony=None, melody=None, overtone=None, report=None
+    ):
         """Add or update a track's metrics in the catalog."""
         metrics = {"track": track_name}
 
@@ -120,59 +128,69 @@ class CatalogState:
                 catalog_attention = s.get("mean_attention")
                 catalog_pattern = pattern
 
-            metrics.update({
-                "mean_attention": catalog_attention,
-                "mean_pattern": catalog_pattern,
-                "total_silence_sec": s.get("total_silence_sec"),
-                "silence_pct": silence_pct,
-                "active_duration_sec": s.get("active_duration_sec"),
-                "pattern_break_count": s.get("pattern_break_count"),
-                "pressure_building_pct": s.get("pressure_building_pct"),
-                "pressure_releasing_pct": s.get("pressure_releasing_pct"),
-                "pressure_sustaining_pct": s.get("pressure_sustaining_pct"),
-            })
+            metrics.update(
+                {
+                    "mean_attention": catalog_attention,
+                    "mean_pattern": catalog_pattern,
+                    "total_silence_sec": s.get("total_silence_sec"),
+                    "silence_pct": silence_pct,
+                    "active_duration_sec": s.get("active_duration_sec"),
+                    "pattern_break_count": s.get("pattern_break_count"),
+                    "pressure_building_pct": s.get("pressure_building_pct"),
+                    "pressure_releasing_pct": s.get("pressure_releasing_pct"),
+                    "pressure_sustaining_pct": s.get("pressure_sustaining_pct"),
+                }
+            )
 
         if harmony:
-            metrics.update({
-                "mean_pitch_grid": harmony.get("mean_pitch_grid"),
-                "mean_interval_coherence": harmony.get("mean_interval_coherence"),
-                "mean_harmonic_pull": harmony.get("mean_harmonic_pull"),
-                "mean_chroma_motion": harmony.get("mean_chroma_motion"),
-                "mean_tonal_anchor": harmony.get("mean_tonal_anchor"),
-                "mean_major_minor": harmony.get("mean_major_minor"),
-                "detected_key": harmony.get("detected_key"),
-                "detected_mode": harmony.get("detected_mode"),
-                "key_confidence": harmony.get("key_confidence"),
-            })
+            metrics.update(
+                {
+                    "mean_pitch_grid": harmony.get("mean_pitch_grid"),
+                    "mean_interval_coherence": harmony.get("mean_interval_coherence"),
+                    "mean_harmonic_pull": harmony.get("mean_harmonic_pull"),
+                    "mean_chroma_motion": harmony.get("mean_chroma_motion"),
+                    "mean_tonal_anchor": harmony.get("mean_tonal_anchor"),
+                    "mean_major_minor": harmony.get("mean_major_minor"),
+                    "detected_key": harmony.get("detected_key"),
+                    "detected_mode": harmony.get("detected_mode"),
+                    "key_confidence": harmony.get("key_confidence"),
+                }
+            )
 
         if melody:
-            metrics.update({
-                "overall_range_semitones": melody.get("overall_range_semitones"),
-                "overall_center_note": melody.get("overall_center_note"),
-                "mean_foreground_line": melody.get("mean_foreground_line"),
-                "contour_ascending_pct": melody.get("contour_ascending_pct"),
-                "contour_descending_pct": melody.get("contour_descending_pct"),
-                "mean_direction": melody.get("mean_direction"),
-            })
+            metrics.update(
+                {
+                    "overall_range_semitones": melody.get("overall_range_semitones"),
+                    "overall_center_note": melody.get("overall_center_note"),
+                    "mean_foreground_line": melody.get("mean_foreground_line"),
+                    "contour_ascending_pct": melody.get("contour_ascending_pct"),
+                    "contour_descending_pct": melody.get("contour_descending_pct"),
+                    "mean_direction": melody.get("mean_direction"),
+                }
+            )
 
         if overtone:
-            metrics.update({
-                "mean_overtone_fit": overtone.get("mean_overtone_fit"),
-                "mean_overtone_density": overtone.get("mean_overtone_density"),
-                "mean_inharmonicity": overtone.get("mean_inharmonicity"),
-            })
+            metrics.update(
+                {
+                    "mean_overtone_fit": overtone.get("mean_overtone_fit"),
+                    "mean_overtone_density": overtone.get("mean_overtone_density"),
+                    "mean_inharmonicity": overtone.get("mean_inharmonicity"),
+                }
+            )
 
         if report:
-            metrics.update({
-                "duration_seconds": report.get("duration_seconds"),
-                "detected_pulse_bpm": report.get("detected_pulse_bpm"),
-                "felt_pulse_bpm": report.get("felt_pulse_bpm"),
-                "pulse": report.get("pulse"),
-                "body": report.get("body"),
-                "weight": report.get("weight"),
-                "surface_balance": report.get("surface_balance"),
-                "spectral_centroid_mean_hz": report.get("spectral_centroid_mean_hz"),
-            })
+            metrics.update(
+                {
+                    "duration_seconds": report.get("duration_seconds"),
+                    "detected_pulse_bpm": report.get("detected_pulse_bpm"),
+                    "felt_pulse_bpm": report.get("felt_pulse_bpm"),
+                    "pulse": report.get("pulse"),
+                    "body": report.get("body"),
+                    "weight": report.get("weight"),
+                    "surface_balance": report.get("surface_balance"),
+                    "spectral_centroid_mean_hz": report.get("spectral_centroid_mean_hz"),
+                }
+            )
 
         self.tracks[track_name] = metrics
         self._recompute_stats()
@@ -187,8 +205,11 @@ class CatalogState:
 
         self.stats = {}
         for key in sorted(numeric_keys):
-            values = [t[key] for t in self.tracks.values()
-                      if key in t and t[key] is not None and isinstance(t[key], (int, float))]
+            values = [
+                t[key]
+                for t in self.tracks.values()
+                if key in t and t[key] is not None and isinstance(t[key], (int, float))
+            ]
             if len(values) < 2:
                 continue
             arr = np.array(values)
@@ -228,8 +249,11 @@ class CatalogState:
 
     def extremes(self, metric, n=3):
         """Get the n highest and lowest tracks for a metric."""
-        entries = [(name, t[metric]) for name, t in self.tracks.items()
-                   if metric in t and t[metric] is not None]
+        entries = [
+            (name, t[metric])
+            for name, t in self.tracks.items()
+            if metric in t and t[metric] is not None
+        ]
         if not entries:
             return {"lowest": [], "highest": []}
 
@@ -248,20 +272,60 @@ class CatalogState:
         lines = [f"=== {track_name} -- Catalog Position ===\n"]
 
         key_metrics = [
-            ("mean_pattern", display_name("pattern"), "higher = the structure keeps its pattern intact"),
-            ("mean_attention", display_name("attention"), "higher = attention is carried more strongly"),
+            (
+                "mean_pattern",
+                display_name("pattern"),
+                "higher = the structure keeps its pattern intact",
+            ),
+            (
+                "mean_attention",
+                display_name("attention"),
+                "higher = attention is carried more strongly",
+            ),
             ("silence_pct", "Silence %", "fraction of track that is truly empty"),
             ("active_duration_sec", "Active Duration", "seconds of non-silent audio"),
-            ("pressure_building_pct", "Pressure Building", "fraction of track moving into more pressure"),
-            ("pressure_releasing_pct", "Pressure Releasing", "fraction of track letting pressure go"),
-            ("pressure_sustaining_pct", "Pressure Sustaining", "fraction of track holding pressure steady"),
-            ("pattern_break_count", "Structural Breaks", "count of silence, attention shifts, and pattern ruptures"),
+            (
+                "pressure_building_pct",
+                "Pressure Building",
+                "fraction of track moving into more pressure",
+            ),
+            (
+                "pressure_releasing_pct",
+                "Pressure Releasing",
+                "fraction of track letting pressure go",
+            ),
+            (
+                "pressure_sustaining_pct",
+                "Pressure Sustaining",
+                "fraction of track holding pressure steady",
+            ),
+            (
+                "pattern_break_count",
+                "Structural Breaks",
+                "count of silence, attention shifts, and pattern ruptures",
+            ),
             ("pulse", display_name("pulse"), "higher = steadier measured pulse"),
             ("body", display_name("body"), "higher = stronger motor entrainment"),
-            ("weight", display_name("weight"), "higher = stronger hold from weight, drag, or suspended sway"),
-            ("surface_balance", display_name("surface_balance"), "negative = harmonic weight, positive = percussive weight"),
-            ("mean_harmonic_pull", display_name("harmonic_pull"), "higher = more harmonic pull, motion, or refusal to settle"),
-            ("mean_chroma_motion", display_name("chroma_motion"), "higher = faster shifts in harmonic color"),
+            (
+                "weight",
+                display_name("weight"),
+                "higher = stronger hold from weight, drag, or suspended sway",
+            ),
+            (
+                "surface_balance",
+                display_name("surface_balance"),
+                "negative = harmonic weight, positive = percussive weight",
+            ),
+            (
+                "mean_harmonic_pull",
+                display_name("harmonic_pull"),
+                "higher = more harmonic pull, motion, or refusal to settle",
+            ),
+            (
+                "mean_chroma_motion",
+                display_name("chroma_motion"),
+                "higher = faster shifts in harmonic color",
+            ),
         ]
 
         for metric, label, desc in key_metrics:

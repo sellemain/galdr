@@ -82,7 +82,9 @@ def _summarize_window(rows: list[dict]) -> dict[str, float]:
         "weight": _mean(rows, "weight"),
         "surface_density": _mean(rows, "surface_density"),
         "rms_energy": _mean(rows, "rms_energy"),
-        "loudness_lufs": _mean([row for row in rows if row.get("loudness_lufs") is not None], "loudness_lufs"),
+        "loudness_lufs": _mean(
+            [row for row in rows if row.get("loudness_lufs") is not None], "loudness_lufs"
+        ),
     }
 
 
@@ -181,23 +183,32 @@ def derive_boundary_candidates(
             confidence -= 0.12
         confidence = max(0.0, min(0.95, confidence))
 
-        candidates.append({
-            "start": round(start, 2),
-            "end": round(end, 2),
-            "duration": round(gap_sec, 2),
-            "kind": kind,
-            "confidence": round(confidence, 3),
-            "reset_strength": round(reset_strength, 3),
-            "reentry_strength": round(reentry_strength, 3),
-            "mean_rms_energy": round(_mean(run, "rms_energy"), 5),
-            "mean_surface_density": round(_mean(run, "surface_density"), 3),
-            "min_loudness_lufs": round(min(_num(row.get("loudness_lufs"), 0.0) for row in run), 1),
-        })
+        candidates.append(
+            {
+                "start": round(start, 2),
+                "end": round(end, 2),
+                "duration": round(gap_sec, 2),
+                "kind": kind,
+                "confidence": round(confidence, 3),
+                "reset_strength": round(reset_strength, 3),
+                "reentry_strength": round(reentry_strength, 3),
+                "mean_rms_energy": round(_mean(run, "rms_energy"), 5),
+                "mean_surface_density": round(_mean(run, "surface_density"), 3),
+                "min_loudness_lufs": round(
+                    min(_num(row.get("loudness_lufs"), 0.0) for row in run), 1
+                ),
+            }
+        )
     if include_reset_points:
         window_frames = max(4, int(round(reset_window_sec / hop_sec)))
         stride = max(1, window_frames // 3)
-        blocked_ranges = [(candidate["start"] - merge_gap_sec, candidate["end"] + merge_gap_sec) for candidate in candidates]
-        existing_times = [candidate["start"] for candidate in candidates] + [candidate["end"] for candidate in candidates]
+        blocked_ranges = [
+            (candidate["start"] - merge_gap_sec, candidate["end"] + merge_gap_sec)
+            for candidate in candidates
+        ]
+        existing_times = [candidate["start"] for candidate in candidates] + [
+            candidate["end"] for candidate in candidates
+        ]
 
         for midpoint in range(window_frames, len(rows) - window_frames, stride):
             t = rows[midpoint]["_boundary_t"]
@@ -206,8 +217,8 @@ def derive_boundary_candidates(
             if any(abs(t - existing) <= reset_window_sec for existing in existing_times):
                 continue
 
-            before_rows = rows[midpoint - window_frames:midpoint]
-            after_rows = rows[midpoint:midpoint + window_frames]
+            before_rows = rows[midpoint - window_frames : midpoint]
+            after_rows = rows[midpoint : midpoint + window_frames]
             if any(_is_gap_frame(row) for row in before_rows + after_rows):
                 continue
 
@@ -225,22 +236,30 @@ def derive_boundary_candidates(
             confidence = 0.28 + min(state_reset, 0.24) + min(acoustic_reset, 0.22)
             confidence += min(max(0.0, strongest_turn - 0.12), 0.12)
             confidence = max(0.0, min(0.78, confidence))
-            candidates.append({
-                "start": round(t, 2),
-                "end": round(t, 2),
-                "duration": 0.0,
-                "kind": "reset_point",
-                "confidence": round(confidence, 3),
-                "reset_strength": round(state_reset, 3),
-                "reentry_strength": round(max(0.0, after["attention"] - before["attention"]), 3),
-                "state_reset": round(state_reset, 3),
-                "acoustic_reset": round(acoustic_reset, 3),
-                "pressure_turn": round(pressure_turn, 3),
-                "weight_release": round(weight_release, 3),
-                "mean_rms_energy": round((before["rms_energy"] + after["rms_energy"]) / 2.0, 5),
-                "mean_surface_density": round((before["surface_density"] + after["surface_density"]) / 2.0, 3),
-                "min_loudness_lufs": round(min(before["loudness_lufs"], after["loudness_lufs"]), 1),
-            })
+            candidates.append(
+                {
+                    "start": round(t, 2),
+                    "end": round(t, 2),
+                    "duration": 0.0,
+                    "kind": "reset_point",
+                    "confidence": round(confidence, 3),
+                    "reset_strength": round(state_reset, 3),
+                    "reentry_strength": round(
+                        max(0.0, after["attention"] - before["attention"]), 3
+                    ),
+                    "state_reset": round(state_reset, 3),
+                    "acoustic_reset": round(acoustic_reset, 3),
+                    "pressure_turn": round(pressure_turn, 3),
+                    "weight_release": round(weight_release, 3),
+                    "mean_rms_energy": round((before["rms_energy"] + after["rms_energy"]) / 2.0, 5),
+                    "mean_surface_density": round(
+                        (before["surface_density"] + after["surface_density"]) / 2.0, 3
+                    ),
+                    "min_loudness_lufs": round(
+                        min(before["loudness_lufs"], after["loudness_lufs"]), 1
+                    ),
+                }
+            )
             existing_times.append(t)
 
     return sorted(candidates, key=lambda candidate: (candidate["start"], candidate["end"]))
@@ -323,28 +342,31 @@ def align_candidates_to_sections(
             if best is None or delta < best[0]:
                 best = (delta, idx, candidate)
         if best is None or best[0] > tolerance_sec:
-            missed_sections.append({
-                "section": section.get("title") or section.get("name") or "untitled",
-                "start": round(section_start, 2),
-            })
+            missed_sections.append(
+                {
+                    "section": section.get("title") or section.get("name") or "untitled",
+                    "start": round(section_start, 2),
+                }
+            )
             continue
 
         delta, idx, candidate = best
         used_candidates.add(idx)
-        matches.append({
-            "section": section.get("title") or section.get("name") or "untitled",
-            "section_start": round(section_start, 2),
-            "candidate_start": candidate.get("start"),
-            "candidate_end": candidate.get("end"),
-            "candidate_kind": candidate.get("kind"),
-            "delta": round(delta, 2),
-            "confidence": candidate.get("confidence"),
-            "reset_strength": candidate.get("reset_strength"),
-        })
+        matches.append(
+            {
+                "section": section.get("title") or section.get("name") or "untitled",
+                "section_start": round(section_start, 2),
+                "candidate_start": candidate.get("start"),
+                "candidate_end": candidate.get("end"),
+                "candidate_kind": candidate.get("kind"),
+                "delta": round(delta, 2),
+                "confidence": candidate.get("confidence"),
+                "reset_strength": candidate.get("reset_strength"),
+            }
+        )
 
     extra_candidates = [
-        candidate for idx, candidate in enumerate(candidates)
-        if idx not in used_candidates
+        candidate for idx, candidate in enumerate(candidates) if idx not in used_candidates
     ]
     deltas = [match["delta"] for match in matches]
     return {
@@ -378,8 +400,7 @@ def build_section_boundary_report(
     alignment = align_candidates_to_sections(candidates, sections, tolerance_sec=tolerance_sec)
     matched_starts = {match["section_start"] for match in alignment["matches"]}
     matched_candidate_keys = {
-        (match["candidate_start"], match["candidate_end"])
-        for match in alignment["matches"]
+        (match["candidate_start"], match["candidate_end"]) for match in alignment["matches"]
     }
 
     near_misses: list[dict] = []
@@ -400,21 +421,24 @@ def build_section_boundary_report(
 
         if best is not None and best[0] <= near_miss_sec:
             delta, candidate = best
-            near_misses.append({
-                "section": section_name,
-                "section_start": section_start,
-                "nearest_candidate_start": candidate.get("start"),
-                "nearest_candidate_end": candidate.get("end"),
-                "nearest_candidate_kind": candidate.get("kind"),
-                "delta": round(delta, 2),
-                "confidence": candidate.get("confidence"),
-            })
+            near_misses.append(
+                {
+                    "section": section_name,
+                    "section_start": section_start,
+                    "nearest_candidate_start": candidate.get("start"),
+                    "nearest_candidate_end": candidate.get("end"),
+                    "nearest_candidate_kind": candidate.get("kind"),
+                    "delta": round(delta, 2),
+                    "confidence": candidate.get("confidence"),
+                }
+            )
             continue
 
         sections_without_acoustic_boundary.append({"section": section_name, "start": section_start})
 
     acoustic_boundaries_without_declared_section = [
-        candidate for candidate in candidates
+        candidate
+        for candidate in candidates
         if (candidate.get("start"), candidate.get("end")) not in matched_candidate_keys
     ]
 
@@ -425,7 +449,9 @@ def build_section_boundary_report(
             "matched_count": len(alignment["matches"]),
             "near_miss_count": len(near_misses),
             "section_without_acoustic_boundary_count": len(sections_without_acoustic_boundary),
-            "acoustic_without_declared_section_count": len(acoustic_boundaries_without_declared_section),
+            "acoustic_without_declared_section_count": len(
+                acoustic_boundaries_without_declared_section
+            ),
             "tolerance_sec": tolerance_sec,
             "near_miss_sec": near_miss_sec,
         },

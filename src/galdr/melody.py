@@ -15,6 +15,7 @@ from pathlib import Path
 import librosa
 import librosa.display
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,10 +24,14 @@ from .audio_context import AudioContext, load_audio_context
 
 from .constants import (
     PITCH_NAMES,
-    MELODY_FMIN, MELODY_FMAX,
-    MELODY_DIRECTION_WINDOW_SEC, MELODY_RANGE_WINDOW_SEC,
-    MELODY_PRESENCE_WINDOW_SEC, MELODY_DIRECTION_MIN_PRESENCE,
-    MELODY_ASCENDING_THRESHOLD, MELODY_DESCENDING_THRESHOLD,
+    MELODY_FMIN,
+    MELODY_FMAX,
+    MELODY_DIRECTION_WINDOW_SEC,
+    MELODY_RANGE_WINDOW_SEC,
+    MELODY_PRESENCE_WINDOW_SEC,
+    MELODY_DIRECTION_MIN_PRESENCE,
+    MELODY_ASCENDING_THRESHOLD,
+    MELODY_DESCENDING_THRESHOLD,
     ATTENTION_HOP_SEC,
 )
 
@@ -47,17 +52,16 @@ def hz_to_note_name(hz):
 def compute_pitch_contour(y, sr, hop_length=512, fmin=MELODY_FMIN, fmax=MELODY_FMAX):
     """Track fundamental frequency over time using pyin."""
     f0, voiced_flag, voiced_probs = librosa.pyin(
-        y, sr=sr, hop_length=hop_length,
-        fmin=fmin, fmax=fmax,
-        fill_na=np.nan
+        y, sr=sr, hop_length=hop_length, fmin=fmin, fmax=fmax, fill_na=np.nan
     )
 
     times = librosa.frames_to_time(np.arange(len(f0)), sr=sr, hop_length=hop_length)
     return times, f0, voiced_flag, voiced_probs
 
 
-def compute_contour_direction(f0, times, window_sec=MELODY_DIRECTION_WINDOW_SEC,
-                              hop_sec=ATTENTION_HOP_SEC):
+def compute_contour_direction(
+    f0, times, window_sec=MELODY_DIRECTION_WINDOW_SEC, hop_sec=ATTENTION_HOP_SEC
+):
     """Measure whether the melody is ascending, descending, or holding."""
     f0_midi = np.where(np.isnan(f0), np.nan, librosa.hz_to_midi(np.maximum(f0, 1e-6)))
 
@@ -83,8 +87,7 @@ def compute_contour_direction(f0, times, window_sec=MELODY_DIRECTION_WINDOW_SEC,
     return out_times, direction
 
 
-def compute_pitch_range(f0, times, window_sec=MELODY_RANGE_WINDOW_SEC,
-                        hop_sec=ATTENTION_HOP_SEC):
+def compute_pitch_range(f0, times, window_sec=MELODY_RANGE_WINDOW_SEC, hop_sec=ATTENTION_HOP_SEC):
     """Measure the pitch range (in semitones) within sliding windows."""
     f0_midi = np.where(np.isnan(f0), np.nan, librosa.hz_to_midi(np.maximum(f0, 1e-6)))
 
@@ -107,9 +110,9 @@ def compute_pitch_range(f0, times, window_sec=MELODY_RANGE_WINDOW_SEC,
     return out_times, pitch_range, pitch_center
 
 
-def compute_foreground_line(voiced_probs, times,
-                           window_sec=MELODY_PRESENCE_WINDOW_SEC,
-                           hop_sec=ATTENTION_HOP_SEC):
+def compute_foreground_line(
+    voiced_probs, times, window_sec=MELODY_PRESENCE_WINDOW_SEC, hop_sec=ATTENTION_HOP_SEC
+):
     """Rolling measure of how much pitched content is present."""
     out_times = np.arange(0, times[-1] if len(times) > 0 else 0, hop_sec)
     presence = np.zeros_like(out_times)
@@ -125,9 +128,14 @@ def compute_foreground_line(voiced_probs, times,
     return out_times, presence
 
 
-def analyze_melody(audio_path, output_dir, track_name,
-                    hop_sec=ATTENTION_HOP_SEC, use_harmonic=True,
-                    audio: AudioContext | None = None):
+def analyze_melody(
+    audio_path,
+    output_dir,
+    track_name,
+    hop_sec=ATTENTION_HOP_SEC,
+    use_harmonic=True,
+    audio: AudioContext | None = None,
+):
     """Full melodic contour analysis.
 
     Returns (summary_dict, stream_list).
@@ -159,26 +167,46 @@ def analyze_melody(audio_path, output_dir, track_name,
     range_times, pitch_range, pitch_center = compute_pitch_range(f0, pitch_times, hop_sec=hop_sec)
 
     print("  Computing vocal presence...")
-    pres_times, foreground_line = compute_foreground_line(voiced_probs, pitch_times, hop_sec=hop_sec)
+    pres_times, foreground_line = compute_foreground_line(
+        voiced_probs, pitch_times, hop_sec=hop_sec
+    )
 
     # ===== BUILD MELODY STREAM =====
     stream_times = np.arange(0, duration, hop_sec)
     stream = []
 
-    direction_interp = np.interp(stream_times, dir_times, direction) if len(dir_times) > 0 else np.zeros_like(stream_times)
-    range_interp = np.interp(stream_times, range_times, pitch_range) if len(range_times) > 0 else np.zeros_like(stream_times)
+    direction_interp = (
+        np.interp(stream_times, dir_times, direction)
+        if len(dir_times) > 0
+        else np.zeros_like(stream_times)
+    )
+    range_interp = (
+        np.interp(stream_times, range_times, pitch_range)
+        if len(range_times) > 0
+        else np.zeros_like(stream_times)
+    )
     if len(range_times) > 0:
         valid_center = ~np.isnan(pitch_center)
         if np.any(valid_center):
-            center_interp = np.interp(stream_times, range_times[valid_center], pitch_center[valid_center])
+            center_interp = np.interp(
+                stream_times, range_times[valid_center], pitch_center[valid_center]
+            )
         else:
             center_interp = np.full_like(stream_times, np.nan)
     else:
         center_interp = np.full_like(stream_times, np.nan)
-    presence_interp = np.interp(stream_times, pres_times, foreground_line) if len(pres_times) > 0 else np.zeros_like(stream_times)
+    presence_interp = (
+        np.interp(stream_times, pres_times, foreground_line)
+        if len(pres_times) > 0
+        else np.zeros_like(stream_times)
+    )
 
     # Interpolate voiced probability to stream times for unvoiced frame detection
-    voiced_interp = np.interp(stream_times, pitch_times, voiced_probs) if len(pitch_times) > 0 else np.zeros_like(stream_times)
+    voiced_interp = (
+        np.interp(stream_times, pitch_times, voiced_probs)
+        if len(pitch_times) > 0
+        else np.zeros_like(stream_times)
+    )
 
     for i, t in enumerate(stream_times):
         pitch_idx = np.searchsorted(pitch_times, t, side="right") - 1
@@ -194,7 +222,9 @@ def analyze_melody(audio_path, output_dir, track_name,
             "note": current_note if is_voiced else None,
             "direction": round(float(direction_interp[i]), 3) if is_voiced else None,
             "pitch_range_st": round(float(range_interp[i]), 1),
-            "pitch_center_midi": round(float(center_interp[i]), 1) if is_voiced and not np.isnan(center_interp[i]) else None,
+            "pitch_center_midi": round(float(center_interp[i]), 1)
+            if is_voiced and not np.isnan(center_interp[i])
+            else None,
             "foreground_line": round(float(presence_interp[i]), 3),
         }
         stream.append(entry)
@@ -202,7 +232,9 @@ def analyze_melody(audio_path, output_dir, track_name,
     # ===== SUMMARY =====
     valid_f0 = f0[~np.isnan(f0)]
     if len(valid_f0) > 0:
-        overall_range_st = float(librosa.hz_to_midi(np.max(valid_f0)) - librosa.hz_to_midi(np.min(valid_f0)))
+        overall_range_st = float(
+            librosa.hz_to_midi(np.max(valid_f0)) - librosa.hz_to_midi(np.min(valid_f0))
+        )
         overall_center_hz = float(np.median(valid_f0))
         overall_center_note = hz_to_note_name(overall_center_hz)
         overall_low = hz_to_note_name(float(np.min(valid_f0)))
@@ -255,15 +287,16 @@ def analyze_melody(audio_path, output_dir, track_name,
 
     valid_mask = ~np.isnan(f0)
     f0_midi_plot = np.where(valid_mask, librosa.hz_to_midi(np.maximum(f0, 1e-6)), np.nan)
-    axes[0].scatter(pitch_times[valid_mask], f0_midi_plot[valid_mask],
-                    s=1, c="#2ecc71", alpha=0.5)
+    axes[0].scatter(pitch_times[valid_mask], f0_midi_plot[valid_mask], s=1, c="#2ecc71", alpha=0.5)
     axes[0].set_ylabel("Pitch (MIDI)")
     axes[0].set_title(f"{track_name} — Melodic Contour", fontsize=13)
 
-    axes[1].fill_between(dir_times, direction, where=direction > 0,
-                         alpha=0.4, color="#e67e22", label="ascending")
-    axes[1].fill_between(dir_times, direction, where=direction < 0,
-                         alpha=0.4, color="#3498db", label="descending")
+    axes[1].fill_between(
+        dir_times, direction, where=direction > 0, alpha=0.4, color="#e67e22", label="ascending"
+    )
+    axes[1].fill_between(
+        dir_times, direction, where=direction < 0, alpha=0.4, color="#3498db", label="descending"
+    )
     axes[1].axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
     axes[1].set_ylabel("Direction (st/s)")
     axes[1].set_ylim(-10, 10)

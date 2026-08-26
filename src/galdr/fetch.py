@@ -30,9 +30,27 @@ from .provider_timed_lyrics import extract_video_id, fetch_provider_timed_lyrics
 
 _CONTEXT_CONFIDENCE_MINIMUM = {"high": 3, "medium": 2, "low": 1, "rejected": 0}
 _CONTEXT_MATCH_WORD_STOP = {
-    "the", "and", "with", "feat", "featuring", "official", "video", "audio",
-    "lyrics", "lyric", "live", "remastered", "remaster", "hd", "hq", "music",
-    "band", "song", "composition", "musician", "singer",
+    "the",
+    "and",
+    "with",
+    "feat",
+    "featuring",
+    "official",
+    "video",
+    "audio",
+    "lyrics",
+    "lyric",
+    "live",
+    "remastered",
+    "remaster",
+    "hd",
+    "hq",
+    "music",
+    "band",
+    "song",
+    "composition",
+    "musician",
+    "singer",
 }
 _GENIUS_TRANSLATION_MARKERS = (
     "translation",
@@ -65,9 +83,7 @@ def _match_tokens(text: str) -> set[str]:
     text = re.sub(r"[’']s\b", "", text)
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     return {
-        token
-        for token in text.split()
-        if len(token) > 2 and token not in _CONTEXT_MATCH_WORD_STOP
+        token for token in text.split() if len(token) > 2 and token not in _CONTEXT_MATCH_WORD_STOP
     }
 
 
@@ -79,7 +95,11 @@ def _identity_match_score(expected: str, candidate: str) -> tuple[float, list[st
         return 0.0, ["no expected identity tokens"]
     overlap = expected_tokens & candidate_tokens
     score = len(overlap) / len(expected_tokens)
-    reasons = [f"matched tokens: {', '.join(sorted(overlap))}"] if overlap else ["no identity-token overlap"]
+    reasons = (
+        [f"matched tokens: {', '.join(sorted(overlap))}"]
+        if overlap
+        else ["no identity-token overlap"]
+    )
     return score, reasons
 
 
@@ -166,17 +186,15 @@ def _run_yt_dlp(args: list[str], timeout: int) -> subprocess.CompletedProcess:
     if result.returncode == 0 or not _looks_like_ejs_failure(result.stderr):
         return result
 
-    print("  [yt-dlp] YouTube challenge/EJS failure detected; retrying with remote EJS components from GitHub")
+    print(
+        "  [yt-dlp] YouTube challenge/EJS failure detected; retrying with remote EJS components from GitHub"
+    )
     retry_cmd = _yt_dlp_base_cmd(remote_components=True) + args
     retry = subprocess.run(retry_cmd, capture_output=True, text=True, timeout=timeout)
     if retry.returncode == 0:
         return retry
 
-    retry.stderr = (
-        f"{result.stderr}\n"
-        "--- remote EJS retry stderr ---\n"
-        f"{retry.stderr}"
-    )
+    retry.stderr = f"{result.stderr}\n--- remote EJS retry stderr ---\n{retry.stderr}"
     return retry
 
 
@@ -221,6 +239,7 @@ def validate_slug(slug: str) -> str:
 
 
 # ─── YouTube / audio ─────────────────────────────────────────────────────────
+
 
 def slugify(text: str) -> str:
     """Convert a title string to a filesystem-safe slug.
@@ -331,9 +350,12 @@ def download_youtube(
 
     audio_args = [
         "--extract-audio",
-        "--audio-format", "mp3",
-        "--audio-quality", "0",
-        "--output", str(audio_out),
+        "--audio-format",
+        "mp3",
+        "--audio-quality",
+        "0",
+        "--output",
+        str(audio_out),
         "--no-playlist",
         url,
     ]
@@ -360,9 +382,12 @@ def download_youtube(
         manual_captions_args = [
             "--skip-download",
             "--write-subs",
-            "--sub-langs", "all,-live_chat",
-            "--sub-format", "vtt",
-            "--output", str(audio_out),
+            "--sub-langs",
+            "all,-live_chat",
+            "--sub-format",
+            "vtt",
+            "--output",
+            str(audio_out),
             "--no-playlist",
             url,
         ]
@@ -377,9 +402,12 @@ def download_youtube(
             auto_captions_args = [
                 "--skip-download",
                 "--write-auto-subs",
-                "--sub-langs", "en.*,en",
-                "--sub-format", "vtt",
-                "--output", str(audio_out),
+                "--sub-langs",
+                "en.*,en",
+                "--sub-format",
+                "vtt",
+                "--output",
+                str(audio_out),
                 "--no-playlist",
                 url,
             ]
@@ -414,6 +442,7 @@ _dedup_rolling_captions = dedup_rolling_captions
 
 
 # ─── Genius lyrics ───────────────────────────────────────────────────────────
+
 
 def _normalize_for_align(text: str) -> list[str]:
     """Lowercase and tokenize for word-overlap comparison. Drops single chars."""
@@ -463,8 +492,8 @@ def _parse_genius_html(html_text: str) -> tuple[list[str], list[str]]:
                 end = marker_pos
         chunk = html_text[pos:end]
         chunk = re.sub(r"<br\s*/?>", "\n", chunk)
-        chunk = re.sub(r"<[^>]+>", "", chunk)    # strip complete tags
-        chunk = re.sub(r"<[^>]*$", "", chunk)     # strip incomplete trailing tag
+        chunk = re.sub(r"<[^>]+>", "", chunk)  # strip complete tags
+        chunk = re.sub(r"<[^>]*$", "", chunk)  # strip incomplete trailing tag
         chunk = htmllib.unescape(chunk)
         lines = [ln.strip() for ln in chunk.splitlines() if ln.strip()]
         container_lines.append(lines)
@@ -481,12 +510,18 @@ def _parse_genius_html(html_text: str) -> tuple[list[str], list[str]]:
 
     # Filter Genius UI noise and lines that are clearly not lyrics (prose sentences)
     _noise = {
-        "Embed", "Cancel", "How to Format Lyrics", "Lyrics should be",
-        "Type out all", "Use the paragraph", "data-lyrics-container",
+        "Embed",
+        "Cancel",
+        "How to Format Lyrics",
+        "Lyrics should be",
+        "Type out all",
+        "Use the paragraph",
+        "data-lyrics-container",
         "You might also like",
     }
     all_lines = [
-        ln for ln in all_lines
+        ln
+        for ln in all_lines
         if not any(n in ln for n in _noise)
         and len(ln) < 200  # lyrics lines are short; prose/metadata is long
     ]
@@ -563,10 +598,7 @@ def _genius_search(artist: str, title: str) -> dict | None:
 
 
 def _score_genius_hit(hit: dict, artist: str, title: str) -> dict:
-    candidate = " ".join(
-        str(hit.get(part) or "")
-        for part in ("title", "artist", "full_title")
-    )
+    candidate = " ".join(str(hit.get(part) or "") for part in ("title", "artist", "full_title"))
     title_score, title_reasons = _identity_match_score(title, candidate)
     artist_score, artist_reasons = _identity_match_score(artist, candidate)
     score = round((title_score * 0.7) + (artist_score * 0.3), 3)
@@ -607,7 +639,12 @@ def fetch_genius_lyrics(artist: str, title: str) -> dict:
         html_text = urllib.request.urlopen(req, timeout=15).read().decode("utf-8", errors="replace")
         lyric_lines, sections = _parse_genius_html(html_text)
         if not lyric_lines:
-            return {"found": False, "url": genius_url, "reason": "no lyrics extracted", **confidence}
+            return {
+                "found": False,
+                "url": genius_url,
+                "reason": "no lyrics extracted",
+                **confidence,
+            }
         return {
             "found": True,
             "url": genius_url,
@@ -666,12 +703,14 @@ def align_lyrics_to_captions(
 
         if best_score >= min_score:
             seg = caption_segments[best_idx]
-            result.append({
-                "text": line,
-                "start": seg["start"],
-                "ts": seg["ts"],
-                "align_score": round(best_score, 3),
-            })
+            result.append(
+                {
+                    "text": line,
+                    "start": seg["start"],
+                    "ts": seg["ts"],
+                    "align_score": round(best_score, 3),
+                }
+            )
             cap_idx = best_idx  # stay at match; next line searches from here
         else:
             result.append({"text": line, "start": None, "ts": None, "align_score": 0.0})
@@ -681,6 +720,7 @@ def align_lyrics_to_captions(
 
 
 # ─── Wikipedia ───────────────────────────────────────────────────────────────
+
 
 def _wiki_request(params: dict) -> dict:
     base = "https://en.wikipedia.org/w/api.php"
@@ -694,12 +734,14 @@ def _wiki_request(params: dict) -> dict:
 def wikipedia_search(query: str, limit: int = 5) -> list[str]:
     """Return candidate Wikipedia article titles for a query."""
     try:
-        data = _wiki_request({
-            "action": "query",
-            "list": "search",
-            "srsearch": query,
-            "srlimit": str(limit),
-        })
+        data = _wiki_request(
+            {
+                "action": "query",
+                "list": "search",
+                "srsearch": query,
+                "srlimit": str(limit),
+            }
+        )
         results = data.get("query", {}).get("search", [])
         return [result["title"] for result in results if result.get("title")]
     except Exception:
@@ -709,14 +751,16 @@ def wikipedia_search(query: str, limit: int = 5) -> list[str]:
 def fetch_wikipedia_intro(title: str, max_chars: int = 2000) -> dict:
     """Fetch the lead/intro section of a Wikipedia article (full intro, not just summary)."""
     try:
-        data = _wiki_request({
-            "action": "query",
-            "prop": "extracts",
-            "exintro": "true",
-            "explaintext": "true",
-            "titles": title,
-            "redirects": "1",
-        })
+        data = _wiki_request(
+            {
+                "action": "query",
+                "prop": "extracts",
+                "exintro": "true",
+                "explaintext": "true",
+                "titles": title,
+                "redirects": "1",
+            }
+        )
         pages = data.get("query", {}).get("pages", {})
         for page_id, page in pages.items():
             if page_id == "-1":
@@ -765,7 +809,12 @@ def _score_wikipedia_result(
     before allowing them into prompts.
     """
     if not result.get("found"):
-        return {"confidence": "rejected", "match_score": 0.0, "match_reasons": ["not found"], "use_in_prompt": False}
+        return {
+            "confidence": "rejected",
+            "match_score": 0.0,
+            "match_reasons": ["not found"],
+            "use_in_prompt": False,
+        }
     if _looks_like_disambiguation_stub(result):
         return {
             "confidence": "rejected",
@@ -920,16 +969,16 @@ def fetch_wikipedia_context(
 # ─── Main fetch pipeline ──────────────────────────────────────────────────────
 
 _CENSOR_PATTERNS: list[tuple[re.Pattern, str]] = [
-    (re.compile(r'\bnigga(s)?\b', re.IGNORECASE), 'n***a'),
-    (re.compile(r'\bnigger(s)?\b', re.IGNORECASE), 'n*****'),
-    (re.compile(r'\bmotherfuck\w*', re.IGNORECASE), 'mf'),
-    (re.compile(r'\bfucking\b', re.IGNORECASE), 'f***ing'),
-    (re.compile(r'\bfucked\b', re.IGNORECASE), 'f***ed'),
-    (re.compile(r'\bfucker(s)?\b', re.IGNORECASE), 'f***er'),
-    (re.compile(r'\bfuck\b', re.IGNORECASE), 'f***'),
-    (re.compile(r'\bshit\b', re.IGNORECASE), 's***'),
-    (re.compile(r'\bbitch(es)?\b', re.IGNORECASE), 'b****'),
-    (re.compile(r'\bcunt\b', re.IGNORECASE), 'c***'),
+    (re.compile(r"\bnigga(s)?\b", re.IGNORECASE), "n***a"),
+    (re.compile(r"\bnigger(s)?\b", re.IGNORECASE), "n*****"),
+    (re.compile(r"\bmotherfuck\w*", re.IGNORECASE), "mf"),
+    (re.compile(r"\bfucking\b", re.IGNORECASE), "f***ing"),
+    (re.compile(r"\bfucked\b", re.IGNORECASE), "f***ed"),
+    (re.compile(r"\bfucker(s)?\b", re.IGNORECASE), "f***er"),
+    (re.compile(r"\bfuck\b", re.IGNORECASE), "f***"),
+    (re.compile(r"\bshit\b", re.IGNORECASE), "s***"),
+    (re.compile(r"\bbitch(es)?\b", re.IGNORECASE), "b****"),
+    (re.compile(r"\bcunt\b", re.IGNORECASE), "c***"),
 ]
 
 
@@ -987,11 +1036,13 @@ def fetch_track(
         context["download"] = dl
         if dl["audio_file"]:
             context["audio_file"] = dl["audio_file"]
-            context["source"].update({
-                "audio_path": dl["audio_file"],
-                "downloaded_at": dl.get("downloaded_at"),
-                "audio_sha256": dl.get("audio_sha256"),
-            })
+            context["source"].update(
+                {
+                    "audio_path": dl["audio_file"],
+                    "downloaded_at": dl.get("downloaded_at"),
+                    "audio_sha256": dl.get("audio_sha256"),
+                }
+            )
             print(f"  Audio: {dl['audio_file']}")
         else:
             print("  Audio download failed")
@@ -1073,7 +1124,9 @@ def fetch_track(
                     for line in timed_lines
                 ]
                 caption_lines = [
-                    {**cl, "text": censor_lyrics(cl["text"])} if isinstance(cl, dict) else censor_lyrics(cl)
+                    {**cl, "text": censor_lyrics(cl["text"])}
+                    if isinstance(cl, dict)
+                    else censor_lyrics(cl)
                     for cl in caption_lines
                 ]
                 print("  Lyrics censored (--censor)")
@@ -1087,10 +1140,10 @@ def fetch_track(
                 "candidate_title": genius.get("candidate_title"),
                 "candidate_artist": genius.get("candidate_artist"),
                 "genius_text": genius_text,
-                "timed_lines": timed_lines,              # provider-timed line evidence
+                "timed_lines": timed_lines,  # provider-timed line evidence
                 "timed_lyrics_source": timed_lyrics_source,
-                "caption_lines": caption_lines,          # timestamped, may have ASR errors
-                "full_text": genius_text,                # backward compat for assemble.py
+                "caption_lines": caption_lines,  # timestamped, may have ASR errors
+                "full_text": genius_text,  # backward compat for assemble.py
             }
 
         elif timed_lines or caption_lines:
@@ -1107,7 +1160,9 @@ def fetch_track(
                     for line in timed_lines
                 ]
                 caption_lines = [
-                    {**cl, "text": censor_lyrics(cl["text"])} if isinstance(cl, dict) else censor_lyrics(cl)
+                    {**cl, "text": censor_lyrics(cl["text"])}
+                    if isinstance(cl, dict)
+                    else censor_lyrics(cl)
                     for cl in caption_lines
                 ]
                 print("  Lyrics censored (--censor)")
@@ -1126,18 +1181,23 @@ def fetch_track(
             }
 
         else:
-            context["lyrics"] = {"source": "none", "caption_lines": [], "genius_text": None, "full_text": ""}
+            context["lyrics"] = {
+                "source": "none",
+                "caption_lines": [],
+                "genius_text": None,
+                "full_text": "",
+            }
             print("  Lyrics: none available")
 
     # 3. Wikipedia artist context
     if not skip_wikipedia:
         print(f"\n[fetch] Wikipedia: {artist}")
-        artist_wiki = fetch_wikipedia_context(
-            artist, entity_type="artist", exact_title=wiki_artist
-        )
+        artist_wiki = fetch_wikipedia_context(artist, entity_type="artist", exact_title=wiki_artist)
         context["artist_context"] = artist_wiki
         if artist_wiki["found"]:
-            print(f"  Artist: {artist_wiki['title']} ({artist_wiki['extract_chars']} chars available, {len(artist_wiki['extract'])} stored)")
+            print(
+                f"  Artist: {artist_wiki['title']} ({artist_wiki['extract_chars']} chars available, {len(artist_wiki['extract'])} stored)"
+            )
         else:
             print(f"  Artist: not found")
 
@@ -1147,7 +1207,9 @@ def fetch_track(
         )
         context["song_context"] = song_wiki
         if song_wiki["found"]:
-            print(f"  Song:   {song_wiki['title']} ({song_wiki['extract_chars']} chars available, {len(song_wiki['extract'])} stored)")
+            print(
+                f"  Song:   {song_wiki['title']} ({song_wiki['extract_chars']} chars available, {len(song_wiki['extract'])} stored)"
+            )
         else:
             print(f"  Song:   not found")
 

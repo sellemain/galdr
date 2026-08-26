@@ -6,6 +6,7 @@ import pytest
 def test_import_galdr():
     """Package imports without error."""
     import galdr
+
     assert hasattr(galdr, "__version__")
     assert isinstance(galdr.__version__, str)
     assert galdr.__version__ != ""
@@ -14,12 +15,14 @@ def test_import_galdr():
 def test_import_analyze():
     """analyze module loads and exposes analyze_track."""
     from galdr.analyze import analyze_track
+
     assert callable(analyze_track)
 
 
 def test_import_perceive():
     """perceive module loads and exposes key functions."""
     from galdr.perceive import generate_perception_stream, compute_attention
+
     assert callable(generate_perception_stream)
     assert callable(compute_attention)
 
@@ -27,6 +30,7 @@ def test_import_perceive():
 def test_import_harmony():
     """harmony module loads and exposes key functions."""
     from galdr.harmony import analyze_harmony, compute_consonance
+
     assert callable(analyze_harmony)
     assert callable(compute_consonance)
 
@@ -34,6 +38,7 @@ def test_import_harmony():
 def test_import_melody():
     """melody module loads and exposes key functions."""
     from galdr.melody import analyze_melody, hz_to_note_name
+
     assert callable(analyze_melody)
     assert hz_to_note_name(440.0) == "A4"
 
@@ -41,6 +46,7 @@ def test_import_melody():
 def test_import_overtone():
     """overtone module loads and exposes key functions."""
     from galdr.overtone import analyze_overtones, hz_to_cents, match_harmonics
+
     assert callable(analyze_overtones)
     assert callable(match_harmonics)
     # 1 octave = 1200 cents
@@ -50,6 +56,7 @@ def test_import_overtone():
 def test_import_catalog():
     """catalog module loads and CatalogState is constructable."""
     from galdr.catalog import CatalogState
+
     cat = CatalogState(analysis_dir="/tmp/galdr-test-nonexistent")
     assert cat.tracks == {}
     assert cat.stats == {}
@@ -58,6 +65,7 @@ def test_import_catalog():
 def test_import_cli():
     """cli module loads and main is callable."""
     from galdr.cli import main
+
     assert callable(main)
 
 
@@ -83,6 +91,7 @@ def test_catalog_custom_dir():
 def test_public_api_exports():
     """__init__.py exports match __all__."""
     import galdr
+
     for name in galdr.__all__:
         assert hasattr(galdr, name), f"Missing export: {name}"
 

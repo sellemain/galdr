@@ -21,6 +21,7 @@ from pathlib import Path
 import librosa
 import librosa.display
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,13 +31,18 @@ from scipy.ndimage import uniform_filter1d
 
 from .constants import (
     PITCH_NAMES,
-    KK_MAJOR_PROFILE, KK_MINOR_PROFILE,
+    KK_MAJOR_PROFILE,
+    KK_MINOR_PROFILE,
     CHROMA_SMOOTH_FRAMES,
     JI_CONSONANCE,
-    CONSONANCE_MIN_ENERGY, CONSONANCE_ACTIVE_THRESHOLD,
-    TONAL_CENTER_WINDOW_FRAMES, TONAL_CENTER_MIN_ENERGY,
-    TENSION_SMOOTH_FRAMES, TENSION_VELOCITY_SMOOTH,
-    CHROMA_FLUX_WINDOW_SEC, CHROMA_FLUX_HOP_SEC,
+    CONSONANCE_MIN_ENERGY,
+    CONSONANCE_ACTIVE_THRESHOLD,
+    TONAL_CENTER_WINDOW_FRAMES,
+    TONAL_CENTER_MIN_ENERGY,
+    TENSION_SMOOTH_FRAMES,
+    TENSION_VELOCITY_SMOOTH,
+    CHROMA_FLUX_WINDOW_SEC,
+    CHROMA_FLUX_HOP_SEC,
 )
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -46,6 +52,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 # ============================================================
 # Key Detection — Krumhansl-Kessler
 # ============================================================
+
 
 def _build_kk_profiles():
     """Build all 24 key profiles (12 major + 12 minor) by rotating
@@ -107,6 +114,7 @@ def detect_key_kk(chroma_profile):
 # Consonance
 # ============================================================
 
+
 def compute_consonance(chroma, sr, hop_length=512, smooth_frames=CHROMA_SMOOTH_FRAMES):
     """Measure harmonic consonance over time — TWO measures.
 
@@ -158,9 +166,9 @@ def compute_consonance(chroma, sr, hop_length=512, smooth_frames=CHROMA_SMOOTH_F
         if pair_weights:
             total_weight = sum(pair_weights)
             if total_weight > 0:
-                consonance_series[i] = sum(
-                    s * w for s, w in zip(pair_scores, pair_weights)
-                ) / total_weight
+                consonance_series[i] = (
+                    sum(s * w for s, w in zip(pair_scores, pair_weights)) / total_weight
+                )
             else:
                 consonance_series[i] = 0.0
         else:
@@ -174,10 +182,15 @@ def compute_consonance(chroma, sr, hop_length=512, smooth_frames=CHROMA_SMOOTH_F
 # Chroma motion — rate of harmonic change
 # ============================================================
 
-def compute_chroma_motion(chroma, sr, hop_length=512,
-                        smooth_frames=CHROMA_SMOOTH_FRAMES,
-                        window_sec=CHROMA_FLUX_WINDOW_SEC,
-                        hop_sec=CHROMA_FLUX_HOP_SEC):
+
+def compute_chroma_motion(
+    chroma,
+    sr,
+    hop_length=512,
+    smooth_frames=CHROMA_SMOOTH_FRAMES,
+    window_sec=CHROMA_FLUX_WINDOW_SEC,
+    hop_sec=CHROMA_FLUX_HOP_SEC,
+):
     """Measure rate of harmonic change over time using chroma cosine distance.
 
     Instead of counting chord label transitions (which requires naming chords),
@@ -226,8 +239,8 @@ def compute_chroma_motion(chroma, sr, hop_length=512,
 # Tonal Center — Krumhansl-Kessler key tracking
 # ============================================================
 
-def compute_tonal_center(chroma, sr, hop_length=512,
-                         window_frames=TONAL_CENTER_WINDOW_FRAMES):
+
+def compute_tonal_center(chroma, sr, hop_length=512, window_frames=TONAL_CENTER_WINDOW_FRAMES):
     """Track the tonal center (key) over time using KK profile correlation.
 
     Returns (times, key_names, modes, stability, major_minor, confidence).
@@ -283,8 +296,8 @@ def compute_tonal_center(chroma, sr, hop_length=512,
 # Tension
 # ============================================================
 
-def compute_tension(chroma, sr, hop_length=512,
-                    smooth_frames=TENSION_SMOOTH_FRAMES):
+
+def compute_tension(chroma, sr, hop_length=512, smooth_frames=TENSION_SMOOTH_FRAMES):
     """Track harmonic tension — rate of movement in tonnetz space.
 
     Uses tonnetz features for a geometrically meaningful representation
@@ -297,7 +310,7 @@ def compute_tension(chroma, sr, hop_length=512,
 
     if tonnetz_smooth.shape[1] > 1:
         tonnetz_diff = np.diff(tonnetz_smooth, axis=1)
-        tonnetz_velocity = np.sqrt(np.sum(tonnetz_diff ** 2, axis=0))
+        tonnetz_velocity = np.sqrt(np.sum(tonnetz_diff**2, axis=0))
         tonnetz_velocity = np.append(tonnetz_velocity, 0)
     else:
         tonnetz_velocity = np.zeros(tonnetz_smooth.shape[1])
@@ -317,7 +330,10 @@ def compute_tension(chroma, sr, hop_length=512,
 # Full Pipeline
 # ============================================================
 
-def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5, audio: AudioContext | None = None):
+
+def analyze_harmony(
+    audio_path, output_dir, track_name, hop_sec=0.5, audio: AudioContext | None = None
+):
     """Full harmonic analysis pipeline.
 
     Returns (summary_dict, stream_list).
@@ -340,9 +356,7 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5, audio: Audi
     )
 
     print("  Computing chroma flux (harmonic change rate)...")
-    cf_times, chroma_motion = compute_chroma_motion(
-        chroma, sr, hop_length=hop_length
-    )
+    cf_times, chroma_motion = compute_chroma_motion(chroma, sr, hop_length=hop_length)
 
     print("  Tracking tonal center (Krumhansl-Kessler)...")
     tc_times, tc_key_names, tc_modes, tc_stability, tc_major_minor, tc_confidence = (
@@ -350,9 +364,7 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5, audio: Audi
     )
 
     print("  Computing tension arc...")
-    tens_times, tension, tonnetz = compute_tension(
-        chroma, sr, hop_length=hop_length
-    )
+    tens_times, tension, tonnetz = compute_tension(chroma, sr, hop_length=hop_length)
 
     # ===== BUILD HARMONIC STREAM =====
     stream_times = np.arange(0, duration, hop_sec)
@@ -441,17 +453,23 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5, audio: Audi
     fig, axes = plt.subplots(5, 1, figsize=(16, 15), sharex=True)
 
     # Consonance (both measures)
-    axes[0].plot(cons_times, consonance_temp, color="#2ecc71", linewidth=1,
-                 label="tuning alignment", alpha=0.8)
+    axes[0].plot(
+        cons_times,
+        consonance_temp,
+        color="#2ecc71",
+        linewidth=1,
+        label="tuning alignment",
+        alpha=0.8,
+    )
     axes[0].fill_between(cons_times, consonance_temp, alpha=0.2, color="#2ecc71")
-    axes[0].plot(cons_times, consonance_series, color="#3498db", linewidth=1,
-                 label="series (JI)", alpha=0.8)
+    axes[0].plot(
+        cons_times, consonance_series, color="#3498db", linewidth=1, label="series (JI)", alpha=0.8
+    )
     axes[0].fill_between(cons_times, consonance_series, alpha=0.2, color="#3498db")
     axes[0].set_ylabel("Alignment / Consonance")
     axes[0].set_ylim(0, 1)
     axes[0].set_title(
-        f"{track_name} — Harmonic Function "
-        f"(key: {global_key}, confidence: {global_confidence})",
+        f"{track_name} — Harmonic Function (key: {global_key}, confidence: {global_confidence})",
         fontsize=13,
     )
     axes[0].legend(loc="upper right", fontsize=9)
@@ -470,23 +488,33 @@ def analyze_harmony(audio_path, output_dir, track_name, hop_sec=0.5, audio: Audi
     axes[2].set_title("Harmonic Change Rate (chroma cosine distance)", fontsize=11)
 
     # Major/minor balance
-    axes[3].fill_between(tc_times, tc_major_minor,
-                         where=np.array(tc_major_minor) > 0,
-                         alpha=0.4, color="#f39c12", label="major")
-    axes[3].fill_between(tc_times, tc_major_minor,
-                         where=np.array(tc_major_minor) < 0,
-                         alpha=0.4, color="#8e44ad", label="minor")
+    axes[3].fill_between(
+        tc_times,
+        tc_major_minor,
+        where=np.array(tc_major_minor) > 0,
+        alpha=0.4,
+        color="#f39c12",
+        label="major",
+    )
+    axes[3].fill_between(
+        tc_times,
+        tc_major_minor,
+        where=np.array(tc_major_minor) < 0,
+        alpha=0.4,
+        color="#8e44ad",
+        label="minor",
+    )
     axes[3].axhline(y=0, color="#7f8c8d", linewidth=0.5, linestyle="--")
     axes[3].set_ylabel("<- minor | major ->")
     axes[3].set_ylim(-0.3, 0.3)
     axes[3].legend(loc="upper right", fontsize=9)
 
     # Tonal anchor + key confidence
-    axes[4].plot(tc_times, tc_stability, color="#3498db", linewidth=1,
-                 label="tonal stability")
+    axes[4].plot(tc_times, tc_stability, color="#3498db", linewidth=1, label="tonal stability")
     axes[4].fill_between(tc_times, tc_stability, alpha=0.2, color="#3498db")
-    axes[4].plot(tc_times, tc_confidence, color="#2ecc71", linewidth=1,
-                 alpha=0.7, label="key confidence")
+    axes[4].plot(
+        tc_times, tc_confidence, color="#2ecc71", linewidth=1, alpha=0.7, label="key confidence"
+    )
     axes[4].set_ylabel("Stability / Confidence")
     axes[4].set_xlabel("Time (s)")
     axes[4].set_ylim(0, 1)

@@ -574,9 +574,7 @@ def cmd_assemble(args):
         if args.provenance_output:
             provenance_path = Path(args.provenance_output)
             provenance_path.write_text(
-                json.dumps(
-                    assembly_provenance(witness_packet, vocal_timing_packet), indent=2
-                )
+                json.dumps(assembly_provenance(witness_packet, vocal_timing_packet), indent=2)
                 + "\n",
                 encoding="utf-8",
             )
@@ -615,9 +613,7 @@ def cmd_inner_ear(args):
             audio_path=args.audio,
             model=args.model
             or (
-                DEFAULT_OPENROUTER_MODEL
-                if args.provider == "openrouter"
-                else DEFAULT_GEMINI_MODEL
+                DEFAULT_OPENROUTER_MODEL if args.provider == "openrouter" else DEFAULT_GEMINI_MODEL
             ),
         )
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -928,7 +924,9 @@ def main():
     cache_parser = subparsers.add_parser("cache", help="Inspect or repair analysis cache state")
     cache_parser.add_argument("slug", help="Track slug to inspect")
     cache_parser.add_argument(
-        "--analysis-dir", default=_path_default("GALDR_ANALYSIS_DIR", "analysis"), help="Analysis directory root"
+        "--analysis-dir",
+        default=_path_default("GALDR_ANALYSIS_DIR", "analysis"),
+        help="Analysis directory root",
     )
     cache_parser.add_argument(
         "--reprocess",
@@ -1120,7 +1118,9 @@ Example:
     inner_ear_parser.add_argument("slug", help="Track slug recorded in packet provenance")
     inner_ear_parser.add_argument("--audio", required=True, help="Exact source audio file")
     inner_ear_parser.add_argument(
-        "--provider", choices=("gemini", "openrouter"), default="gemini",
+        "--provider",
+        choices=("gemini", "openrouter"),
+        default="gemini",
         help="Audio-model transport (default: gemini)",
     )
     inner_ear_parser.add_argument(

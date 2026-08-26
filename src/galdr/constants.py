@@ -8,7 +8,7 @@ When tuning galdr's sensitivity, this is the file to edit.
 # Pitch & Harmony
 # ============================================================
 
-PITCH_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+PITCH_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 # Krumhansl-Kessler key profiles (from Krumhansl, 1990)
 # Empirically measured "fit" ratings for each pitch class in context of a key.
@@ -175,18 +175,18 @@ CHROMA_SMOOTH_FRAMES = 8
 # Just-intonation interval consonance weights.
 # Used by harmonic series consonance calculation.
 JI_CONSONANCE = {
-    0: 1.0,    # unison
-    7: 0.95,   # perfect fifth (3:2)
-    5: 0.90,   # perfect fourth (4:3)
-    4: 0.80,   # major third (5:4)
-    3: 0.75,   # minor third (6:5)
-    9: 0.70,   # major sixth (5:3)
-    8: 0.65,   # minor sixth (8:5)
-    2: 0.50,   # major second (9:8)
+    0: 1.0,  # unison
+    7: 0.95,  # perfect fifth (3:2)
+    5: 0.90,  # perfect fourth (4:3)
+    4: 0.80,  # major third (5:4)
+    3: 0.75,  # minor third (6:5)
+    9: 0.70,  # major sixth (5:3)
+    8: 0.65,  # minor sixth (8:5)
+    2: 0.50,  # major second (9:8)
     10: 0.50,  # minor seventh (16:9)
     11: 0.40,  # major seventh (15:8)
-    1: 0.30,   # minor second (16:15)
-    6: 0.25,   # tritone (45:32)
+    1: 0.30,  # minor second (16:15)
+    6: 0.25,  # tritone (45:32)
 }
 
 # Minimum chroma energy to compute consonance (below = silence)

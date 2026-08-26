@@ -84,20 +84,22 @@ def _make_perception(n_events: int = 0) -> dict:
     """Build a minimal perception dict for select_frames() tests."""
     return {
         "pattern_breaks": [
-            {"time": float(i * 10), "type": "break", "intensity": 0.5}
-            for i in range(n_events)
+            {"time": float(i * 10), "type": "break", "intensity": 0.5} for i in range(n_events)
         ]
     }
 
 
-@pytest.mark.parametrize("target,n_events,duration", [
-    (12, 0, 300.0),   # all coverage
-    (12, 5, 300.0),   # mixed anchor + coverage
-    (8, 0, 120.0),    # fewer frames
-    (20, 10, 600.0),  # more frames
-    (5, 0, 60.0),     # short track
-    (1, 0, 30.0),     # single frame
-])
+@pytest.mark.parametrize(
+    "target,n_events,duration",
+    [
+        (12, 0, 300.0),  # all coverage
+        (12, 5, 300.0),  # mixed anchor + coverage
+        (8, 0, 120.0),  # fewer frames
+        (20, 10, 600.0),  # more frames
+        (5, 0, 60.0),  # short track
+        (1, 0, 30.0),  # single frame
+    ],
+)
 def test_select_frames_returns_exactly_target(target, n_events, duration):
     """select_frames() must return exactly `target` frames when possible."""
     from galdr.frames import select_frames
@@ -105,8 +107,7 @@ def test_select_frames_returns_exactly_target(target, n_events, duration):
     perception = _make_perception(n_events)
     frames = select_frames(perception, duration=duration, target=target)
     assert len(frames) == target, (
-        f"Expected {target} frames, got {len(frames)} "
-        f"(n_events={n_events}, duration={duration})"
+        f"Expected {target} frames, got {len(frames)} (n_events={n_events}, duration={duration})"
     )
 
 
@@ -188,8 +189,8 @@ def test_catalog_mean_pattern_zero_preserved():
 
         perception = {
             "summary": {
-                "mean_pattern": 0.0,   # falsy but explicitly set
-                "mean_surprise": 99.9,       # must NOT be used
+                "mean_pattern": 0.0,  # falsy but explicitly set
+                "mean_surprise": 99.9,  # must NOT be used
                 "mean_attention": 0.5,
                 "total_silence_sec": 10.0,
                 "pattern_break_count": 3,
@@ -236,9 +237,12 @@ def test_cli_only_invalid_module_with_audio():
 
         result = subprocess.run(
             _galdr_cli_cmd(
-                "listen", str(wav_path),
-                "--only", "invalid_module_xyz",
-                "--analysis-dir", tmpdir,
+                "listen",
+                str(wav_path),
+                "--only",
+                "invalid_module_xyz",
+                "--analysis-dir",
+                tmpdir,
                 "--no-catalog",
             ),
             capture_output=True,
@@ -296,9 +300,7 @@ def test_pattern_break_counts_present_in_summary():
     report = compute_perception(y, sr, "test-counts")
 
     summary = report.get("summary", {})
-    assert "pattern_break_counts" in summary, (
-        "summary missing 'pattern_break_counts' key"
-    )
+    assert "pattern_break_counts" in summary, "summary missing 'pattern_break_counts' key"
     pbc = summary["pattern_break_counts"]
     for key in ("pattern_break", "attention_drop", "attention_gain", "silence"):
         assert key in pbc, f"pattern_break_counts missing key '{key}'"
@@ -411,10 +413,28 @@ def test_attention_events_use_hysteresis_not_threshold_chatter(monkeypatch):
     sr = 22050
     duration = 18.0
     y = np.zeros(int(sr * duration), dtype=np.float32)
-    attention_values = np.array([
-        0.70, 0.81, 0.79, 0.82, 0.78, 0.83, 0.74, 0.66, 0.64,
-        0.69, 0.62, 0.36, 0.19, 0.22, 0.18, 0.24, 0.40, 0.18,
-    ])
+    attention_values = np.array(
+        [
+            0.70,
+            0.81,
+            0.79,
+            0.82,
+            0.78,
+            0.83,
+            0.74,
+            0.66,
+            0.64,
+            0.69,
+            0.62,
+            0.36,
+            0.19,
+            0.22,
+            0.18,
+            0.24,
+            0.40,
+            0.18,
+        ]
+    )
     times = np.arange(len(attention_values), dtype=float)
 
     def fake_attention(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
@@ -438,10 +458,26 @@ def test_motor_entrainment_events_require_sustained_dwell(monkeypatch):
     duration = 16.0
     y = np.zeros(int(sr * duration), dtype=np.float32)
     times = np.arange(int(duration), dtype=float)
-    body_scores = np.array([
-        0.30, 0.55, 0.30, 0.55, 0.55, 0.55, 0.80, 0.30,
-        0.80, 0.30, 0.30, 0.30, 0.10, 0.55, 0.30, 0.30,
-    ])
+    body_scores = np.array(
+        [
+            0.30,
+            0.55,
+            0.30,
+            0.55,
+            0.55,
+            0.55,
+            0.80,
+            0.30,
+            0.80,
+            0.30,
+            0.30,
+            0.30,
+            0.10,
+            0.55,
+            0.30,
+            0.30,
+        ]
+    )
 
     def fake_attention(beat_times, duration, hop_sec=0.5, window_sec=12.0, min_beats=3):
         return times, np.full(len(times), 0.5)
@@ -527,18 +563,20 @@ def test_assemble_includes_stream_listening_events():
     """Assemble prompt should expose stream-local listening events in one timeline."""
     from galdr.assemble import assemble_prompt
 
-    prompt = assemble_prompt({
-        "report": {"duration_seconds": 12.0, "tempo_bpm": 120.0},
-        "perception": {
-            "summary": {"mean_attention": 0.9, "mean_pattern": 0.95},
-            "stream": [
-                {"t": 6.0, "event": "phrase_lifts", "event_note": "phrase lifts"},
-            ],
-            "pattern_breaks": [
-                {"time": 4.0, "type": "break", "intensity": 0.7},
-            ],
-        },
-    })
+    prompt = assemble_prompt(
+        {
+            "report": {"duration_seconds": 12.0, "tempo_bpm": 120.0},
+            "perception": {
+                "summary": {"mean_attention": 0.9, "mean_pattern": 0.95},
+                "stream": [
+                    {"t": 6.0, "event": "phrase_lifts", "event_note": "phrase lifts"},
+                ],
+                "pattern_breaks": [
+                    {"time": 4.0, "type": "break", "intensity": 0.7},
+                ],
+            },
+        }
+    )
 
     assert "### Event timeline" in prompt
     assert "### Listening events" not in prompt
@@ -557,9 +595,12 @@ def test_cli_null_audio_skips_remaining_modules(tmp_path):
     analysis_dir = tmp_path / "analysis"
     result = subprocess.run(
         _galdr_cli_cmd(
-            "listen", str(wav_path),
-            "--name", "null-cli",
-            "--analysis-dir", str(analysis_dir),
+            "listen",
+            str(wav_path),
+            "--name",
+            "null-cli",
+            "--analysis-dir",
+            str(analysis_dir),
             "--no-catalog",
         ),
         capture_output=True,
@@ -585,10 +626,14 @@ def test_cli_null_audio_only_perceive_skips_outputs(tmp_path):
     analysis_dir = tmp_path / "analysis"
     result = subprocess.run(
         _galdr_cli_cmd(
-            "listen", str(wav_path),
-            "--name", "null-only-perceive",
-            "--analysis-dir", str(analysis_dir),
-            "--only", "perceive",
+            "listen",
+            str(wav_path),
+            "--name",
+            "null-only-perceive",
+            "--analysis-dir",
+            str(analysis_dir),
+            "--only",
+            "perceive",
             "--no-catalog",
         ),
         capture_output=True,
@@ -702,7 +747,9 @@ def test_fetch_analyze_errors_when_audio_download_missing(monkeypatch, tmp_path,
         (kwargs["analysis_dir"] / kwargs["slug"] / "context.json").write_text("{}")
 
     monkeypatch.setattr("galdr.fetch.fetch_track", fake_fetch_track)
-    monkeypatch.setattr(cli, "cmd_listen", lambda _args: pytest.fail("cmd_listen should not run without audio"))
+    monkeypatch.setattr(
+        cli, "cmd_listen", lambda _args: pytest.fail("cmd_listen should not run without audio")
+    )
 
     args = Namespace(
         url="https://www.youtube.com/watch?v=X7drilHsM6c",
@@ -753,11 +800,15 @@ def test_assemble_context_only_reports_missing_structural_analysis(tmp_path):
     slug = "context-only"
     track_dir = tmp_path / slug
     track_dir.mkdir()
-    (track_dir / "context.json").write_text(json.dumps({
-        "slug": slug,
-        "artist": "Example Artist",
-        "title": "Example Track",
-    }))
+    (track_dir / "context.json").write_text(
+        json.dumps(
+            {
+                "slug": slug,
+                "artist": "Example Artist",
+                "title": "Example Track",
+            }
+        )
+    )
 
     prompt = assemble_prompt_from_disk(slug, tmp_path)
 
@@ -956,12 +1007,14 @@ def test_cli_doctor_subprocess():
 def test_compute_track_features_importable():
     """compute_track_features must be importable from galdr."""
     from galdr import compute_track_features
+
     assert callable(compute_track_features)
 
 
 def test_compute_perception_importable():
     """compute_perception must be importable from galdr."""
     from galdr import compute_perception
+
     assert callable(compute_perception)
 
 
@@ -1029,11 +1082,15 @@ def test_load_analysis_unwraps_versioned_stream_payload(tmp_path):
     track_dir = tmp_path / slug
     track_dir.mkdir()
     (track_dir / f"{slug}_perception.json").write_text(json.dumps({"track": slug}))
-    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
-        "schema_version": "listener_state_v1",
-        "galdr_version": "0.4.0",
-        "stream": [{"t": 0.0, "attention": 1.0}],
-    }))
+    (track_dir / f"{slug}_stream.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "listener_state_v1",
+                "galdr_version": "0.4.0",
+                "stream": [{"t": 0.0, "attention": 1.0}],
+            }
+        )
+    )
 
     analysis = load_analysis(slug, tmp_path)
 
@@ -1047,9 +1104,13 @@ def test_stale_artifact_state_detects_raw_legacy_stream(tmp_path):
     slug = "legacy-stream"
     track_dir = tmp_path / slug
     track_dir.mkdir()
-    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
-        "schema_version": "listener_state_v1",
-    }))
+    (track_dir / f"{slug}_perception.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "listener_state_v1",
+            }
+        )
+    )
     (track_dir / f"{slug}_stream.json").write_text(json.dumps([{"t": 0.0}]))
 
     state = artifact_state(slug, tmp_path)
@@ -1064,13 +1125,21 @@ def test_stale_artifact_state_current_when_payloads_versioned(tmp_path):
     slug = "current-stream"
     track_dir = tmp_path / slug
     track_dir.mkdir()
-    (track_dir / f"{slug}_perception.json").write_text(json.dumps({
-        "schema_version": "listener_state_v1",
-    }))
-    (track_dir / f"{slug}_stream.json").write_text(json.dumps({
-        "schema_version": "listener_state_v1",
-        "stream": [],
-    }))
+    (track_dir / f"{slug}_perception.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "listener_state_v1",
+            }
+        )
+    )
+    (track_dir / f"{slug}_stream.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "listener_state_v1",
+                "stream": [],
+            }
+        )
+    )
 
     state = artifact_state(slug, tmp_path)
 
@@ -1097,13 +1166,21 @@ def test_cache_reprocess_uses_current_python(monkeypatch, tmp_path):
     def fake_run(cmd, check):
         captured["cmd"] = cmd
         captured["check"] = check
-        (track_dir / f"{slug}_perception.json").write_text(json.dumps({
-            "schema_version": "listener_state_v1",
-        }))
-        (track_dir / f"{slug}_stream.json").write_text(json.dumps({
-            "schema_version": "listener_state_v1",
-            "stream": [],
-        }))
+        (track_dir / f"{slug}_perception.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "listener_state_v1",
+                }
+            )
+        )
+        (track_dir / f"{slug}_stream.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "listener_state_v1",
+                    "stream": [],
+                }
+            )
+        )
 
     monkeypatch.setattr("galdr.stale.subprocess.run", fake_run)
 

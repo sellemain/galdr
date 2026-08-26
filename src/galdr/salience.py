@@ -19,13 +19,17 @@ def _f(value: Any, default: float = 0.0) -> float:
         return default
 
 
-def _add_unique(target: list[dict], name: str, evidence: str, *, confidence: str = "medium") -> None:
+def _add_unique(
+    target: list[dict], name: str, evidence: str, *, confidence: str = "medium"
+) -> None:
     if any(item.get("name") == name for item in target):
         return
     target.append({"name": name, "confidence": confidence, "evidence": evidence})
 
 
-def _add_axis(axes: dict[str, dict], axis: str, value: str, evidence: str, *, confidence: str = "medium") -> None:
+def _add_axis(
+    axes: dict[str, dict], axis: str, value: str, evidence: str, *, confidence: str = "medium"
+) -> None:
     axes[axis] = {"value": value, "confidence": confidence, "evidence": evidence}
 
 
@@ -76,20 +80,29 @@ def synthesize_salience(analysis: dict) -> dict:
     force_axes: dict[str, dict] = {}
 
     high_pattern = attention >= 0.82 and pattern >= 0.88
-    pattern_drive = pattern >= 0.82 and body_capture >= 0.55 and body >= 0.55 and 0.24 <= weight < 0.35
+    pattern_drive = (
+        pattern >= 0.82 and body_capture >= 0.55 and body >= 0.55 and 0.24 <= weight < 0.35
+    )
     captured = body_capture >= 0.58 or body >= 0.58
     comfortable = body_comfort >= 0.48 or groove_comfort >= 0.48
     settled_comfort = body_comfort >= 0.58 or groove_comfort >= 0.58
     discomfort_gap = body_capture - body_comfort
-    uncomfortable = captured and body_comfort and (body_comfort <= 0.45 or (discomfort_gap >= 0.24 and body_comfort < 0.56))
+    uncomfortable = (
+        captured
+        and body_comfort
+        and (body_comfort <= 0.45 or (discomfort_gap >= 0.24 and body_comfort < 0.56))
+    )
     light_or_present_weight = weight < 0.35
     heavy_or_suspended_weight = weight >= 0.35
-    pressure_dominant = heavy_or_suspended_weight or pressure_sustaining >= 82 or pressure_building >= 24
-    pressure_only_lock = pressure_sustaining >= 84 and not settled_comfort and not light_or_present_weight
-    sparse_or_suspended = (
-        (body_capture < 0.45 and surface_density <= 0.35 and (weight >= 0.35 or silence_pct >= 10))
-        or (body <= 0.45 and weight >= 0.45 and surface_balance <= 0.20)
+    pressure_dominant = (
+        heavy_or_suspended_weight or pressure_sustaining >= 82 or pressure_building >= 24
     )
+    pressure_only_lock = (
+        pressure_sustaining >= 84 and not settled_comfort and not light_or_present_weight
+    )
+    sparse_or_suspended = (
+        body_capture < 0.45 and surface_density <= 0.35 and (weight >= 0.35 or silence_pct >= 10)
+    ) or (body <= 0.45 and weight >= 0.45 and surface_balance <= 0.20)
 
     # Factorized force axes. These are reusable primitives, not compound genre labels.
     body_relation = "absent"
@@ -99,7 +112,12 @@ def synthesize_salience(analysis: dict) -> dict:
         body_relation = "engaged"
     elif body_capture >= 0.32:
         body_relation = "lightly_engaged"
-    _add_axis(force_axes, "body_relation", body_relation, f"body_capture {body_capture:.3f}, body {body:.3f}")
+    _add_axis(
+        force_axes,
+        "body_relation",
+        body_relation,
+        f"body_capture {body_capture:.3f}, body {body:.3f}",
+    )
 
     comfort_relation = "neutral"
     if body_comfort >= 0.58 or groove_comfort >= 0.58:
@@ -118,19 +136,30 @@ def synthesize_salience(analysis: dict) -> dict:
     _add_axis(
         force_axes,
         "weight",
-        _axis_label(weight, ((0.18, "light"), (0.35, "present"), (0.55, "suspended"), (1.01, "heavy"))),
+        _axis_label(
+            weight, ((0.18, "light"), (0.35, "present"), (0.55, "suspended"), (1.01, "heavy"))
+        ),
         f"weight {weight:.3f} ({report.get('weight_state', 'unknown')})",
     )
     _add_axis(
         force_axes,
         "surface",
-        _axis_label(surface_density, ((0.22, "sparse"), (0.42, "open"), (0.60, "dense"), (1.01, "saturated"))),
+        _axis_label(
+            surface_density,
+            ((0.22, "sparse"), (0.42, "open"), (0.60, "dense"), (1.01, "saturated")),
+        ),
         f"surface_density {surface_density:.3f}",
     )
     _add_axis(
         force_axes,
         "pressure",
-        "sustained" if pressure_sustaining >= 80 else "building" if pressure_building >= 20 else "releasing" if pressure_releasing >= 20 else "balanced",
+        "sustained"
+        if pressure_sustaining >= 80
+        else "building"
+        if pressure_building >= 20
+        else "releasing"
+        if pressure_releasing >= 20
+        else "balanced",
         f"building {pressure_building:.1f}%, sustaining {pressure_sustaining:.1f}%, releasing {pressure_releasing:.1f}%",
     )
     _add_axis(
@@ -154,7 +183,9 @@ def synthesize_salience(analysis: dict) -> dict:
         )
         prose_hints.extend(["suspended texture", "held field"])
         if high_pattern:
-            _add_unique(supporting, "pattern hold", f"attention {attention:.3f}, pattern {pattern:.3f}")
+            _add_unique(
+                supporting, "pattern hold", f"attention {attention:.3f}, pattern {pattern:.3f}"
+            )
     elif high_pattern and captured and metric_tension >= 0.45:
         primary_contract = "grid"
         _add_unique(
@@ -164,8 +195,16 @@ def synthesize_salience(analysis: dict) -> dict:
             confidence="medium",
         )
         prose_hints.append("grid pressure")
-    elif high_pattern and captured and light_or_present_weight and surface_density <= 0.55 and (
-        uncomfortable or (metric_tension >= 0.30 and not settled_comfort) or (accent_drift >= 0.72 and body_comfort < 0.56)
+    elif (
+        high_pattern
+        and captured
+        and light_or_present_weight
+        and surface_density <= 0.55
+        and (
+            uncomfortable
+            or (metric_tension >= 0.30 and not settled_comfort)
+            or (accent_drift >= 0.72 and body_comfort < 0.56)
+        )
     ):
         primary_contract = "grid"
         _add_unique(
@@ -175,7 +214,13 @@ def synthesize_salience(analysis: dict) -> dict:
             confidence="medium",
         )
         prose_hints.append("minimal grid")
-    elif high_pattern and captured and (settled_comfort or (comfortable and not uncomfortable)) and metric_tension < 0.30 and light_or_present_weight:
+    elif (
+        high_pattern
+        and captured
+        and (settled_comfort or (comfortable and not uncomfortable))
+        and metric_tension < 0.30
+        and light_or_present_weight
+    ):
         primary_contract = "pocket"
         _add_unique(
             headline,
@@ -184,7 +229,11 @@ def synthesize_salience(analysis: dict) -> dict:
             confidence="high",
         )
         prose_hints.append("settled pocket")
-    elif high_pattern and captured and (heavy_or_suspended_weight or uncomfortable or pressure_only_lock):
+    elif (
+        high_pattern
+        and captured
+        and (heavy_or_suspended_weight or uncomfortable or pressure_only_lock)
+    ):
         primary_contract = "motor_capture"
         _add_unique(
             headline,
@@ -199,7 +248,9 @@ def synthesize_salience(analysis: dict) -> dict:
                 and accent_drift < 0.45
                 and (pressure_building >= 20 or body < 0.45 or body_comfort < 0.52)
             )
-            soft_mass = surface_density >= 0.26 and body_comfort >= 0.48 and pressure_sustaining < 84
+            soft_mass = (
+                surface_density >= 0.26 and body_comfort >= 0.48 and pressure_sustaining < 84
+            )
             if braced_mass:
                 prose_hints.append("braced mass hold")
             elif pressure_sustaining >= 84:
@@ -234,9 +285,18 @@ def synthesize_salience(analysis: dict) -> dict:
         secondary_contracts.append("grid")
     if primary_contract != "field" and sparse_or_suspended:
         secondary_contracts.append("field")
-    if primary_contract != "motor_capture" and captured and (heavy_or_suspended_weight or uncomfortable or pressure_only_lock):
+    if (
+        primary_contract != "motor_capture"
+        and captured
+        and (heavy_or_suspended_weight or uncomfortable or pressure_only_lock)
+    ):
         secondary_contracts.append("motor_capture")
-    if primary_contract != "pocket" and captured and (settled_comfort or (comfortable and not uncomfortable)) and light_or_present_weight:
+    if (
+        primary_contract != "pocket"
+        and captured
+        and (settled_comfort or (comfortable and not uncomfortable))
+        and light_or_present_weight
+    ):
         secondary_contracts.append("pocket")
 
     if primary_contract == "grid" and (uncomfortable or body_comfort < 0.56) and weight < 0.35:
@@ -249,7 +309,11 @@ def synthesize_salience(analysis: dict) -> dict:
         prose_hints.append("force without motor capture")
 
     if release_force >= 0.55 or pressure_releasing >= 20:
-        _add_unique(supporting, "release behavior", f"peak_release_force {release_force:.3f}; pressure releasing {pressure_releasing:.1f}%")
+        _add_unique(
+            supporting,
+            "release behavior",
+            f"peak_release_force {release_force:.3f}; pressure releasing {pressure_releasing:.1f}%",
+        )
     if surface_density >= 0.50:
         _add_unique(supporting, "surface density", f"mean_surface_density {surface_density:.3f}")
     if metric_tension >= 0.30:
@@ -260,20 +324,40 @@ def synthesize_salience(analysis: dict) -> dict:
             f"metric_tension {metric_tension:.3f} ({report.get('metric_tension_state', 'unknown')})",
         )
     if weight >= 0.45 and primary_contract != "motor_capture":
-        _add_unique(supporting, "weight / suspension", f"weight {weight:.3f} ({report.get('weight_state', 'unknown')})")
+        _add_unique(
+            supporting,
+            "weight / suspension",
+            f"weight {weight:.3f} ({report.get('weight_state', 'unknown')})",
+        )
     if primary_contract in {"motor_capture", "grid"} and pressure_dominant:
-        _add_unique(supporting, "pressure hold", f"weight {weight:.3f}; pressure sustaining {pressure_sustaining:.1f}%")
+        _add_unique(
+            supporting,
+            "pressure hold",
+            f"weight {weight:.3f}; pressure sustaining {pressure_sustaining:.1f}%",
+        )
 
     if metric_tension >= 0.30 and pulse_confidence < 0.45:
-        _add_unique(low_confidence, "metric tension", f"pulse_confidence {pulse_confidence:.2f}; treat as technical/ambiguous")
+        _add_unique(
+            low_confidence,
+            "metric tension",
+            f"pulse_confidence {pulse_confidence:.2f}; treat as technical/ambiguous",
+        )
     if metric_tension >= 0.30 and primary_contract == "motor_capture":
-        conflict_notes.append("Metric tension is present, but the dominant felt state looks like motor capture or pressure hold; do not automatically headline technical meter complexity.")
+        conflict_notes.append(
+            "Metric tension is present, but the dominant felt state looks like motor capture or pressure hold; do not automatically headline technical meter complexity."
+        )
     if primary_contract != "pocket" and uncomfortable and metric_tension < 0.20 and pulse >= 0.85:
-        conflict_notes.append("Low comfort with stable pulse may reflect force, stiffness, or sound design rather than true metric complexity.")
+        conflict_notes.append(
+            "Low comfort with stable pulse may reflect force, stiffness, or sound design rather than true metric complexity."
+        )
     if primary_contract == "motor_capture" and weight < 0.30 and pressure_sustaining < 88:
-        conflict_notes.append("This is motor capture by pulse and attention, not necessarily mass; avoid weight-language unless weight or pressure earns it.")
+        conflict_notes.append(
+            "This is motor capture by pulse and attention, not necessarily mass; avoid weight-language unless weight or pressure earns it."
+        )
     if primary_contract == "motor_capture" and weight >= 0.35:
-        conflict_notes.append("Mass hold means weight or gravity is the holding force, not necessarily loudness or metal heaviness.")
+        conflict_notes.append(
+            "Mass hold means weight or gravity is the holding force, not necessarily loudness or metal heaviness."
+        )
 
     # Back-compat field: old callers expect listening_contract. Prefer
     # primary_contract for new code/docs.

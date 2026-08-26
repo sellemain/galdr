@@ -6,7 +6,11 @@ from __future__ import annotations
 from typing import Any
 
 from .arc import derive_arc_scales, select_arc_scale
-from .boundary import build_section_boundary_report, derive_boundary_candidates, rank_reset_candidates
+from .boundary import (
+    build_section_boundary_report,
+    derive_boundary_candidates,
+    rank_reset_candidates,
+)
 
 
 def _unwrap_stream_payload(stream_payload: list[dict] | dict) -> tuple[list[dict], float | None]:
@@ -97,7 +101,9 @@ def derive_section_arc_events(
     selected_scale, scale_reason = select_arc_scale(scales)
     arc_spans = [_arc_event(span, scale=selected_scale) for span in scales.get(selected_scale, [])]
 
-    boundary_candidates = derive_boundary_candidates(stream_payload, hop_sec=hop_sec, include_reset_points=False)
+    boundary_candidates = derive_boundary_candidates(
+        stream_payload, hop_sec=hop_sec, include_reset_points=False
+    )
     acoustic_boundaries = [
         _boundary_event(candidate, source="acoustic_boundary")
         for candidate in boundary_candidates

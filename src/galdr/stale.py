@@ -77,8 +77,16 @@ def regenerate_if_stale(
 
     if state["audio_exists"]:
         cmd = [
-            sys.executable, "-m", "galdr.cli", "listen", state["audio_file"],
-            "--name", slug, "--analysis-dir", str(analysis_dir), "--no-catalog",
+            sys.executable,
+            "-m",
+            "galdr.cli",
+            "listen",
+            state["audio_file"],
+            "--name",
+            slug,
+            "--analysis-dir",
+            str(analysis_dir),
+            "--no-catalog",
         ]
         if hop_sec is not None:
             cmd += ["--hop-sec", str(hop_sec)]
@@ -89,7 +97,9 @@ def regenerate_if_stale(
 
     if allow_download and state.get("youtube_url"):
         state["action"] = "download_required"
-        state["note"] = "source URL available; run galdr fetch --analyze to redownload and reprocess"
+        state["note"] = (
+            "source URL available; run galdr fetch --analyze to redownload and reprocess"
+        )
         return state
 
     state["action"] = "legacy_derived"
