@@ -7,6 +7,26 @@ on:
     branches: [main]
 
 jobs:
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Build image
+        run: docker build --tag galdr:test .
+
+      - name: Verify CLI and mounted output ownership
+        run: |
+          mkdir -p "$RUNNER_TEMP/galdr-work/audio"
+          docker run --rm --user "$(id -u):$(id -g)" --entrypoint ffmpeg \
+            -v "$RUNNER_TEMP/galdr-work:/work" \
+            galdr:test -f lavfi -i "sine=frequency=440:duration=1" /work/audio/smoke.wav
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$RUNNER_TEMP/galdr-work:/work" \
+            galdr:test listen audio/smoke.wav --name smoke --only report --no-catalog
+          test -f "$RUNNER_TEMP/galdr-work/analysis/smoke/galdr-complete.json"
+          test "$(stat -c %u "$RUNNER_TEMP/galdr-work/analysis/smoke/galdr-complete.json")" = "$(id -u)"
+
   test:
     runs-on: ubuntu-latest
     strategy:

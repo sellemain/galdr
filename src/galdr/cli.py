@@ -8,6 +8,7 @@ Usage:
 
 import argparse
 import html
+import json
 import os
 import re
 import sys
@@ -46,6 +47,11 @@ def _validate_slug(slug: str) -> str:
     if any(p in (".", "..") or p == "" for p in parts):
         raise ValueError(f"Invalid slug: {slug!r}")
     return slug
+
+
+def _path_default(env_name: str, fallback: str) -> str:
+    """Return a CLI path default with an optional environment override."""
+    return os.environ.get(env_name, fallback)
 
 
 _module_failed = False
@@ -155,6 +161,8 @@ def cmd_listen(args):
     from .overtone import analyze_overtones
     from .catalog import CatalogState
 
+    global _module_failed
+    _module_failed = False
     audio_path = args.audio
     if not Path(audio_path).exists():
         print(f"Error: {audio_path} not found")
@@ -162,6 +170,8 @@ def cmd_listen(args):
 
     track_name = _validate_slug(args.name or Path(audio_path).stem)
     output_dir = str(Path(args.analysis_dir) / track_name)
+    completion_path = Path(output_dir) / "galdr-complete.json"
+    completion_path.unlink(missing_ok=True)
 
     # Determine which modules to run
     all_modules = ["report", "perceive", "harmony", "melody", "overtone"]
@@ -351,6 +361,21 @@ def cmd_listen(args):
             f"percussive={cp.get('percussive', '?')}% | "
             f"both={cp.get('both', '?')}% | "
             f"neither={cp.get('neither', '?')}%"
+        )
+
+    if not _module_failed and results:
+        completion_path.parent.mkdir(parents=True, exist_ok=True)
+        completion_path.write_text(
+            json.dumps(
+                {
+                    "status": "complete",
+                    "track": track_name,
+                    "modules": list(results),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
         )
 
     print(f"\n  Analysis files: {output_dir}/")
@@ -847,12 +872,18 @@ def main():
         help="Path to audio file (WAV/MP3/FLAC/OGG/M4A/AIFF; ffmpeg-supported)",
     )
     listen_parser.add_argument("--name", help="Track name (default: from filename)")
-    listen_parser.add_argument("--analysis-dir", default="analysis", help="Output directory root")
+    listen_parser.add_argument(
+        "--analysis-dir",
+        default=_path_default("GALDR_ANALYSIS_DIR", "analysis"),
+        help="Output directory root (default: $GALDR_ANALYSIS_DIR or analysis)",
+    )
     listen_parser.add_argument("--skip", help="Comma-separated modules to skip")
     listen_parser.add_argument("--only", help="Comma-separated modules to run (overrides skip)")
     listen_parser.add_argument("--no-catalog", action="store_true", help="Skip catalog indexing")
     listen_parser.add_argument(
-        "--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)"
+        "--catalog-dir",
+        default=None,
+        help="Catalog state directory (default: $GALDR_CATALOG_DIR or ~/.galdr/)",
     )
     listen_parser.add_argument(
         "--hop-sec",
@@ -864,7 +895,9 @@ def main():
     # cache
     cache_parser = subparsers.add_parser("cache", help="Inspect or repair analysis cache state")
     cache_parser.add_argument("slug", help="Track slug to inspect")
-    cache_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory root")
+    cache_parser.add_argument(
+        "--analysis-dir", default=_path_default("GALDR_ANALYSIS_DIR", "analysis"), help="Analysis directory root"
+    )
     cache_parser.add_argument(
         "--reprocess",
         action="store_true",
@@ -897,10 +930,14 @@ def main():
         "--title", default=None, help="Song title for Wikipedia lookup (auto-derived if omitted)"
     )
     fetch_parser.add_argument(
-        "--audio-dir", default="audio", help="Directory for audio files (default: audio)"
+        "--audio-dir",
+        default=_path_default("GALDR_AUDIO_DIR", "audio"),
+        help="Directory for audio files (default: $GALDR_AUDIO_DIR or audio)",
     )
     fetch_parser.add_argument(
-        "--analysis-dir", default="analysis", help="Analysis directory root (default: analysis)"
+        "--analysis-dir",
+        default=_path_default("GALDR_ANALYSIS_DIR", "analysis"),
+        help="Analysis directory root (default: $GALDR_ANALYSIS_DIR or analysis)",
     )
     fetch_parser.add_argument(
         "--analyze", action="store_true", help="Run galdr listen after download"
@@ -982,7 +1019,9 @@ Examples:
     )
     assemble_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
     assemble_parser.add_argument(
-        "--analysis-dir", default="analysis", help="Analysis directory (default: analysis)"
+        "--analysis-dir",
+        default=_path_default("GALDR_ANALYSIS_DIR", "analysis"),
+        help="Analysis directory (default: $GALDR_ANALYSIS_DIR or analysis)",
     )
     assemble_parser.add_argument(
         "--mode",
@@ -1081,7 +1120,9 @@ Examples:
     )
     packet_parser.add_argument("slug", help="Track slug (e.g. 7-helvegen)")
     packet_parser.add_argument(
-        "--analysis-dir", default="analysis", help="Analysis directory (default: analysis)"
+        "--analysis-dir",
+        default=_path_default("GALDR_ANALYSIS_DIR", "analysis"),
+        help="Analysis directory (default: $GALDR_ANALYSIS_DIR or analysis)",
     )
     packet_parser.add_argument("--output", "-o", help="Write packet JSON to file instead of stdout")
 
@@ -1114,7 +1155,9 @@ Examples:
         "--video-dir", default=None, help="Directory to search/save video files (default: video/)"
     )
     frames_parser.add_argument(
-        "--analysis-dir", default="analysis", help="Analysis directory root (default: analysis)"
+        "--analysis-dir",
+        default=_path_default("GALDR_ANALYSIS_DIR", "analysis"),
+        help="Analysis directory root (default: $GALDR_ANALYSIS_DIR or analysis)",
     )
     frames_parser.add_argument(
         "--target", type=int, default=12, help="Total number of frames to select (default: 12)"
@@ -1148,7 +1191,11 @@ Examples:
     catalog_parser.add_argument(
         "--catalog-dir", default=None, help="Catalog state directory (default: ~/.galdr/)"
     )
-    catalog_parser.add_argument("--analysis-dir", default="analysis", help="Analysis directory")
+    catalog_parser.add_argument(
+        "--analysis-dir",
+        default=_path_default("GALDR_ANALYSIS_DIR", "analysis"),
+        help="Analysis directory",
+    )
     catalog_parser.add_argument(
         "--rebuild", action="store_true", help="Rebuild from analysis files"
     )

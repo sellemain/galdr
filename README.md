@@ -70,6 +70,18 @@ pip install -e .
 
 Requirements: Python 3.10+ and `ffmpeg` for common audio/video formats.
 
+Or run the published container without installing Python or ffmpeg on the host:
+
+```bash
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -v "$PWD:/work" \
+  ghcr.io/sellemain/galdr:latest \
+  listen audio/song.mp3 --name song
+```
+
+The mounted directory owns the durable `audio/`, `analysis/`, and `.galdr/` data. See [Run Galdr with Docker](docs/DOCKER.md) for fetch, cache, worker, and permission examples.
+
 ## Quick start: YouTube to listening prompt
 
 ```bash
@@ -135,6 +147,7 @@ Outputs are written under `analysis/my-track/`:
 
 ```text
 analysis/my-track/
+├── galdr-complete.json           # present only after successful completion
 ├── index.html                    # local contact sheet for generated plots
 ├── my-track_report.json
 ├── my-track_perception.json

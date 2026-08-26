@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- An official non-root Docker runtime with bind-mounted workspace storage, disposable cache support, CI smoke coverage, and immutable GHCR release tags.
+- Environment overrides for audio, analysis, and catalog directories, plus a `galdr-complete.json` marker written only after requested analysis modules finish successfully.
+
+### Documentation
+- Added Docker quick starts, storage and ownership guidance, worker mount examples, concurrency boundaries, and container-specific upgrade instructions.
+
 ## [0.7.0] - 2026-08-19
 
 ### Added

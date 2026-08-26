@@ -1,0 +1,34 @@
+name: Container release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Log in to GHCR
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish immutable tags
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          image="ghcr.io/sellemain/galdr"
+          docker build \
+            --label "org.opencontainers.image.version=$version" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag "$image:$version" \
+            --tag "$image:sha-${GITHUB_SHA::12}" \
+            --tag "$image:latest" .
+          docker push "$image:$version"
+          docker push "$image:sha-${GITHUB_SHA::12}"
+          docker push "$image:latest"
