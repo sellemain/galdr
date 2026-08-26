@@ -62,8 +62,11 @@ jobs:
       - name: Build image
         run: docker build --tag galdr:test .
 
-      - name: Verify CLI and mounted output ownership
+      - name: Verify locked dependencies, CLI, and mounted output ownership
         run: |
+          expected_yt_dlp="$(awk '/^name = "yt-dlp"$/{found=1; next} found && /^version = /{gsub(/[" ]/, "", $3); print $3; exit}' uv.lock)"
+          actual_yt_dlp="$(docker run --rm --entrypoint python galdr:test -c 'from importlib.metadata import version; print(version("yt-dlp"))')"
+          test "$actual_yt_dlp" = "$expected_yt_dlp"
           mkdir -p "$RUNNER_TEMP/galdr-work/audio"
           docker run --rm --user "$(id -u):$(id -g)" --entrypoint ffmpeg \
             -v "$RUNNER_TEMP/galdr-work:/work" \
@@ -73,6 +76,14 @@ jobs:
             galdr:test listen audio/smoke.wav --name smoke --only report --no-catalog
           test -f "$RUNNER_TEMP/galdr-work/analysis/smoke/galdr-complete.json"
           test "$(stat -c %u "$RUNNER_TEMP/galdr-work/analysis/smoke/galdr-complete.json")" = "$(id -u)"
+
+      - name: Scan built image
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v trivy-cache:/root/.cache/trivy \
+            aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 \
+            image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL galdr:test
 
   test:
     runs-on: ubuntu-latest

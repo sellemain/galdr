@@ -21,14 +21,35 @@ jobs:
 
       - name: Build and publish immutable tags
         run: |
+          set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
           image="ghcr.io/sellemain/galdr"
+          created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           docker build \
-            --label "org.opencontainers.image.version=$version" \
-            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --build-arg "GALDR_VERSION=$version" \
+            --build-arg "VCS_REF=$GITHUB_SHA" \
+            --build-arg "BUILD_DATE=$created" \
             --tag "$image:$version" \
             --tag "$image:sha-${GITHUB_SHA::12}" \
             --tag "$image:latest" .
+
+          expected_yt_dlp="$(awk '/^name = "yt-dlp"$/{found=1; next} found && /^version = /{gsub(/[" ]/, "", $3); print $3; exit}' uv.lock)"
+          actual_yt_dlp="$(docker run --rm --entrypoint python "$image:$version" -c 'from importlib.metadata import version; print(version("yt-dlp"))')"
+          test "$actual_yt_dlp" = "$expected_yt_dlp"
+          actual_galdr="$(docker run --rm --entrypoint python "$image:$version" -c 'from importlib.metadata import version; print(version("galdr"))')"
+          test "$actual_galdr" = "$version"
+          docker run --rm "$image:$version" doctor
+
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v trivy-cache:/root/.cache/trivy \
+            aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 \
+            image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL "$image:$version"
+
           docker push "$image:$version"
           docker push "$image:sha-${GITHUB_SHA::12}"
           docker push "$image:latest"
+
+          docker logout ghcr.io
+          docker image rm "$image:$version" "$image:sha-${GITHUB_SHA::12}" "$image:latest"
+          docker pull "$image:$version"

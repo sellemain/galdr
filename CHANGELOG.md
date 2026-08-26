@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 - Added Docker quick starts, storage and ownership guidance, worker mount examples, concurrency boundaries, and container-specific upgrade instructions.
 
+### Changed
+- Build and verify container dependencies from `uv.lock`, attach OCI release metadata, and scan the exact release image before publishing it to GHCR.
+
 ## [0.7.0] - 2026-08-19
 
 ### Added

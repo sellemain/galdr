@@ -2,6 +2,8 @@
 
 The Galdr image is an optional runtime for people and agents that do not want to install Python, ffmpeg, and the scientific Python stack on the host. The normal contributor workflow remains `uv sync`.
 
+Release images are published at [`ghcr.io/sellemain/galdr`](https://github.com/sellemain/galdr/pkgs/container/galdr) and can be pulled anonymously. Each image is built from the repository's committed `uv.lock`, so Galdr, yt-dlp, and the Python analysis stack use the same exact dependency versions exercised by CI. Pull a newer Galdr image when you want newer locked dependencies.
+
 ## Workspace storage
 
 Galdr keeps durable data in a bind-mounted workspace:
