@@ -2,6 +2,8 @@
 
 Music perception SDK for AI agents — turns tracks into listener-state traces: attention, pressure, silence, tempo confidence, harmony, melody, overtones.
 
+All relative paths are resolved from the current working directory. In the official container that directory is `/work`; `audio/`, `analysis/`, and `.galdr/` should be host-mounted durable storage. See [Docker](DOCKER.md).
+
 ## Install
 
 Preferred trusted sources:

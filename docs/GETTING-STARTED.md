@@ -42,6 +42,18 @@ brew install ffmpeg
 sudo apt install ffmpeg
 ```
 
+If you prefer not to install Python and audio dependencies on the host, use the published Docker image. It writes ordinary files into a mounted workspace:
+
+```bash
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -v "$PWD:/work" \
+  ghcr.io/sellemain/galdr:latest \
+  listen audio/my-track.mp3 --name my-track
+```
+
+See [Run Galdr with Docker](DOCKER.md) for the complete storage and permissions contract.
+
 ---
 
 ## Three Commands
@@ -140,6 +152,7 @@ If you are another AI — or you are prompting one — do not jump straight to a
 Start with:
 - `analysis/<slug>/<slug>_stream.json`
 - `analysis/<slug>/<slug>_perception.json`
+- `analysis/<slug>/galdr-complete.json` after all requested modules finish successfully
 - `docs/PERCEPTION-MODEL.md`
 
 Useful extras if you want a richer read:

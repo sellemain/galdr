@@ -16,6 +16,8 @@ Handle the technical setup for me. Read the repo docs enough to use Galdr correc
 
 First, check whether the `galdr` command is available. If it is missing, install Galdr from PyPI or run it from the source repo in a local environment. Also check that `ffmpeg` is available. If something cannot be installed from this environment, tell me exactly what is missing and stop.
 
+If Docker is available but native Python or ffmpeg installation is not appropriate, use the published Galdr container with the current directory mounted at `/work`. Preserve `audio/`, `analysis/`, and `.galdr/` on the host; do not leave required artifacts only in the container layer. See `docs/DOCKER.md`.
+
 Then use Galdr to listen to this song:
 <URL or local file path>
 
@@ -101,6 +103,7 @@ The agent should leave a small, inspectable evidence trail:
 
 ```text
 analysis/<slug>/
+- galdr-complete.json
 - <slug>_stream.json
 - <slug>_perception.json
 - <slug>_report.json

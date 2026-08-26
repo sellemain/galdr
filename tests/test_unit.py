@@ -4258,3 +4258,20 @@ class TestSurfaceFeatureBank:
 
         with pytest.raises(ValueError, match="hop_sec must be positive"):
             compute_surface_feature_bank(np.ones(22050, dtype=np.float32), 22050, hop_sec=0)
+
+
+def test_path_default_prefers_environment(monkeypatch):
+    from galdr.cli import _path_default
+
+    monkeypatch.setenv("GALDR_ANALYSIS_DIR", "/mounted/analysis")
+    assert _path_default("GALDR_ANALYSIS_DIR", "analysis") == "/mounted/analysis"
+    monkeypatch.delenv("GALDR_ANALYSIS_DIR")
+    assert _path_default("GALDR_ANALYSIS_DIR", "analysis") == "analysis"
+
+
+def test_catalog_default_honors_environment(monkeypatch):
+    from galdr.catalog import CatalogState
+
+    monkeypatch.setenv("GALDR_CATALOG_DIR", "/mounted/catalog")
+    catalog = CatalogState()
+    assert str(catalog.catalog_dir) == "/mounted/catalog"

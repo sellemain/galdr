@@ -10,6 +10,7 @@ The catalog index is stored as catalog_state.json. Default location is
 """
 
 import json
+import os
 from pathlib import Path
 from collections import OrderedDict
 
@@ -21,7 +22,7 @@ from .metric_vocabulary import display_name
 
 def _default_catalog_dir():
     """Return the default catalog directory (~/.galdr/)."""
-    return Path.home() / ".galdr"
+    return Path(os.environ.get("GALDR_CATALOG_DIR", Path.home() / ".galdr"))
 
 
 class CatalogState:
