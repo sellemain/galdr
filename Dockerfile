@@ -38,6 +38,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local /usr/local
+RUN python -m pip uninstall --yes pip
 
 RUN mkdir -p /work /cache /tmp/galdr-home && chmod 1777 /work /cache /tmp/galdr-home
 WORKDIR /work
