@@ -1,0 +1,24 @@
+stages:
+  - test
+  - build
+
+test:
+  stage: test
+  image: python:3.12-slim@sha256:a249c9f47e05708dd367f3fe8ada03cf347390fad66fb8b0518c0ef55ae3cb84
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends ffmpeg libsndfile1
+    - python -m pip install uv
+    - uv sync --extra dev
+  script:
+    - uv run ruff check src/galdr tests
+    - uv run pytest -q
+    - git diff --check
+
+container-build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug@sha256:fb6d29da5792b6b9886bb132d1bb600bec79a47a31e4c152df3e52de9c561a44
+    entrypoint: [""]
+  script:
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile "$CI_PROJECT_DIR/Dockerfile" --destination galdr:test --no-push
