@@ -46,7 +46,9 @@ def _load_json(path: Path) -> Any | None:
         return None
 
 
-def _artifact_entry(path: Path, *, kind: str, role: str, payload: Any | None = None) -> dict[str, Any]:
+def _artifact_entry(
+    path: Path, *, kind: str, role: str, payload: Any | None = None
+) -> dict[str, Any]:
     entry: dict[str, Any] = {
         "id": path.stem,
         "kind": kind,
@@ -65,7 +67,13 @@ def _artifact_entry(path: Path, *, kind: str, role: str, payload: Any | None = N
     return entry
 
 
-def _source(kind: str, *, label: str | None = None, url: str | None = None, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+def _source(
+    kind: str,
+    *,
+    label: str | None = None,
+    url: str | None = None,
+    payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     source: dict[str, Any] = {"kind": kind}
     if label:
         source["label"] = label
@@ -120,25 +128,42 @@ def _build_subject(slug: str, context: dict[str, Any], analysis: dict[str, Any])
     return subject
 
 
-def _build_artifacts(slug: str, analysis_dir: Path, analysis: dict[str, Any], context: dict[str, Any]) -> list[dict[str, Any]]:
+def _build_artifacts(
+    slug: str, analysis_dir: Path, analysis: dict[str, Any], context: dict[str, Any]
+) -> list[dict[str, Any]]:
     track_dir = analysis_dir / slug
     artifacts: list[dict[str, Any]] = []
     for module in _ANALYSIS_MODULES:
         path = track_dir / f"{slug}_{module}.json"
         if path.exists() or analysis.get(module):
-            artifacts.append(_artifact_entry(path, kind="analysis_json", role=module, payload=analysis.get(module)))
+            artifacts.append(
+                _artifact_entry(
+                    path, kind="analysis_json", role=module, payload=analysis.get(module)
+                )
+            )
 
     stream_path = track_dir / f"{slug}_stream.json"
     stream_payload = _load_json(stream_path)
     if stream_path.exists():
-        artifacts.append(_artifact_entry(stream_path, kind="analysis_json", role="listener_state_stream", payload=stream_payload))
+        artifacts.append(
+            _artifact_entry(
+                stream_path,
+                kind="analysis_json",
+                role="listener_state_stream",
+                payload=stream_payload,
+            )
+        )
 
     context_path = track_dir / "context.json"
     if context_path.exists() or context:
-        artifacts.append(_artifact_entry(context_path, kind="context_json", role="context", payload=context))
+        artifacts.append(
+            _artifact_entry(context_path, kind="context_json", role="context", payload=context)
+        )
 
     lyrics = context.get("lyrics") if isinstance(context.get("lyrics"), dict) else {}
-    captions_file = lyrics.get("captions_file") or (context.get("download") or {}).get("captions_file")
+    captions_file = lyrics.get("captions_file") or (context.get("download") or {}).get(
+        "captions_file"
+    )
     if captions_file:
         artifacts.append(_artifact_entry(Path(captions_file), kind="text", role="captions"))
     audio_file = context.get("audio_file") or (context.get("download") or {}).get("audio_file")
@@ -156,8 +181,18 @@ def _build_observations(analysis: dict[str, Any]) -> list[dict[str, Any]]:
     overtone = analysis.get("overtone") or {}
 
     metric_map = [
-        ("duration_seconds", report.get("duration_seconds") or perception.get("duration"), "seconds", "report"),
-        ("felt_pulse_bpm", report.get("felt_pulse_bpm") or report.get("tempo_bpm") or perception.get("tempo"), "bpm", "report"),
+        (
+            "duration_seconds",
+            report.get("duration_seconds") or perception.get("duration"),
+            "seconds",
+            "report",
+        ),
+        (
+            "felt_pulse_bpm",
+            report.get("felt_pulse_bpm") or report.get("tempo_bpm") or perception.get("tempo"),
+            "bpm",
+            "report",
+        ),
         ("body", report.get("body"), "unit", "report"),
         ("weight", report.get("weight"), "unit", "report"),
         ("metric_tension", report.get("metric_tension"), "unit", "report"),
@@ -170,13 +205,15 @@ def _build_observations(analysis: dict[str, Any]) -> list[dict[str, Any]]:
     for name, value, unit, source in metric_map:
         rounded = _round(value)
         if rounded is not None:
-            observations.append({
-                "kind": "metric",
-                "name": name,
-                "value": rounded,
-                "unit": unit,
-                "source_ref": source,
-            })
+            observations.append(
+                {
+                    "kind": "metric",
+                    "name": name,
+                    "value": rounded,
+                    "unit": unit,
+                    "source_ref": source,
+                }
+            )
 
     summary = perception.get("summary") or {}
     for name in (
@@ -190,25 +227,29 @@ def _build_observations(analysis: dict[str, Any]) -> list[dict[str, Any]]:
     ):
         rounded = _round(summary.get(name))
         if rounded is not None:
-            observations.append({
-                "kind": "metric",
-                "name": name,
-                "value": rounded,
-                "source_ref": "perception.summary",
-            })
+            observations.append(
+                {
+                    "kind": "metric",
+                    "name": name,
+                    "value": rounded,
+                    "source_ref": "perception.summary",
+                }
+            )
 
     stream = perception.get("stream") or []
     if stream:
         scales = derive_arc_scales(stream)
         selected_scale, reason = select_arc_scale(scales)
-        observations.append({
-            "kind": "arc_scale_selection",
-            "name": "selected_arc_scale",
-            "value": selected_scale,
-            "reason": reason,
-            "scale_counts": {name: len(spans) for name, spans in scales.items()},
-            "source_ref": "perception.stream",
-        })
+        observations.append(
+            {
+                "kind": "arc_scale_selection",
+                "name": "selected_arc_scale",
+                "value": selected_scale,
+                "reason": reason,
+                "scale_counts": {name: len(spans) for name, spans in scales.items()},
+                "source_ref": "perception.stream",
+            }
+        )
     return observations
 
 
@@ -273,25 +314,43 @@ def _build_timeline(analysis: dict[str, Any]) -> list[dict[str, Any]]:
         for frame in stream:
             event = frame.get("event")
             if event and event != "pattern_breaks":
-                timeline.append({
-                    "kind": "stream_event",
-                    "source_ref": "perception.stream",
-                    "start": frame.get("t", frame.get("time")),
-                    "end": frame.get("t", frame.get("time")),
-                    "label": event,
-                    "values": {k: frame[k] for k in ("attention", "pattern", "pressure", "body", "weight") if k in frame},
-                })
+                timeline.append(
+                    {
+                        "kind": "stream_event",
+                        "source_ref": "perception.stream",
+                        "start": frame.get("t", frame.get("time")),
+                        "end": frame.get("t", frame.get("time")),
+                        "label": event,
+                        "values": {
+                            k: frame[k]
+                            for k in ("attention", "pattern", "pressure", "body", "weight")
+                            if k in frame
+                        },
+                    }
+                )
 
     for item in perception.get("pattern_breaks") or []:
         start = item.get("time", item.get("start"))
-        timeline.append({
-            "kind": item.get("type", "pattern_break"),
-            "source_ref": "perception.pattern_breaks",
-            "start": start,
-            "end": item.get("end", start),
-            "label": item.get("description") or item.get("type", "pattern_break"),
-            "values": {k: item[k] for k in ("duration", "depth_db", "intensity", "reentry_shape", "boundary_position") if k in item},
-        })
+        timeline.append(
+            {
+                "kind": item.get("type", "pattern_break"),
+                "source_ref": "perception.pattern_breaks",
+                "start": start,
+                "end": item.get("end", start),
+                "label": item.get("description") or item.get("type", "pattern_break"),
+                "values": {
+                    k: item[k]
+                    for k in (
+                        "duration",
+                        "depth_db",
+                        "intensity",
+                        "reentry_shape",
+                        "boundary_position",
+                    )
+                    if k in item
+                },
+            }
+        )
 
     def sort_key(item: dict[str, Any]) -> tuple[float, str]:
         start = _round(item.get("start"), 6)
@@ -303,10 +362,14 @@ def _build_timeline(analysis: dict[str, Any]) -> list[dict[str, Any]]:
 def _build_sources(context: dict[str, Any]) -> list[dict[str, Any]]:
     sources: list[dict[str, Any]] = []
     if context.get("youtube_url") or context.get("source_url"):
-        sources.append(_source("youtube", url=context.get("youtube_url") or context.get("source_url")))
+        sources.append(
+            _source("youtube", url=context.get("youtube_url") or context.get("source_url"))
+        )
     download = context.get("download") if isinstance(context.get("download"), dict) else {}
     if download:
-        sources.append({"kind": "download", **{k: v for k, v in download.items() if _is_present(v)}})
+        sources.append(
+            {"kind": "download", **{k: v for k, v in download.items() if _is_present(v)}}
+        )
     lyrics = context.get("lyrics") if isinstance(context.get("lyrics"), dict) else {}
     if lyrics:
         sources.append(_source("lyrics", url=lyrics.get("genius_url"), payload=lyrics))
@@ -324,33 +387,39 @@ def _build_claims(context: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(value, dict):
             continue
         if value.get("extract"):
-            claims.append({
-                "kind": "context_extract",
-                "subject": subject,
-                "text": value.get("extract"),
-                "source_ref": key,
-                "confidence": value.get("confidence", "unknown"),
-                "use_in_prompt": value.get("use_in_prompt"),
-            })
+            claims.append(
+                {
+                    "kind": "context_extract",
+                    "subject": subject,
+                    "text": value.get("extract"),
+                    "source_ref": key,
+                    "confidence": value.get("confidence", "unknown"),
+                    "use_in_prompt": value.get("use_in_prompt"),
+                }
+            )
         if key == "song_context":
             if value.get("summary"):
-                claims.append({
-                    "kind": "song_context_summary",
-                    "subject": "track",
-                    "text": value.get("summary"),
-                    "source_ref": key,
-                })
+                claims.append(
+                    {
+                        "kind": "song_context_summary",
+                        "subject": "track",
+                        "text": value.get("summary"),
+                        "source_ref": key,
+                    }
+                )
             for item in value.get("claims") or []:
                 if not isinstance(item, dict) or not item.get("claim"):
                     continue
-                claims.append({
-                    "kind": "song_context_claim",
-                    "subject": "track",
-                    "text": item.get("claim"),
-                    "source_ref": _source_ref_for_item(item, key),
-                    "source_type": item.get("source_type"),
-                    "confidence": item.get("confidence", "unknown"),
-                })
+                claims.append(
+                    {
+                        "kind": "song_context_claim",
+                        "subject": "track",
+                        "text": item.get("claim"),
+                        "source_ref": _source_ref_for_item(item, key),
+                        "source_type": item.get("source_type"),
+                        "confidence": item.get("confidence", "unknown"),
+                    }
+                )
             for item in value.get("lyric_references") or []:
                 if not isinstance(item, dict):
                     continue
@@ -359,23 +428,29 @@ def _build_claims(context: dict[str, Any]) -> list[dict[str, Any]]:
                 if not reference and not meaning:
                     continue
                 text = f"{reference}: {meaning}" if reference and meaning else reference or meaning
-                claims.append({
-                    "kind": "song_context_lyric_reference",
-                    "subject": "lyrics",
-                    "text": text,
-                    "source_ref": _source_ref_for_item(item, key),
-                    "confidence": item.get("confidence", "unknown"),
-                })
+                claims.append(
+                    {
+                        "kind": "song_context_lyric_reference",
+                        "subject": "lyrics",
+                        "text": text,
+                        "source_ref": _source_ref_for_item(item, key),
+                        "confidence": item.get("confidence", "unknown"),
+                    }
+                )
     lyrics = context.get("lyrics") if isinstance(context.get("lyrics"), dict) else {}
     if lyrics:
-        claims.append({
-            "kind": "lyrics_availability",
-            "subject": "lyrics",
-            "text": "Lyrics or captions are available." if _lyrics_text(lyrics) else "Lyrics are missing or empty.",
-            "source_ref": "lyrics",
-            "confidence": lyrics.get("confidence", "unknown"),
-            "use_in_prompt": bool(_lyrics_text(lyrics)),
-        })
+        claims.append(
+            {
+                "kind": "lyrics_availability",
+                "subject": "lyrics",
+                "text": "Lyrics or captions are available."
+                if _lyrics_text(lyrics)
+                else "Lyrics are missing or empty.",
+                "source_ref": "lyrics",
+                "confidence": lyrics.get("confidence", "unknown"),
+                "use_in_prompt": bool(_lyrics_text(lyrics)),
+            }
+        )
     return claims
 
 
@@ -439,7 +514,11 @@ def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
         status = "missing"
         if text:
             confidence = str(lyrics.get("confidence", "")).lower()
-            status = "verified" if confidence == "high" or lyrics.get("source") == "youtube-auto-captions" else "weak"
+            status = (
+                "verified"
+                if confidence == "high" or lyrics.get("source") == "youtube-auto-captions"
+                else "weak"
+            )
         collections["lyrics"] = {
             "status": status,
             "source_ref": "lyrics",
@@ -450,7 +529,9 @@ def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
                     "text": text,
                     "line_count": len([line for line in text.splitlines() if line.strip()]),
                 }
-            ] if text else [],
+            ]
+            if text
+            else [],
         }
         if lyrics.get("timed_lines"):
             collections["lyrics"]["timed_lines"] = lyrics["timed_lines"]
@@ -461,31 +542,35 @@ def _build_collections(context: dict[str, Any]) -> dict[str, Any]:
     for key, label in (("artist_context", "artist"), ("song_context", "track")):
         value = context.get(key)
         if isinstance(value, dict) and value.get("extract"):
-            background_items.append({
-                "kind": label,
-                "source_ref": key,
-                "text": value.get("extract"),
-                "confidence": value.get("confidence", "unknown"),
-                "use_in_prompt": value.get("use_in_prompt"),
-            })
+            background_items.append(
+                {
+                    "kind": label,
+                    "source_ref": key,
+                    "text": value.get("extract"),
+                    "confidence": value.get("confidence", "unknown"),
+                    "use_in_prompt": value.get("use_in_prompt"),
+                }
+            )
         if key == "song_context" and isinstance(value, dict):
             if value.get("summary"):
-                background_items.append({
-                    "kind": "song_context_summary",
-                    "source_ref": key,
-                    "text": value.get("summary"),
-                })
+                background_items.append(
+                    {
+                        "kind": "song_context_summary",
+                        "source_ref": key,
+                        "text": value.get("summary"),
+                    }
+                )
             notes = [
-                str(note).strip()
-                for note in value.get("source_notes") or []
-                if str(note).strip()
+                str(note).strip() for note in value.get("source_notes") or [] if str(note).strip()
             ]
             if notes:
-                background_items.append({
-                    "kind": "song_context_source_notes",
-                    "source_ref": key,
-                    "items": notes,
-                })
+                background_items.append(
+                    {
+                        "kind": "song_context_source_notes",
+                        "source_ref": key,
+                        "items": notes,
+                    }
+                )
     if background_items:
         collections["background"] = {"items": background_items}
     return collections
@@ -495,30 +580,41 @@ def _build_warnings(analysis: dict[str, Any], context: dict[str, Any]) -> list[d
     warnings: list[dict[str, Any]] = []
     perception = analysis.get("perception") or {}
     if not perception.get("stream"):
-        warnings.append({"kind": "missing_data", "message": "No perception stream available; timeline will be incomplete."})
+        warnings.append(
+            {
+                "kind": "missing_data",
+                "message": "No perception stream available; timeline will be incomplete.",
+            }
+        )
     lyrics = context.get("lyrics") if isinstance(context.get("lyrics"), dict) else None
     if not lyrics or not _lyrics_text(lyrics):
         warnings.append({"kind": "missing_data", "message": "No lyric or caption text available."})
     elif lyrics.get("confidence") and lyrics.get("confidence") != "high":
-        warnings.append({
-            "kind": "low_confidence_source",
-            "message": "Lyrics are available but not high confidence.",
-            "source_ref": "lyrics",
-            "confidence": lyrics.get("confidence"),
-        })
+        warnings.append(
+            {
+                "kind": "low_confidence_source",
+                "message": "Lyrics are available but not high confidence.",
+                "source_ref": "lyrics",
+                "confidence": lyrics.get("confidence"),
+            }
+        )
     for key in ("artist_context", "song_context"):
         value = context.get(key)
         if isinstance(value, dict) and value.get("found") and value.get("use_in_prompt") is False:
-            warnings.append({
-                "kind": "low_confidence_source",
-                "message": f"{key} was fetched but marked unsafe for prompt use.",
-                "source_ref": key,
-                "confidence": value.get("confidence"),
-            })
+            warnings.append(
+                {
+                    "kind": "low_confidence_source",
+                    "message": f"{key} was fetched but marked unsafe for prompt use.",
+                    "source_ref": key,
+                    "confidence": value.get("confidence"),
+                }
+            )
     return warnings
 
 
-def build_packet(slug: str, analysis: dict[str, Any], context: dict[str, Any], *, analysis_dir: Path) -> dict[str, Any]:
+def build_packet(
+    slug: str, analysis: dict[str, Any], context: dict[str, Any], *, analysis_dir: Path
+) -> dict[str, Any]:
     """Build a generic evidence packet from loaded galdr analysis/context."""
     return {
         "metadata": {

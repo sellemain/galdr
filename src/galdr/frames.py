@@ -47,10 +47,11 @@ from .fetch import _run_yt_dlp, validate_slug, validate_youtube_url
 
 DEFAULT_TARGET = 12
 DEFAULT_ANCHOR_RATIO = 0.6  # up to 60% of slots from structural events
-CLUSTER_GAP = 2.0           # seconds: events within this window are clustered
+CLUSTER_GAP = 2.0  # seconds: events within this window are clustered
 
 
 # ─── Event loading ─────────────────────────────────────────────────────────────
+
 
 def _load_events(perception: dict) -> list[dict]:
     """Extract all events from perception data. Handles old and new schemas.
@@ -66,43 +67,52 @@ def _load_events(perception: dict) -> list[dict]:
             t = b.get("time", 0)
             btype = b.get("type", "break")
             if btype == "silence":
-                events.append({
-                    "time": t,
-                    "type": "silence",
-                    "duration": b.get("duration", 0),
-                    "depth_db": b.get("depth_db", -80),
-                    "intensity": 0,
-                })
+                events.append(
+                    {
+                        "time": t,
+                        "type": "silence",
+                        "duration": b.get("duration", 0),
+                        "depth_db": b.get("depth_db", -80),
+                        "intensity": 0,
+                    }
+                )
             else:
-                events.append({
-                    "time": t,
-                    "type": btype,
-                    "duration": 0,
-                    "intensity": b.get("intensity", 0),
-                    "components": b.get("description", ""),
-                })
+                events.append(
+                    {
+                        "time": t,
+                        "type": btype,
+                        "duration": 0,
+                        "intensity": b.get("intensity", 0),
+                        "components": b.get("description", ""),
+                    }
+                )
     else:
         for s in perception.get("silences", []):
-            events.append({
-                "time": s.get("start", 0),
-                "type": "silence",
-                "duration": s.get("duration", 0),
-                "depth_db": s.get("depth_db", -80),
-                "intensity": 0,
-            })
+            events.append(
+                {
+                    "time": s.get("start", 0),
+                    "type": "silence",
+                    "duration": s.get("duration", 0),
+                    "depth_db": s.get("depth_db", -80),
+                    "intensity": 0,
+                }
+            )
         for m in perception.get("moments", []):
             if m.get("type") != "silence":
-                events.append({
-                    "time": m.get("time", 0),
-                    "type": "break",
-                    "duration": 0,
-                    "intensity": m.get("intensity", 0),
-                })
+                events.append(
+                    {
+                        "time": m.get("time", 0),
+                        "type": "break",
+                        "duration": 0,
+                        "intensity": m.get("intensity", 0),
+                    }
+                )
 
     return sorted(events, key=lambda e: e["time"])
 
 
 # ─── Event scoring & clustering ───────────────────────────────────────────────
+
 
 def _score_event(ev: dict) -> float:
     """Score an event by structural significance. Silences score 2× breaks."""
@@ -138,6 +148,7 @@ def _best_in_cluster(cluster: list[dict]) -> dict:
 
 
 # ─── Timestamp windows ────────────────────────────────────────────────────────
+
 
 def _event_timestamps(ev: dict, duration: float) -> list[tuple[float, str]]:
     """Compute frame timestamps for an event. Returns list of (time, role) tuples.
@@ -182,6 +193,7 @@ def _event_timestamps(ev: dict, duration: float) -> list[tuple[float, str]]:
 
 # ─── Coverage gap-fill ────────────────────────────────────────────────────────
 
+
 def _fill_coverage_gaps(
     existing_times: list[float],
     duration: float,
@@ -221,6 +233,7 @@ def _fill_coverage_gaps(
 
 
 # ─── Frame selection (main algorithm) ────────────────────────────────────────
+
 
 def select_frames(
     perception: dict,
@@ -278,13 +291,15 @@ def select_frames(
 
         group_id = f"{ev['type']}_{ev['time']:.1f}"
         for ts, role in timestamps:
-            anchors.append({
-                "time": ts,
-                "kind": "anchor",
-                "role": role,
-                "event": ev,
-                "group": group_id,
-            })
+            anchors.append(
+                {
+                    "time": ts,
+                    "kind": "anchor",
+                    "role": role,
+                    "event": ev,
+                    "group": group_id,
+                }
+            )
         slots_used += len(timestamps)
 
     # Fill remaining slots with coverage
@@ -347,13 +362,15 @@ def select_frames(
             n=shortfall,
         )
         for ts in refill_times:
-            kept.append({
-                "time": ts,
-                "kind": "coverage",
-                "role": "coverage",
-                "event": None,
-                "group": None,
-            })
+            kept.append(
+                {
+                    "time": ts,
+                    "kind": "coverage",
+                    "role": "coverage",
+                    "event": None,
+                    "group": None,
+                }
+            )
         kept.sort(key=lambda f: f["time"])
 
     return kept
@@ -361,18 +378,24 @@ def select_frames(
 
 # ─── Frame extraction via ffmpeg ──────────────────────────────────────────────
 
+
 def extract_single_frame(video_path: Path, timestamp: float, out_path: Path) -> bool:
     """Extract one frame from video at the given timestamp. Returns True on success."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         "ffmpeg",
-        "-ss", str(timestamp),
-        "-i", str(video_path),
-        "-vframes", "1",
-        "-q:v", "2",
+        "-ss",
+        str(timestamp),
+        "-i",
+        str(video_path),
+        "-vframes",
+        "1",
+        "-q:v",
+        "2",
         str(out_path),
         "-y",
-        "-loglevel", "error",
+        "-loglevel",
+        "error",
     ]
     result = subprocess.run(cmd, capture_output=True)
     if result.returncode == 0 and out_path.exists():
@@ -382,6 +405,7 @@ def extract_single_frame(video_path: Path, timestamp: float, out_path: Path) -> 
 
 
 # ─── Vision API ───────────────────────────────────────────────────────────────
+
 
 def _encode_image(path: Path) -> str:
     return base64.b64encode(path.read_bytes()).decode("utf-8")
@@ -426,13 +450,15 @@ def _describe_anchor_group(
 
     content = []
     for frame_path in frame_paths:
-        content.append({
-            "type": "image_url",
-            "image_url": {
-                "url": f"data:image/png;base64,{_encode_image(frame_path)}",
-                "detail": "high",
+        content.append(
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/png;base64,{_encode_image(frame_path)}",
+                    "detail": "high",
+                },
             }
-        })
+        )
     content.append({"type": "text", "text": prompt})
 
     return _call_vision_api(content, api_key)
@@ -457,7 +483,7 @@ def _describe_coverage_frame(frame_path: Path, timestamp: float, track_name: str
             "image_url": {
                 "url": f"data:image/png;base64,{_encode_image(frame_path)}",
                 "detail": "high",
-            }
+            },
         },
         {"type": "text", "text": prompt},
     ]
@@ -467,11 +493,13 @@ def _describe_coverage_frame(frame_path: Path, timestamp: float, track_name: str
 
 def _call_vision_api(content: list, api_key: str) -> str:
     """Make one gpt-4o vision API call. Returns response text."""
-    payload = json.dumps({
-        "model": "gpt-4o",
-        "messages": [{"role": "user", "content": content}],
-        "max_tokens": 300,
-    }).encode("utf-8")
+    payload = json.dumps(
+        {
+            "model": "gpt-4o",
+            "messages": [{"role": "user", "content": content}],
+            "max_tokens": 300,
+        }
+    ).encode("utf-8")
 
     req = urllib.request.Request(
         "https://api.openai.com/v1/chat/completions",
@@ -492,6 +520,7 @@ def _call_vision_api(content: list, api_key: str) -> str:
 
 # ─── Video download ────────────────────────────────────────────────────────────
 
+
 def download_video(url: str, video_dir: Path, slug: str) -> Path | None:
     """Download video at up to 720p via yt-dlp. Returns path or None on failure."""
     url = validate_youtube_url(url)
@@ -500,12 +529,15 @@ def download_video(url: str, video_dir: Path, slug: str) -> Path | None:
     out_template = video_dir / f"{slug}.%(ext)s"
 
     args = [
-        "--format", (
+        "--format",
+        (
             "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]"
             "/best[height<=720][ext=mp4]/best[height<=720]"
         ),
-        "--merge-output-format", "mp4",
-        "--output", str(out_template),
+        "--merge-output-format",
+        "mp4",
+        "--output",
+        str(out_template),
         "--no-playlist",
         url,
     ]
@@ -528,6 +560,7 @@ def download_video(url: str, video_dir: Path, slug: str) -> Path | None:
 
 
 # ─── Display helpers ──────────────────────────────────────────────────────────
+
 
 def _fmt_time(seconds: float) -> str:
     m, s = divmod(int(seconds), 60)
@@ -559,8 +592,7 @@ def print_frame_plan(frames: list[dict], duration: float) -> None:
         g = f["group"]
         groups.setdefault(g, []).append(f)
 
-    print(f"  Frame plan: {len(frames)} total "
-          f"({len(anchors)} anchor / {len(coverage)} coverage)")
+    print(f"  Frame plan: {len(frames)} total ({len(anchors)} anchor / {len(coverage)} coverage)")
     print()
 
     for f in frames:
@@ -586,6 +618,7 @@ def print_frame_plan(frames: list[dict], duration: float) -> None:
 
 
 # ─── Main entry point ─────────────────────────────────────────────────────────
+
 
 def extract_visual_moments(
     slug: str,
@@ -614,9 +647,7 @@ def extract_visual_moments(
     # Load perception data
     perc_path = track_dir / f"{slug}_perception.json"
     if not perc_path.exists():
-        raise FileNotFoundError(
-            f"No perception data at {perc_path}. Run 'galdr listen' first."
-        )
+        raise FileNotFoundError(f"No perception data at {perc_path}. Run 'galdr listen' first.")
     perception = json.loads(perc_path.read_text())
 
     # Inject duration from report
@@ -675,7 +706,9 @@ def extract_visual_moments(
             if artist and title:
                 track_name = f"{artist} — {title}"
         except Exception as e:
-            print(f"  [frames] warning: could not parse context.json ({e}); frame descriptions will not be saved")
+            print(
+                f"  [frames] warning: could not parse context.json ({e}); frame descriptions will not be saved"
+            )
             ctx_loaded = False
 
     # Extract all frames, then process by group
@@ -723,15 +756,17 @@ def extract_visual_moments(
             preview = description[:80].replace("\n", " ")
             print(f"  [frames] → {preview}...")
 
-            frame_descriptions.append({
-                "time": event["time"],
-                "kind": "anchor",
-                "role": "anchor",
-                "event": label,
-                "window": timestamps,
-                "roles": roles,
-                "description": description,
-            })
+            frame_descriptions.append(
+                {
+                    "time": event["time"],
+                    "kind": "anchor",
+                    "role": "anchor",
+                    "event": label,
+                    "window": timestamps,
+                    "roles": roles,
+                    "description": description,
+                }
+            )
 
         # Process coverage frames
         for f in frames:
@@ -746,15 +781,17 @@ def extract_visual_moments(
             else:
                 description = "[frame extraction failed]"
 
-            frame_descriptions.append({
-                "time": ts,
-                "kind": "coverage",
-                "role": "coverage",
-                "event": None,
-                "window": [ts],
-                "roles": ["coverage"],
-                "description": description,
-            })
+            frame_descriptions.append(
+                {
+                    "time": ts,
+                    "kind": "coverage",
+                    "role": "coverage",
+                    "event": None,
+                    "window": [ts],
+                    "roles": ["coverage"],
+                    "description": description,
+                }
+            )
 
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -781,6 +818,7 @@ def extract_visual_moments(
 
 
 # ─── Legacy alias ─────────────────────────────────────────────────────────────
+
 
 def select_events(perception: dict, max_events: int = 4) -> list[dict]:
     """Deprecated: use select_frames() instead.

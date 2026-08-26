@@ -42,16 +42,21 @@ from .boundary import derive_boundary_candidates
 from .metric_vocabulary import display_name, glossary_lines
 from .salience import synthesize_salience
 from .captions import dedup_captions_with_timestamps, parse_vtt
-from .witness import HEARING_STREAM_SCHEMA, INNER_EAR_PACKET_SCHEMA, validate_witness_packet, witness_kind
+from .witness import (
+    HEARING_STREAM_SCHEMA,
+    INNER_EAR_PACKET_SCHEMA,
+    validate_witness_packet,
+    witness_kind,
+)
 
 
 # ─── Mode definitions ─────────────────────────────────────────────────────────
 
 MODES = {
-    "full":    {"background": True,  "metrics": True, "lyrics": True,  "frames": True},
-    "lyrics":  {"background": False, "metrics": True, "lyrics": True,  "frames": False},
-    "context": {"background": True,  "metrics": True, "lyrics": False, "frames": False},
-    "blind":   {"background": False, "metrics": True, "lyrics": False, "frames": False},
+    "full": {"background": True, "metrics": True, "lyrics": True, "frames": True},
+    "lyrics": {"background": False, "metrics": True, "lyrics": True, "frames": False},
+    "context": {"background": True, "metrics": True, "lyrics": False, "frames": False},
+    "blind": {"background": False, "metrics": True, "lyrics": False, "frames": False},
 }
 
 DEFAULT_MODE = "full"
@@ -107,7 +112,10 @@ def _read_bundled_template(filename: str) -> str | None:
 
 # ─── Template resolution ──────────────────────────────────────────────────────
 
-def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None = None) -> str | None:
+
+def resolve_template(
+    name: str, docs_dir: Path | None = None, lens: str | None = None
+) -> str | None:
     """Resolve a template name or path to its text content.
 
     Resolution order:
@@ -127,9 +135,7 @@ def resolve_template(name: str, docs_dir: Path | None = None, lens: str | None =
         lens = alias_lens
 
     if lens and lens not in ARC_LENS_TEMPLATES:
-        raise ValueError(
-            f"Unknown lens '{lens}'. Choose from: {', '.join(ARC_LENS_TEMPLATES)}"
-        )
+        raise ValueError(f"Unknown lens '{lens}'. Choose from: {', '.join(ARC_LENS_TEMPLATES)}")
 
     if name == "none":
         if lens:
@@ -188,6 +194,7 @@ def _append_lens(base: str, lens: str, docs_dir: Path | None = None) -> str:
 
 # ─── Loaders ──────────────────────────────────────────────────────────────────
 
+
 def _load_json(path: Path) -> dict | None:
     if path.exists():
         try:
@@ -214,9 +221,9 @@ def load_analysis(slug: str, analysis_dir: Path) -> dict:
     stream = _load_json(d / f"{slug}_stream.json")
     if stream and isinstance(analysis.get("perception"), dict):
         if isinstance(stream, dict) and isinstance(stream.get("stream"), list):
-            analysis["perception"].setdefault("stream_metadata", {
-                k: v for k, v in stream.items() if k != "stream"
-            })
+            analysis["perception"].setdefault(
+                "stream_metadata", {k: v for k, v in stream.items() if k != "stream"}
+            )
             analysis["perception"]["stream"] = stream["stream"]
         else:
             analysis["perception"]["stream"] = stream
@@ -303,11 +310,17 @@ def _lyrics_source_label(lyrics: dict) -> str | None:
     if source == "youtube-music-timed-lyrics":
         timed_source = lyrics.get("timed_lyrics_source") or {}
         provider = timed_source.get("provider_source")
-        return f"YouTube Music timed lyrics ({provider})" if provider else "YouTube Music timed lyrics"
+        return (
+            f"YouTube Music timed lyrics ({provider})" if provider else "YouTube Music timed lyrics"
+        )
     if source == "genius+youtube-music-timed-lyrics":
         timed_source = lyrics.get("timed_lyrics_source") or {}
         provider = timed_source.get("provider_source")
-        suffix = f" + YouTube Music timed lyrics ({provider})" if provider else " + YouTube Music timed lyrics"
+        suffix = (
+            f" + YouTube Music timed lyrics ({provider})"
+            if provider
+            else " + YouTube Music timed lyrics"
+        )
         url = lyrics.get("genius_url")
         return f"Genius ({url}){suffix}" if url else f"Genius lyrics{suffix}"
     if source == "genius+autocaptions":
@@ -355,6 +368,7 @@ def _lyrics_timing_verdict(lyrics: dict) -> dict[str, str]:
 
 
 # ─── Section builders ─────────────────────────────────────────────────────────
+
 
 def _context_is_prompt_usable(ctx_value) -> bool:
     """Return True when fetched context is trusted enough for prompt assembly."""
@@ -574,7 +588,14 @@ def _summarize_arc_spans(spans: list[dict]) -> dict | None:
         frame_count = span["frame_count"]
         frame_counts[label] += frame_count
         run_counts[label] += 1
-        for key in ["mean_attention", "mean_pattern", "mean_pressure", "mean_body", "mean_weight", "silence_ratio"]:
+        for key in [
+            "mean_attention",
+            "mean_pattern",
+            "mean_pressure",
+            "mean_body",
+            "mean_weight",
+            "silence_ratio",
+        ]:
             weighted[key] += span[key] * frame_count
         if previous:
             transitions[(previous, label)] += 1
@@ -620,10 +641,11 @@ def _arc_summary(stream: list[dict]) -> dict | None:
     selected = dict(selected)
     selected["selected_scale"] = selected_scale
     selected["selection_reason"] = reason
-    selected["scale_counts"] = {name: summary["span_count"] for name, summary in scale_summaries.items() if summary}
+    selected["scale_counts"] = {
+        name: summary["span_count"] for name, summary in scale_summaries.items() if summary
+    }
     selected["scale_summaries"] = scale_summaries
     return selected
-
 
 
 def _build_boundary_candidates(stream: list[dict]) -> str | None:
@@ -650,6 +672,7 @@ def _build_boundary_candidates(stream: list[dict]) -> str | None:
         "when available, and do not treat ambient continuity as a track cut unless the post-gap state resets."
     )
     return "\n".join(lines)
+
 
 def _arc_archetype(summary: dict) -> tuple[str, str]:
     """Name the dominant felt mechanism implied by arc-span shape."""
@@ -865,7 +888,9 @@ def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
             mean_value = summary.get(f"mean_{field}")
             peak_value = summary.get(f"peak_{field}")
             if mean_value is not None and peak_value is not None:
-                local_bits.append(f"{display_name(field)} mean {float(mean_value):.3f}, peak {float(peak_value):.3f}")
+                local_bits.append(
+                    f"{display_name(field)} mean {float(mean_value):.3f}, peak {float(peak_value):.3f}"
+                )
         if local_bits:
             lines.append("Local stream metrics: " + "; ".join(local_bits))
         shapes = summary.get("silence_reentry_shapes") or {}
@@ -889,7 +914,9 @@ def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
             )
 
     salience = synthesize_salience(analysis)
-    primary_contract = salience.get("primary_contract", salience.get("listening_contract", "balanced_listener_state"))
+    primary_contract = salience.get(
+        "primary_contract", salience.get("listening_contract", "balanced_listener_state")
+    )
     has_salience_context = any(
         salience.get(key)
         for key in (
@@ -953,8 +980,16 @@ def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
         total = har_e + perc_e
         if total > 0:
             surface_balance = (perc_e - har_e) / total  # negative = harmonic dominant
-            surface_balance_label = "harmonic dominant (tonal, warm)" if surface_balance < -0.2 else "percussive dominant" if surface_balance > 0.2 else "balanced"
-            lines.append(f"{display_name('surface_balance')}: {surface_balance:.3f} ({surface_balance_label})")
+            surface_balance_label = (
+                "harmonic dominant (tonal, warm)"
+                if surface_balance < -0.2
+                else "percussive dominant"
+                if surface_balance > 0.2
+                else "balanced"
+            )
+            lines.append(
+                f"{display_name('surface_balance')}: {surface_balance:.3f} ({surface_balance_label})"
+            )
 
     # Harmony surface: keep listener-state tension foregrounded.  Key/mode,
     # major/minor balance, and chord names remain internal evidence unless a
@@ -1034,8 +1069,15 @@ def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
     elif raw_moments:
         event_source = raw_moments
     else:
-        event_source = [{"start": s["start"], "type": "silence", "duration": s["duration"],
-                         "depth_db": s["depth_db"]} for s in raw_silences]
+        event_source = [
+            {
+                "start": s["start"],
+                "type": "silence",
+                "duration": s["duration"],
+                "depth_db": s["depth_db"],
+            }
+            for s in raw_silences
+        ]
 
     for span in perception.get("sustained_state_spans", []):
         start = float(span.get("start", 0.0))
@@ -1051,11 +1093,13 @@ def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
                 f"body capture {float(span['mean_body_capture']):.3f} / comfort {float(span['mean_body_comfort']):.3f}"
             )
         details = f" ({', '.join(detail_bits)})" if detail_bits else ""
-        timeline.append((
-            start,
-            _event_rank("sustained_state_span"),
-            f"{_fmt_time(start)}–{_fmt_time(end)} — {desc}{details}",
-        ))
+        timeline.append(
+            (
+                start,
+                _event_rank("sustained_state_span"),
+                f"{_fmt_time(start)}–{_fmt_time(end)} — {desc}{details}",
+            )
+        )
 
     ordinary_closing_only = False
     if perception.get("summary"):
@@ -1085,7 +1129,9 @@ def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
             force = b.get("reentry_force")
             recovery = b.get("recovery_time_sec")
             if shape:
-                force_text = f", re-entry force {force:.3f}" if isinstance(force, (int, float)) else ""
+                force_text = (
+                    f", re-entry force {force:.3f}" if isinstance(force, (int, float)) else ""
+                )
                 if isinstance(recovery, (int, float)):
                     recovery_text = f", recovery {recovery:.2f}s"
                 elif boundary == "closing" or shape == "terminal_decay":
@@ -1106,14 +1152,18 @@ def _build_metrics(analysis: dict, *, compact: bool = False) -> str:
             components = b.get("components", {})
             comp_str = ""
             if components and isinstance(components, dict):
-                parts = [f"{k}:{v:.2f}" for k, v in components.items() if isinstance(v, (int, float))]
+                parts = [
+                    f"{k}:{v:.2f}" for k, v in components.items() if isinstance(v, (int, float))
+                ]
                 if parts:
                     comp_str = f" [{', '.join(parts)}]"
-            timeline.append((
-                t,
-                _event_rank("", btype or "break"),
-                f"{_fmt_time(t)} — pattern break (intensity {intensity:.3f}{comp_str})",
-            ))
+            timeline.append(
+                (
+                    t,
+                    _event_rank("", btype or "break"),
+                    f"{_fmt_time(t)} — pattern break (intensity {intensity:.3f}{comp_str})",
+                )
+            )
 
     if timeline:
         lines.append("\n### Event timeline\n")
@@ -1164,7 +1214,9 @@ def _build_lyrics(context: dict) -> str | None:
         sections.append("\n".join(timed_section))
 
     if caption_lines:
-        cap_section = [f"## Lyrics — {timing_verdict['heading']} ({timing_verdict['confidence_note']})\n"]
+        cap_section = [
+            f"## Lyrics — {timing_verdict['heading']} ({timing_verdict['confidence_note']})\n"
+        ]
         if source_line:
             cap_section.append(source_line)
         for entry in caption_lines:
@@ -1208,14 +1260,12 @@ def validate_vocal_timing(packet: dict | None) -> dict | None:
         raise ValueError("vocal timing packet durationSec must be positive")
     source = packet.get("source")
     if source is not None and (
-        not isinstance(source, str)
-        or re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,63}", source) is None
+        not isinstance(source, str) or re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,63}", source) is None
     ):
         raise ValueError("vocal timing packet source must be a short provenance token")
     audio_sha = packet.get("audioSha256")
     if audio_sha is not None and (
-        not isinstance(audio_sha, str)
-        or re.fullmatch(r"[0-9a-f]{64}", audio_sha) is None
+        not isinstance(audio_sha, str) or re.fullmatch(r"[0-9a-f]{64}", audio_sha) is None
     ):
         raise ValueError("vocal timing packet audioSha256 must be lowercase SHA-256")
     windows = packet.get("windows")
@@ -1229,8 +1279,7 @@ def validate_vocal_timing(packet: dict | None) -> dict | None:
         extra = sorted(set(window) - allowed_window)
         if extra:
             raise ValueError(
-                f"vocal timing window {index} contains unsupported fields: "
-                + ", ".join(extra)
+                f"vocal timing window {index} contains unsupported fields: " + ", ".join(extra)
             )
         start = window.get("start")
         if (
@@ -1257,9 +1306,7 @@ def validate_vocal_timing(packet: dict | None) -> dict | None:
                 f"vocal timing window {index} endKind must be observed, inferred, or unknown"
             )
         if end is None and end_kind != "unknown":
-            raise ValueError(
-                f"vocal timing window {index} without an end must use endKind unknown"
-            )
+            raise ValueError(f"vocal timing window {index} without an end must use endKind unknown")
         confidence = window.get("confidence")
         if confidence is not None and (
             not isinstance(confidence, str)
@@ -1464,21 +1511,23 @@ def _build_hearing_stream_section(packet: dict) -> str:
 
 
 def _build_inner_ear_packet_section(packet: dict) -> str:
-    return "\n".join([
-        "## Optional witness packet",
-        "",
-        "This is model-produced listening evidence, not Galdr measurement. It may report "
-        "directly heard events, timbre, space, grain, vocal body, and other qualities the "
-        "analysis does not capture. Use both witnesses for what they can support, and preserve "
-        "meaningful timing or structure disagreements for source review.",
-        "",
-        "Simultaneous-evidence reminder: words, music, and sound-as-heard are happening together. "
-        "Use this packet as one partial view, then write the reunited moment the lens needs.",
-        "",
-        "```json",
-        json.dumps(packet, indent=2, ensure_ascii=False),
-        "```",
-    ])
+    return "\n".join(
+        [
+            "## Optional witness packet",
+            "",
+            "This is model-produced listening evidence, not Galdr measurement. It may report "
+            "directly heard events, timbre, space, grain, vocal body, and other qualities the "
+            "analysis does not capture. Use both witnesses for what they can support, and preserve "
+            "meaningful timing or structure disagreements for source review.",
+            "",
+            "Simultaneous-evidence reminder: words, music, and sound-as-heard are happening together. "
+            "Use this packet as one partial view, then write the reunited moment the lens needs.",
+            "",
+            "```json",
+            json.dumps(packet, indent=2, ensure_ascii=False),
+            "```",
+        ]
+    )
 
 
 def _build_witness_packet(packet: dict) -> str:
@@ -1493,6 +1542,7 @@ def _build_witness_packet(packet: dict) -> str:
 
 
 # ─── Core assembly ────────────────────────────────────────────────────────────
+
 
 def assemble_prompt(
     analysis: dict,
@@ -1622,9 +1672,7 @@ def assemble_prompt_from_disk(
     if mode in {"full", "lyrics"}:
         context = _augment_context_with_caption_file(slug, analysis_dir, context)
     if not any(analysis.values()) and not context:
-        raise ValueError(
-            f"No analysis or context found for slug '{slug}' in {analysis_dir / slug}"
-        )
+        raise ValueError(f"No analysis or context found for slug '{slug}' in {analysis_dir / slug}")
     return assemble_prompt(
         analysis,
         context,

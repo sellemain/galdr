@@ -27,6 +27,7 @@ Templates:
 """
 
 from importlib.metadata import version, PackageNotFoundError
+
 try:
     __version__ = version("galdr")
 except PackageNotFoundError:
@@ -45,11 +46,11 @@ from .frames import extract_visual_moments, select_events
 
 # ─── Prompt assembly (Python API) ─────────────────────────────────────────────
 from .assemble import (
-    assemble_prompt,           # takes analysis + context dicts directly
-    assemble_prompt_from_disk, # loads from disk by slug (CLI path)
-    load_analysis,             # loads all JSON for a slug -> dict
-    load_context,              # loads context.json for a slug -> dict
-    MODES,                     # mode definitions dict
+    assemble_prompt,  # takes analysis + context dicts directly
+    assemble_prompt_from_disk,  # loads from disk by slug (CLI path)
+    load_analysis,  # loads all JSON for a slug -> dict
+    load_context,  # loads context.json for a slug -> dict
+    MODES,  # mode definitions dict
 )
 from .api import (
     Analysis,

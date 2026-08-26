@@ -16,6 +16,7 @@ from pathlib import Path
 import librosa
 import librosa.display
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,11 +25,16 @@ from .audio_context import AudioContext, load_audio_context
 from scipy.signal import find_peaks
 
 from .constants import (
-    OVERTONE_MAX_HARMONIC, OVERTONE_TOLERANCE_CENTS,
-    OVERTONE_FMIN, OVERTONE_FMAX,
-    OVERTONE_N_PEAKS, OVERTONE_MIN_HEIGHT_DB,
-    OVERTONE_PEAK_DISTANCE, OVERTONE_PEAK_PROMINENCE,
-    OVERTONE_N_FFT, OVERTONE_FREQ_CEILING,
+    OVERTONE_MAX_HARMONIC,
+    OVERTONE_TOLERANCE_CENTS,
+    OVERTONE_FMIN,
+    OVERTONE_FMAX,
+    OVERTONE_N_PEAKS,
+    OVERTONE_MIN_HEIGHT_DB,
+    OVERTONE_PEAK_DISTANCE,
+    OVERTONE_PEAK_PROMINENCE,
+    OVERTONE_N_FFT,
+    OVERTONE_FREQ_CEILING,
 )
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -42,8 +48,9 @@ def hz_to_cents(f1, f2):
     return 1200.0 * np.log2(f2 / f1)
 
 
-def find_spectral_peaks(spectrum, freqs, n_peaks=OVERTONE_N_PEAKS,
-                        min_height_db=OVERTONE_MIN_HEIGHT_DB):
+def find_spectral_peaks(
+    spectrum, freqs, n_peaks=OVERTONE_N_PEAKS, min_height_db=OVERTONE_MIN_HEIGHT_DB
+):
     """Find prominent peaks in a magnitude spectrum."""
     spectrum_db = librosa.amplitude_to_db(spectrum, ref=np.max(spectrum))
 
@@ -64,9 +71,13 @@ def find_spectral_peaks(spectrum, freqs, n_peaks=OVERTONE_N_PEAKS,
     return peak_freqs[sort_idx], peak_mags[sort_idx]
 
 
-def match_harmonics(f0, peak_freqs, peak_mags,
-                    max_harmonic=OVERTONE_MAX_HARMONIC,
-                    tolerance_cents=OVERTONE_TOLERANCE_CENTS):
+def match_harmonics(
+    f0,
+    peak_freqs,
+    peak_mags,
+    max_harmonic=OVERTONE_MAX_HARMONIC,
+    tolerance_cents=OVERTONE_TOLERANCE_CENTS,
+):
     """Given a fundamental f0, find which harmonics are present in the peaks."""
     if f0 <= 0 or len(peak_freqs) == 0:
         return {}, 0.0, 0.0, 0.0
@@ -109,7 +120,9 @@ def match_harmonics(f0, peak_freqs, peak_mags,
     return harmonics, round(series_fit, 4), round(inharmonicity, 1), round(richness, 3)
 
 
-def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT, audio: AudioContext | None = None):
+def compute_overtone_stream(
+    audio_path, sr=22050, n_fft=OVERTONE_N_FFT, audio: AudioContext | None = None
+):
     """Compute per-frame overtone analysis."""
     hop_length = 512
 
@@ -118,9 +131,7 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT, audio: A
 
     print("  Tracking fundamental (pyin)...")
     f0_full, voiced_full, voiced_probs_full = librosa.pyin(
-        y, sr=sr, hop_length=hop_length,
-        fmin=OVERTONE_FMIN, fmax=OVERTONE_FMAX,
-        fill_na=np.nan
+        y, sr=sr, hop_length=hop_length, fmin=OVERTONE_FMIN, fmax=OVERTONE_FMAX, fill_na=np.nan
     )
     f0_times_full = librosa.frames_to_time(np.arange(len(f0_full)), sr=sr, hop_length=hop_length)
 
@@ -147,23 +158,23 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT, audio: A
         current_f0 = float(f0[idx_pos]) if not np.isnan(f0[idx_pos]) else 0.0
 
         if current_f0 <= 0:
-            stream.append({
-                "t": round(t, 2),
-                "f0": None,
-                "harmonics": {},
-                "overtone_fit": 0.0,
-                "inharmonicity": 0.0,
-                "overtone_density": 0.0,
-                "dominant_harmonic": None,
-            })
+            stream.append(
+                {
+                    "t": round(t, 2),
+                    "f0": None,
+                    "harmonics": {},
+                    "overtone_fit": 0.0,
+                    "inharmonicity": 0.0,
+                    "overtone_density": 0.0,
+                    "dominant_harmonic": None,
+                }
+            )
             continue
 
         spectrum = S[:, frame_idx]
         peak_freqs, peak_mags = find_spectral_peaks(spectrum, freqs)
 
-        harmonics, series_fit, inharm, richness = match_harmonics(
-            current_f0, peak_freqs, peak_mags
-        )
+        harmonics, series_fit, inharm, richness = match_harmonics(current_f0, peak_freqs, peak_mags)
 
         dominant = None
         max_mag = 0
@@ -172,15 +183,17 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT, audio: A
                 max_mag = h["magnitude"]
                 dominant = n
 
-        stream.append({
-            "t": round(t, 2),
-            "f0": round(current_f0, 1),
-            "harmonics": {str(k): v for k, v in harmonics.items()},
-            "overtone_fit": series_fit,
-            "inharmonicity": inharm,
-            "overtone_density": richness,
-            "dominant_harmonic": dominant,
-        })
+        stream.append(
+            {
+                "t": round(t, 2),
+                "f0": round(current_f0, 1),
+                "harmonics": {str(k): v for k, v in harmonics.items()},
+                "overtone_fit": series_fit,
+                "inharmonicity": inharm,
+                "overtone_density": richness,
+                "dominant_harmonic": dominant,
+            }
+        )
 
         all_fits.append(series_fit)
         all_richness.append(richness)
@@ -189,14 +202,19 @@ def compute_overtone_stream(audio_path, sr=22050, n_fft=OVERTONE_N_FFT, audio: A
     mean_overtone_fit = round(float(np.mean(all_fits)), 4) if all_fits else 0.0
     mean_overtone_density = round(float(np.mean(all_richness)), 3) if all_richness else 0.0
     max_overtone_fit = round(float(np.max(all_fits)), 4) if all_fits else 0.0
-    return f0_times[:n_frames], stream, f0[:n_frames], {
-        "mean_overtone_fit": mean_overtone_fit,
-        "mean_overtone_density": mean_overtone_density,
-        "mean_inharmonicity": round(float(np.mean(all_inharm)), 1) if all_inharm else 0.0,
-        "max_overtone_fit": max_overtone_fit,
-        "voiced_frames": sum(1 for s in stream if s["f0"] is not None),
-        "total_frames": n_frames,
-    }
+    return (
+        f0_times[:n_frames],
+        stream,
+        f0[:n_frames],
+        {
+            "mean_overtone_fit": mean_overtone_fit,
+            "mean_overtone_density": mean_overtone_density,
+            "mean_inharmonicity": round(float(np.mean(all_inharm)), 1) if all_inharm else 0.0,
+            "max_overtone_fit": max_overtone_fit,
+            "voiced_frames": sum(1 for s in stream if s["f0"] is not None),
+            "total_frames": n_frames,
+        },
+    )
 
 
 def analyze_overtones(audio_path, output_dir, track_name, audio: AudioContext | None = None):
@@ -226,7 +244,9 @@ def analyze_overtones(audio_path, output_dir, track_name, audio: AudioContext | 
     harmonic_profile = {}
     for n in sorted(harmonic_counts.keys()):
         harmonic_profile[n] = {
-            "presence_pct": round(100 * harmonic_counts[n] / max(1, summary_stats["voiced_frames"]), 1),
+            "presence_pct": round(
+                100 * harmonic_counts[n] / max(1, summary_stats["voiced_frames"]), 1
+            ),
             "mean_magnitude": round(float(np.mean(harmonic_mean_mag[n])), 6),
         }
 
@@ -298,9 +318,12 @@ def analyze_overtones(audio_path, output_dir, track_name, audio: AudioContext | 
                 heatmap[row] /= row_max
 
         im = axes[2].imshow(
-            heatmap, aspect='auto', origin='lower', cmap='magma',
+            heatmap,
+            aspect="auto",
+            origin="lower",
+            cmap="magma",
             extent=[heat_times[0], heat_times[-1], 0.5, max_h + 0.5],
-            interpolation='nearest',
+            interpolation="nearest",
         )
         axes[2].set_ylabel("Harmonic #")
         axes[2].set_yticks(range(1, max_h + 1))
@@ -317,7 +340,7 @@ def analyze_overtones(audio_path, output_dir, track_name, audio: AudioContext | 
         fig, ax = plt.subplots(figsize=(10, 5))
         harmonics_sorted = sorted(harmonic_profile.keys())
         presence = [harmonic_profile[n]["presence_pct"] for n in harmonics_sorted]
-        colors = ['#2ecc71' if p > 50 else '#f39c12' if p > 25 else '#e74c3c' for p in presence]
+        colors = ["#2ecc71" if p > 50 else "#f39c12" if p > 25 else "#e74c3c" for p in presence]
         ax.bar([str(n) for n in harmonics_sorted], presence, color=colors, alpha=0.8)
         ax.set_xlabel("Harmonic Number")
         ax.set_ylabel("Presence (%)")

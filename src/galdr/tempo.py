@@ -129,7 +129,9 @@ def _simple_ratio_distance(a: float, b: float) -> float:
     return float(np.clip(best / 0.18, 0.0, 1.0))
 
 
-def estimate_metric_tension(*, pulse: float, pulse_confidence: float | None, tempo_candidates: list[dict]) -> dict:
+def estimate_metric_tension(
+    *, pulse: float, pulse_confidence: float | None, tempo_candidates: list[dict]
+) -> dict:
     """Estimate cross-rhythm / metric tension from competing tempo grids.
 
     This is intentionally conservative. It looks for the Meshuggah-shaped case:
@@ -173,7 +175,7 @@ def estimate_metric_tension(*, pulse: float, pulse_confidence: float | None, tem
             sparse_ambiguity += 0.03
             continue
 
-        support_weight = support_ratio ** 0.75
+        support_weight = support_ratio**0.75
         score = support_weight * max(ratio_distance, hemiola_bonus)
         secondary_scores.append((score, bpm, ratio, support_ratio))
         if hemiola_bonus > 0.0:
@@ -186,10 +188,14 @@ def estimate_metric_tension(*, pulse: float, pulse_confidence: float | None, tem
             nearby_pressure = max(nearby_pressure, support_ratio * (1.0 - ratio_delta / 0.14))
 
     alternate_pressure = max((s for s, _, _, _ in secondary_scores), default=0.0)
-    supported_alternates = sum(1 for _, _, _, support_ratio in secondary_scores if support_ratio >= 0.20)
+    supported_alternates = sum(
+        1 for _, _, _, support_ratio in secondary_scores if support_ratio >= 0.20
+    )
     density_pressure = min(1.0, supported_alternates / 4.0) * 0.24
     complexity_pressure = nearby_pressure * 0.95
-    raw_pressure = max(alternate_pressure, complexity_pressure) + density_pressure + sparse_ambiguity
+    raw_pressure = (
+        max(alternate_pressure, complexity_pressure) + density_pressure + sparse_ambiguity
+    )
 
     # Metric tension needs a trusted pulse to be meaningful. Sparse ambient
     # tracks can emit multiple weak tempo candidates, but without pulse trust
@@ -283,9 +289,7 @@ def estimate_tempo_profile(
     if ambiguous:
         confidence = min(confidence, 0.74)
 
-    candidate_dicts = [
-        {"bpm": c.bpm, "support": c.support, "source": c.source} for c in candidates
-    ]
+    candidate_dicts = [{"bpm": c.bpm, "support": c.support, "source": c.source} for c in candidates]
     return {
         "detected_pulse_bpm": round(detected, 1) if detected else 0.0,
         "felt_pulse_bpm": selected.bpm,

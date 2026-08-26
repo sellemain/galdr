@@ -138,7 +138,9 @@ class Analysis:
 
 def _default_slug(audio_path: str | Path) -> str:
     stem = Path(audio_path).stem.strip() or "track"
-    return "".join(ch if ch.isalnum() or ch in ".-_" else "-" for ch in stem).strip("-._") or "track"
+    return (
+        "".join(ch if ch.isalnum() or ch in ".-_" else "-" for ch in stem).strip("-._") or "track"
+    )
 
 
 def listen(

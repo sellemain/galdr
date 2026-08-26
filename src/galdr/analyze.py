@@ -14,13 +14,15 @@ import librosa
 import librosa.display
 import pyloudnorm as pyln
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .constants import (
     PITCH_NAMES,
-    SEGMENT_MIN_GAP_SEC, SEGMENT_MIN_TAIL_SEC,
+    SEGMENT_MIN_GAP_SEC,
+    SEGMENT_MIN_TAIL_SEC,
     ENERGY_ARC_SEGMENTS,
     NULL_SIGNAL_RMS_THRESHOLD,
 )
@@ -54,7 +56,9 @@ def _null_signal_report(y: np.ndarray, sr: int, track_name: str) -> dict | None:
     }
 
 
-def detect_null_signal(audio_path: str, track_name: str, audio: AudioContext | None = None) -> dict | None:
+def detect_null_signal(
+    audio_path: str, track_name: str, audio: AudioContext | None = None
+) -> dict | None:
     """Load an audio file and return a null-signal report if it is degenerate."""
     ctx = audio or load_audio_context(audio_path)
     return _null_signal_report(ctx.y, ctx.sr, track_name)
@@ -151,7 +155,11 @@ def compute_weight(
     makes the body feel held, slowed, or pulled by sustained pressure.
     """
     pulse_conf = 0.5 if pulse_confidence is None else float(np.clip(pulse_confidence, 0.0, 1.0))
-    harmonic_mass = harmonic_weight / (harmonic_weight + percussive_weight) if (harmonic_weight + percussive_weight) > 0 else 0.0
+    harmonic_mass = (
+        harmonic_weight / (harmonic_weight + percussive_weight)
+        if (harmonic_weight + percussive_weight) > 0
+        else 0.0
+    )
     harmonic_component = float(np.clip((harmonic_mass - 0.45) / 0.45, 0.0, 1.0))
 
     slow_density = float(np.clip(1.0 - (onsets_per_second / 4.0), 0.0, 1.0))
@@ -163,17 +171,19 @@ def compute_weight(
     pressure_component = harmonic_component * surface_balance_component
     suspended_pull = drag_gap * slow_density
 
-    score = float(np.clip(
-        0.24 * pressure_component
-        + 0.24 * suspended_pull
-        + 0.18 * harmonic_component
-        + 0.14 * slow_density
-        + 0.10 * surface_balance_component
-        + 0.06 * dynamics_component
-        + 0.04 * very_sparse,
-        0.0,
-        1.0,
-    ))
+    score = float(
+        np.clip(
+            0.24 * pressure_component
+            + 0.24 * suspended_pull
+            + 0.18 * harmonic_component
+            + 0.14 * slow_density
+            + 0.10 * surface_balance_component
+            + 0.06 * dynamics_component
+            + 0.04 * very_sparse,
+            0.0,
+            1.0,
+        )
+    )
 
     if score >= 0.70:
         state = "heavy"
@@ -213,7 +223,7 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
     beat_times = librosa.frames_to_time(beats, sr=sr)
     # tempo may be an array in newer librosa
-    if hasattr(tempo, '__len__'):
+    if hasattr(tempo, "__len__"):
         tempo = float(tempo[0]) if len(tempo) > 0 else 0.0
     else:
         tempo = float(tempo)
@@ -227,11 +237,13 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         beat_intervals = np.array([])
         pulse = 0.0
 
-    tempo_profile.update(estimate_metric_tension(
-        pulse=pulse,
-        pulse_confidence=tempo_profile.get("pulse_confidence"),
-        tempo_candidates=tempo_profile.get("tempo_candidates", []),
-    ))
+    tempo_profile.update(
+        estimate_metric_tension(
+            pulse=pulse,
+            pulse_confidence=tempo_profile.get("pulse_confidence"),
+            tempo_candidates=tempo_profile.get("tempo_candidates", []),
+        )
+    )
 
     # --- Spectral features ---
     # Mel spectrogram
@@ -260,12 +272,14 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         seg = rms[i * seg_len : (i + 1) * seg_len]
         if len(seg) == 0:
             seg = rms  # fallback: use the whole array
-        weight_arc.append({
-            "segment": i + 1,
-            "time_range": f"{rms_times[i * seg_len]:.0f}s-{rms_times[min((i+1)*seg_len, len(rms_times)-1)]:.0f}s",
-            "mean_weight": float(np.mean(seg)),
-            "peak_weight": float(np.max(seg)),
-        })
+        weight_arc.append(
+            {
+                "segment": i + 1,
+                "time_range": f"{rms_times[i * seg_len]:.0f}s-{rms_times[min((i + 1) * seg_len, len(rms_times) - 1)]:.0f}s",
+                "mean_weight": float(np.mean(seg)),
+                "peak_weight": float(np.max(seg)),
+            }
+        )
 
     # --- Onset detection (percussive events) ---
     onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
@@ -295,7 +309,9 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         integrated_lufs_raw = float(meter.integrated_loudness(y.astype(np.float64)))
     except ValueError:
         integrated_lufs_raw = float("-inf")
-    integrated_lufs = None if not np.isfinite(integrated_lufs_raw) else round(integrated_lufs_raw, 2)
+    integrated_lufs = (
+        None if not np.isfinite(integrated_lufs_raw) else round(integrated_lufs_raw, 2)
+    )
     dynamic_range = float(np.max(rms) / np.min(rms[rms > 0])) if np.any(rms > 0) else 0
 
     onsets_per_second = len(onset_times) / duration
@@ -341,14 +357,16 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
             seg_mask = (rms_times >= start_t) & (rms_times < end_t)
             seg_rms = rms[seg_mask]
             if len(seg_rms) > 0:
-                structural_segments.append({
-                    "segment": i + 1,
-                    "start": start_t,
-                    "end": end_t,
-                    "duration": round(end_t - start_t, 1),
-                    "mean_weight": round(float(np.mean(seg_rms)), 6),
-                    "peak_weight": round(float(np.max(seg_rms)), 6),
-                })
+                structural_segments.append(
+                    {
+                        "segment": i + 1,
+                        "start": start_t,
+                        "end": end_t,
+                        "duration": round(end_t - start_t, 1),
+                        "mean_weight": round(float(np.mean(seg_rms)), 6),
+                        "peak_weight": round(float(np.max(seg_rms)), 6),
+                    }
+                )
     except Exception:
         # Fallback: use fixed segments if novelty detection fails
         structural_boundaries = []
@@ -364,52 +382,66 @@ def compute_track_features(y: np.ndarray, sr: int, track_name: str) -> dict:
         **body,
         **weight,
         "rhythm_description": (
-            "very regular/metronomic" if pulse > 0.9
-            else "steady" if pulse > 0.7
-            else "organic/fluid" if pulse > 0.5
+            "very regular/metronomic"
+            if pulse > 0.9
+            else "steady"
+            if pulse > 0.7
+            else "organic/fluid"
+            if pulse > 0.5
             else "free/rubato"
         ),
         "surface_balance": round(perc_ratio, 3),  # 0=all harmonic, 1=all percussive
         "harmonic_weight": round(harm_energy, 6),
         "percussive_weight": round(perc_energy, 6),
         "character": (
-            "heavily percussive" if perc_ratio > 0.6
-            else "percussive" if perc_ratio > 0.45
-            else "balanced" if perc_ratio > 0.35
-            else "harmonic/vocal dominant" if perc_ratio > 0.2
+            "heavily percussive"
+            if perc_ratio > 0.6
+            else "percussive"
+            if perc_ratio > 0.45
+            else "balanced"
+            if perc_ratio > 0.35
+            else "harmonic/vocal dominant"
+            if perc_ratio > 0.2
             else "pure harmonic/vocal"
         ),
         "spectral_centroid_mean_hz": round(float(np.mean(centroid)), 1),
         "brightness": (
-            "very bright" if np.mean(centroid) > 3000
-            else "bright" if np.mean(centroid) > 2000
-            else "warm" if np.mean(centroid) > 1200
+            "very bright"
+            if np.mean(centroid) > 3000
+            else "bright"
+            if np.mean(centroid) > 2000
+            else "warm"
+            if np.mean(centroid) > 1200
             else "dark/deep"
         ),
         "integrated_lufs": integrated_lufs,
         "loudness_lufs": integrated_lufs,
         "dynamic_range_ratio": round(dynamic_range, 1),
         "dynamics": (
-            "very dynamic" if dynamic_range > 50
-            else "dynamic" if dynamic_range > 20
-            else "moderate dynamics" if dynamic_range > 5
+            "very dynamic"
+            if dynamic_range > 50
+            else "dynamic"
+            if dynamic_range > 20
+            else "moderate dynamics"
+            if dynamic_range > 5
             else "compressed/steady"
         ),
         "onset_count": len(onset_times),
         "onsets_per_second": round(onsets_per_second, 2),
         "texture_density": (
-            "dense/busy" if onsets_per_second > 5
-            else "moderate surface texture" if onsets_per_second > 2
-            else "sparse/spacious" if onsets_per_second > 0.5
+            "dense/busy"
+            if onsets_per_second > 5
+            else "moderate surface texture"
+            if onsets_per_second > 2
+            else "sparse/spacious"
+            if onsets_per_second > 0.5
             else "very sparse/ambient"
         ),
         "weight_arc": weight_arc,
         "structural_segments": structural_segments,
         "structural_boundaries": structural_boundaries,
         "mean_zcr": round(float(np.mean(zcr)), 6),
-        "dominant_chroma": list(
-            np.array(PITCH_NAMES)[np.argsort(-np.mean(chroma, axis=1))[:3]]
-        ),
+        "dominant_chroma": list(np.array(PITCH_NAMES)[np.argsort(-np.mean(chroma, axis=1))[:3]]),
         "visualizations": [
             f"{track_name}_spectrogram.png",
             f"{track_name}_energy_beats.png",
@@ -535,7 +567,9 @@ def _save_visualizations(y: np.ndarray, sr: int, report: dict, out: Path, track_
     plt.close()
 
 
-def analyze_track(audio_path: str, output_dir: str, track_name: str, audio: AudioContext | None = None) -> dict:
+def analyze_track(
+    audio_path: str, output_dir: str, track_name: str, audio: AudioContext | None = None
+) -> dict:
     """Full audio analysis of a single track."""
     out = Path(output_dir)
 

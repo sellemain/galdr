@@ -92,9 +92,7 @@ def test_generate_gemini_witness_adds_trusted_provenance(tmp_path, monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "independent prompt")
 
-    packet = inner_ear.generate_gemini_witness(
-        "track", audio, model="gemini-test"
-    )
+    packet = inner_ear.generate_gemini_witness("track", audio, model="gemini-test")
 
     assert packet["schema"] == "galdr.inner_ear_packet.v0"
     assert packet["subject"]["slug"] == "track"
@@ -148,9 +146,7 @@ def test_wait_for_gemini_file_times_out(monkeypatch):
         inner_ear._wait_for_gemini_file(client, uploaded)
 
 
-def test_generate_gemini_witness_cleans_up_after_processing_timeout(
-    tmp_path, monkeypatch
-):
+def test_generate_gemini_witness_cleans_up_after_processing_timeout(tmp_path, monkeypatch):
     audio = tmp_path / "track.mp3"
     audio.write_bytes(b"audio")
     client = _Client(_response())
@@ -228,9 +224,7 @@ def test_generate_openrouter_witness_sends_inline_audio(tmp_path, monkeypatch):
     monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "independent prompt")
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
 
-    packet = inner_ear.generate_openrouter_witness(
-        "track", audio, model="google/gemini-test"
-    )
+    packet = inner_ear.generate_openrouter_witness("track", audio, model="google/gemini-test")
 
     payload = json.loads(captured["request"].data)
     audio_part = payload["messages"][0]["content"][1]
@@ -260,9 +254,7 @@ def test_generate_openrouter_witness_sanitizes_http_error(tmp_path, monkeypatch)
     ).encode()
 
     def fake_urlopen(request, timeout):
-        raise urllib.error.HTTPError(
-            request.full_url, 400, "Bad Request", {}, io.BytesIO(body)
-        )
+        raise urllib.error.HTTPError(request.full_url, 400, "Bad Request", {}, io.BytesIO(body))
 
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
     monkeypatch.setattr(inner_ear, "resolve_template", lambda *args: "prompt")

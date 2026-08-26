@@ -34,7 +34,9 @@ def test_load_stream_df_supports_dict_stream(tmp_path):
     from galdr import load_stream_df
 
     path = tmp_path / "demo_stream.json"
-    path.write_text(json.dumps({"stream": [{"t": 0, "attention": 0.1}, {"t": 1, "attention": 0.2}]}))
+    path.write_text(
+        json.dumps({"stream": [{"t": 0, "attention": 0.1}, {"t": 1, "attention": 0.2}]})
+    )
 
     df = load_stream_df(path)
 
@@ -49,7 +51,9 @@ def test_load_streams_df_loads_available_modules(tmp_path):
     track_dir = tmp_path / "analysis" / "demo"
     track_dir.mkdir(parents=True)
     (track_dir / "demo_stream.json").write_text(json.dumps([{"t": 0, "weight": 0.3}]))
-    (track_dir / "demo_harmony_stream.json").write_text(json.dumps({"stream": [{"t": 0, "harmonic_pull": 0.4}]}))
+    (track_dir / "demo_harmony_stream.json").write_text(
+        json.dumps({"stream": [{"t": 0, "harmonic_pull": 0.4}]})
+    )
 
     frames = load_streams_df("demo", tmp_path / "analysis")
 
@@ -137,7 +141,9 @@ def test_python_module_entrypoint_help():
 
     env = os.environ.copy()
     src_path = str(Path(__file__).resolve().parents[1] / "src")
-    env["PYTHONPATH"] = src_path if not env.get("PYTHONPATH") else f"{src_path}{os.pathsep}{env['PYTHONPATH']}"
+    env["PYTHONPATH"] = (
+        src_path if not env.get("PYTHONPATH") else f"{src_path}{os.pathsep}{env['PYTHONPATH']}"
+    )
 
     result = subprocess.run(
         [sys.executable, "-m", "galdr", "--help"],

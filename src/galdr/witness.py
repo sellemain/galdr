@@ -82,9 +82,7 @@ def _validate_inner_ear_packet(packet: dict) -> dict:
         for field in ("kind", "claim"):
             value = hinge.get(field)
             if not isinstance(value, str) or not value.strip():
-                raise ValueError(
-                    f"witness packet hinge {index} must include non-empty {field}"
-                )
+                raise ValueError(f"witness packet hinge {index} must include non-empty {field}")
         confidence = hinge.get("confidence")
         if (
             isinstance(confidence, bool)

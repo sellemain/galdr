@@ -76,7 +76,7 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
     contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
     onset = librosa.onset.onset_strength(y=y, sr=sr)
     stft = np.abs(librosa.stft(y))
-    power = stft ** 2
+    power = stft**2
     freqs = librosa.fft_frequencies(sr=sr, n_fft=(stft.shape[0] - 1) * 2)
     spectral_flux = np.sqrt(np.mean(np.diff(stft, axis=1, prepend=stft[:, :1]) ** 2, axis=0))
     y_h, y_p = librosa.effects.hpss(y)
@@ -154,7 +154,7 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         start_sample = int(np.clip(round(start * sr), 0, len(y)))
         end_sample = int(np.clip(round(end * sr), start_sample + 1, len(y)))
         y_window = y[start_sample:end_sample]
-        window_rms = float(np.sqrt(np.mean(y_window ** 2))) if y_window.size else 0.0
+        window_rms = float(np.sqrt(np.mean(y_window**2))) if y_window.size else 0.0
         window_peak = float(np.max(np.abs(y_window))) if y_window.size else 0.0
         crest_db = 20.0 * np.log10(window_peak / max(window_rms, 1e-9)) if window_peak > 0 else 0.0
 
@@ -182,26 +182,42 @@ def compute_surface_feature_bank(y: np.ndarray, sr: int, *, hop_sec: float = 1.0
         # enough body behind it, not a mathematical spike in near-silence.
         level_gate = _normalize(max(window_peak, rms_mean * 4.0), 0.25)
         punch = _normalize(crest_db, 18.0) * level_gate
-        brightness_tilt = float(np.clip(0.55 * (presence_weight + air_weight) + 0.45 * brightness, 0.0, 1.0))
+        brightness_tilt = float(
+            np.clip(0.55 * (presence_weight + air_weight) + 0.45 * brightness, 0.0, 1.0)
+        )
 
-        roughness = float(np.clip(
-            0.30 * noisiness + 0.25 * edge + 0.20 * spread + 0.15 * mfcc_motion + 0.10 * brightness,
-            0.0,
-            1.0,
-        ))
+        roughness = float(
+            np.clip(
+                0.30 * noisiness
+                + 0.25 * edge
+                + 0.20 * spread
+                + 0.15 * mfcc_motion
+                + 0.10 * brightness,
+                0.0,
+                1.0,
+            )
+        )
         noise_density = float(np.clip(0.55 * noisiness + 0.25 * spread + 0.20 * edge, 0.0, 1.0))
         transient_attack = float(np.clip(0.70 * attack + 0.30 * edge, 0.0, 1.0))
-        sustain_drone = float(np.clip(tonal_coherence * body_floor * (1.0 - min(1.0, attack)), 0.0, 1.0))
+        sustain_drone = float(
+            np.clip(tonal_coherence * body_floor * (1.0 - min(1.0, attack)), 0.0, 1.0)
+        )
         # Bass can hold the floor without making the track feel pressurized.
         # Treat low-band weight as one ingredient; require body, density,
         # motion, or attack before the pressure cue rises hard.
-        band_pressure = float(np.clip(
-            0.15 * bass_weight + 0.20 * body_weight + 0.20 * body_floor * body_weight
-            + 0.15 * body_floor * roughness + 0.15 * body_floor * attack
-            + 0.10 * surface_motion + 0.05 * spread,
-            0.0,
-            1.0,
-        ))
+        band_pressure = float(
+            np.clip(
+                0.15 * bass_weight
+                + 0.20 * body_weight
+                + 0.20 * body_floor * body_weight
+                + 0.15 * body_floor * roughness
+                + 0.15 * body_floor * attack
+                + 0.10 * surface_motion
+                + 0.05 * spread,
+                0.0,
+                1.0,
+            )
+        )
 
         fields["mfcc_std"].append(round(mfcc_std, 3))
         fields["spectral_centroid"].append(round(centroid_mean, 3))

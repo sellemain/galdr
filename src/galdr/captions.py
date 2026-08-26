@@ -80,9 +80,9 @@ def classify_caption_text(text: str) -> dict:
     """
     raw = _strip_caption_markup(text)
     normalized = _strip_lyric_wrappers(raw)
-    bracketed_stage = bool(
-        re.fullmatch(r"[\[(].*[\])]", normalized)
-    ) and STAGE_MARKER_RE.search(normalized.strip("[]() "))
+    bracketed_stage = bool(re.fullmatch(r"[\[(].*[\])]", normalized)) and STAGE_MARKER_RE.search(
+        normalized.strip("[]() ")
+    )
     if not bracketed_stage:
         normalized = re.sub(
             rf"[\[(][^\])]*(?:{STAGE_WORDS})[^\])]*[\])]",
@@ -177,7 +177,9 @@ def dedup_captions_with_timestamps(segments: list[dict]) -> list[dict]:
             current_start = chunk["start"]
         current_words.extend(chunk["words"])
         if len(current_words) >= line_size:
-            lines.append({"ts": current_ts, "start": current_start, "text": " ".join(current_words)})
+            lines.append(
+                {"ts": current_ts, "start": current_start, "text": " ".join(current_words)}
+            )
             current_words = []
             current_ts = ""
     if current_words:
@@ -230,11 +232,13 @@ def parse_vtt(vtt_path: Path) -> list[dict]:
                 recent_texts.append(text)
                 if len(recent_texts) > dedup_window:
                     recent_texts.pop(0)
-                segments.append({
-                    "start": round(start, 2),
-                    "ts": fmt_ts(start),
-                    "text": text,
-                })
+                segments.append(
+                    {
+                        "start": round(start, 2),
+                        "ts": fmt_ts(start),
+                        "text": text,
+                    }
+                )
         i += 1
     return segments
 

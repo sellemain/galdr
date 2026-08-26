@@ -50,7 +50,9 @@ def _legacy_weight(frame: dict) -> float:
     return _clamp(0.5 * harmonic + 0.3 * energy + 0.2 * (1.0 - percussive))
 
 
-def _infer_silence(frame: dict, attention: float | int | None, pattern: float | int | None) -> float:
+def _infer_silence(
+    frame: dict, attention: float | int | None, pattern: float | int | None
+) -> float:
     """Infer silence without treating old streams as silent by default."""
     silence = frame.get("silence")
     if isinstance(silence, bool):
@@ -198,7 +200,14 @@ def derive_arc_spans(stream: list[dict], *, min_span_frames: int = 2) -> list[di
 
 def _span_delta(left: dict, right: dict) -> float:
     """Estimate how strong the listener-state boundary is between two spans."""
-    keys = ["mean_attention", "mean_pattern", "mean_pressure", "mean_body", "mean_weight", "silence_ratio"]
+    keys = [
+        "mean_attention",
+        "mean_pattern",
+        "mean_pressure",
+        "mean_body",
+        "mean_weight",
+        "silence_ratio",
+    ]
     return max(abs(float(left.get(key, 0.0)) - float(right.get(key, 0.0))) for key in keys)
 
 
@@ -213,7 +222,14 @@ def _merged_span(spans: list[dict], label: str) -> dict:
         "end": spans[-1]["end"],
         "frame_count": frame_count,
     }
-    for key in ["mean_attention", "mean_pattern", "mean_pressure", "mean_body", "mean_weight", "silence_ratio"]:
+    for key in [
+        "mean_attention",
+        "mean_pattern",
+        "mean_pressure",
+        "mean_body",
+        "mean_weight",
+        "silence_ratio",
+    ]:
         merged[key] = round(sum(span[key] * span["frame_count"] for span in spans) / frame_count, 3)
     return merged
 
@@ -227,7 +243,9 @@ def _dominant_label(spans: list[dict]) -> str:
 
 def _preserve_arc_boundary(left: dict, right: dict) -> bool:
     """Keep perceptually hard boundaries visible while coalescing chatter."""
-    return max(float(left.get("silence_ratio", 0.0)), float(right.get("silence_ratio", 0.0))) >= 0.85
+    return (
+        max(float(left.get("silence_ratio", 0.0)), float(right.get("silence_ratio", 0.0))) >= 0.85
+    )
 
 
 def coalesce_arc_spans(spans: list[dict], *, min_frames: int, weak_delta: float) -> list[dict]:
@@ -254,10 +272,18 @@ def coalesce_arc_spans(spans: list[dict], *, min_frames: int, weak_delta: float)
         while i < len(groups):
             group = groups[i]
             frames = sum(span["frame_count"] for span in group)
-            if frames < min_frames and next_groups and not _preserve_arc_boundary(next_groups[-1][-1], group[0]):
+            if (
+                frames < min_frames
+                and next_groups
+                and not _preserve_arc_boundary(next_groups[-1][-1], group[0])
+            ):
                 next_groups[-1].extend(group)
                 changed = True
-            elif frames < min_frames and i + 1 < len(groups) and not _preserve_arc_boundary(group[-1], groups[i + 1][0]):
+            elif (
+                frames < min_frames
+                and i + 1 < len(groups)
+                and not _preserve_arc_boundary(group[-1], groups[i + 1][0])
+            ):
                 groups[i + 1] = group + groups[i + 1]
                 changed = True
             else:
@@ -298,18 +324,44 @@ def select_arc_scale(scales: dict[str, list[dict]]) -> tuple[str, str]:
     boundary_deltas = [_span_delta(left, right) for left, right in zip(detail, detail[1:])]
     median_delta = median(boundary_deltas) if boundary_deltas else 0.0
 
-    if span_count >= 120 and transition_density >= 0.15 and median_span <= 3 and median_delta >= 0.18:
-        return "standard", "extreme detail volume would flood the prompt; the standard view keeps real boundary contrast"
+    if (
+        span_count >= 120
+        and transition_density >= 0.15
+        and median_span <= 3
+        and median_delta >= 0.18
+    ):
+        return (
+            "standard",
+            "extreme detail volume would flood the prompt; the standard view keeps real boundary contrast",
+        )
     if transition_density >= 0.35 and median_span <= 2 and longest_ratio <= 0.08:
-        return "macro", "very dense two-frame alternation suggests classifier chatter, not structural form"
+        return (
+            "macro",
+            "very dense two-frame alternation suggests classifier chatter, not structural form",
+        )
     if transition_density >= 0.10 and median_span <= 5 and median_delta < 0.18:
-        return "macro", "frequent shallow label alternation suggests micro-chatter, not structural form"
+        return (
+            "macro",
+            "frequent shallow label alternation suggests micro-chatter, not structural form",
+        )
     if span_count >= 80 and transition_density < 0.22 and median_span >= 4 and longest_ratio < 0.10:
-        return "macro", "diffuse micro-variation is spread across the whole form; the macro view preserves the real arc"
+        return (
+            "macro",
+            "diffuse micro-variation is spread across the whole form; the macro view preserves the real arc",
+        )
     if span_count >= 40 and median_span <= 8 and median_delta < 0.20:
         return "macro", "many short shallow spans collapse better into whole-form movement"
     if dominant_ratio >= 0.80 or longest_ratio >= 0.35:
-        return "macro", "one listener-state dominates the track; the macro view best preserves the form"
+        return (
+            "macro",
+            "one listener-state dominates the track; the macro view best preserves the form",
+        )
     if transition_density >= 0.08 and median_delta >= 0.18:
-        return "detail", "frequent transitions have enough state contrast to matter as local pattern"
-    return "standard", "moderate movement: enough structure for sections without promoting every micro-shift"
+        return (
+            "detail",
+            "frequent transitions have enough state contrast to matter as local pattern",
+        )
+    return (
+        "standard",
+        "moderate movement: enough structure for sections without promoting every micro-shift",
+    )

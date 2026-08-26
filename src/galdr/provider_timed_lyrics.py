@@ -121,7 +121,9 @@ def _raw_timed_lyrics_payload(ytmusic, browse_id: str) -> dict | None:
     return data if isinstance(data, dict) else None
 
 
-def _timed_result(video_id: str, browse_id: str, provider_source: str | None, timed_lines: list[dict]) -> dict:
+def _timed_result(
+    video_id: str, browse_id: str, provider_source: str | None, timed_lines: list[dict]
+) -> dict:
     return {
         "found": True,
         "source": "youtube-music-timed-lyrics",
