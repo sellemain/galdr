@@ -7,6 +7,53 @@ on:
     branches: [main]
 
 jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install and sync dependencies
+        run: |
+          python -m pip install uv
+          uv sync --extra dev --frozen
+
+      - name: Check lint and formatting
+        run: |
+          uv run ruff check src/galdr tests
+          uv run ruff format --check src/galdr tests
+
+      - name: Audit Python dependencies
+        run: |
+          uv export --frozen --no-dev --no-emit-project --output-file requirements-audit.txt
+          uv run pip-audit --requirement requirements-audit.txt --no-deps --disable-pip
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan Git history for secrets
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            git --redact --no-banner --verbose /repo
+
+      - name: Scan dependencies and configuration
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            -v trivy-cache:/root/.cache/trivy \
+            aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 \
+            fs --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL \
+            --scanners vuln,misconfig,secret /repo
+
   container:
     runs-on: ubuntu-latest
     steps:
@@ -46,14 +93,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libsndfile1 ffmpeg
 
-      - name: Install uv
-        run: python -m pip install uv
-
       - name: Install package with dev dependencies
-        run: uv sync --extra dev
-
-      - name: Lint with ruff
-        run: uv run ruff check src/galdr/ tests/
+        run: |
+          python -m pip install uv
+          uv sync --extra dev --frozen
 
       - name: Run tests
         run: uv run pytest -q

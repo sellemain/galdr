@@ -1,16 +1,67 @@
 stages:
   - test
+  - security
   - build
 
-test:
-  stage: test
+.python-job:
   image: python:3.12-slim@sha256:a249c9f47e05708dd367f3fe8ada03cf347390fad66fb8b0518c0ef55ae3cb84
   before_script:
     - python -m pip install uv
-    - uv sync --extra dev
+    - uv sync --extra dev --frozen
+
+quality:
+  stage: test
+  extends: .python-job
   script:
     - uv run ruff check src/galdr tests
+    - uv run ruff format --check src/galdr tests
+
+test:
+  stage: test
+  extends: .python-job
+  parallel:
+    matrix:
+      - PYTHON_IMAGE:
+          - python:3.10-slim@sha256:bb5bd66c26727f4f5b5557f24fb6024d57e44c22e6c81bcec522777bad8ac586
+          - python:3.11-slim@sha256:be1575ed968de893bd54f4c56315ff7c4736ce522c1bca08fd521731aafc0d76
+          - python:3.12-slim@sha256:7a8b475003c4fe15a2cd4e55e5cfc2f3560bdc9333d624f24cdd6d4340fd7a17
+          - python:3.13-slim@sha256:7e3a6aca9d74f93cca21a91d86a8dad8c34749afd5b4a98ee481c9c47b9f5ed4
+  image: $PYTHON_IMAGE
+  script:
     - uv run pytest -q
+
+dependency-audit:
+  stage: security
+  extends: .python-job
+  script:
+    - uv export --frozen --no-dev --no-emit-project --output-file requirements-audit.txt
+    - uv run pip-audit --requirement requirements-audit.txt --no-deps --disable-pip
+  artifacts:
+    when: always
+    paths:
+      - requirements-audit.txt
+
+secret-detection:
+  stage: security
+  image:
+    name: zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+    entrypoint: [""]
+  script:
+    - gitleaks git --redact --no-banner --verbose .
+
+filesystem-scan:
+  stage: security
+  image:
+    name: aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
+    entrypoint: [""]
+  variables:
+    TRIVY_CACHE_DIR: .trivycache
+  script:
+    - trivy fs --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL --scanners vuln,misconfig,secret .
+  cache:
+    key: trivy-db
+    paths:
+      - .trivycache/
 
 container-build:
   stage: build

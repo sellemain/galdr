@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - An official non-root Docker runtime with bind-mounted workspace storage, disposable cache support, CI smoke coverage, and immutable GHCR release tags.
 - Environment overrides for audio, analysis, and catalog directories, plus a `galdr-complete.json` marker written only after requested analysis modules finish successfully.
+- Matching GitLab and GitHub quality gates for Ruff formatting, the supported Python matrix, dependency vulnerabilities, committed secrets, and filesystem or configuration vulnerabilities.
 - Atomic analysis promotion: each listen run writes to a hidden sibling directory and replaces `analysis/<slug>/` only after successful completion, preserving the last good result when a rerun fails.
 
 ### Documentation
