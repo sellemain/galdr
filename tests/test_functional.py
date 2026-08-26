@@ -71,8 +71,6 @@ def test_perception_stream_entry_keys(audio_path, tmp_path):
             f"Missing keys at t={entry.get('t')}: {expected_keys - entry.keys()}"
         )
 
-
-
 @pytest.mark.slow
 def test_perception_stream_pattern_range(audio_path, tmp_path):
     """pattern values must be between 0.0 and 1.0."""
@@ -156,3 +154,5 @@ def test_cli_listen_subprocess(audio_path, tmp_path):
     assert output_dir.exists()
     assert (output_dir / "test-synthetic-tone_report.json").exists()
     assert (output_dir / "test-synthetic-tone_stream.json").exists()
+    assert (output_dir / "galdr-complete.json").exists()
+    assert not list(tmp_path.glob(".test-synthetic-tone.tmp-*"))

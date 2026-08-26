@@ -29,6 +29,8 @@ docker run --rm \
 
 The result is written to `analysis/song/`. A successful analysis includes `galdr-complete.json`. Its absence means the run stopped or failed before all requested modules completed; inspect or regenerate the directory rather than treating it as complete.
 
+Each run writes into a hidden sibling staging directory and promotes it to `analysis/<slug>/` only after success. A cancelled container may leave a hidden `.slug.tmp-*` directory, but it cannot expose partial output at the canonical track path. A failed rerun leaves the previous completed track directory intact.
+
 ## Fetch and analyze
 
 ```bash

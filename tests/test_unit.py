@@ -4269,6 +4269,51 @@ def test_path_default_prefers_environment(monkeypatch):
     assert _path_default("GALDR_ANALYSIS_DIR", "analysis") == "analysis"
 
 
+def test_promote_analysis_dir_replaces_only_after_staging_is_complete(tmp_path):
+    from galdr.cli import _promote_analysis_dir
+
+    output_dir = tmp_path / "track"
+    output_dir.mkdir()
+    (output_dir / "old.json").write_text("old")
+    staging_dir = tmp_path / ".track.tmp-test"
+    staging_dir.mkdir()
+    (staging_dir / "new.json").write_text("new")
+
+    _promote_analysis_dir(staging_dir, output_dir)
+
+    assert not staging_dir.exists()
+    assert not (output_dir / "old.json").exists()
+    assert (output_dir / "new.json").read_text() == "new"
+    assert not list(tmp_path.glob("*.previous"))
+
+
+def test_listen_failure_preserves_previous_analysis_and_cleans_staging(tmp_path, monkeypatch):
+    from argparse import Namespace
+
+    from galdr import cli
+
+    audio_path = tmp_path / "track.wav"
+    audio_path.touch()
+    analysis_dir = tmp_path / "analysis"
+    output_dir = analysis_dir / "track"
+    output_dir.mkdir(parents=True)
+    (output_dir / "galdr-complete.json").write_text("previous")
+
+    def fail_after_partial_write(_args, _track_name, staging_dir, _output_dir):
+        (staging_dir / "partial.json").write_text("partial")
+        raise SystemExit(1)
+
+    monkeypatch.setattr(cli, "_run_listen", fail_after_partial_write)
+    args = Namespace(audio=str(audio_path), name="track", analysis_dir=str(analysis_dir))
+
+    with pytest.raises(SystemExit):
+        cli.cmd_listen(args)
+
+    assert (output_dir / "galdr-complete.json").read_text() == "previous"
+    assert not (output_dir / "partial.json").exists()
+    assert not list(analysis_dir.glob(".track.tmp-*"))
+
+
 def test_catalog_default_honors_environment(monkeypatch):
     from galdr.catalog import CatalogState
 
