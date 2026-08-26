@@ -15,6 +15,7 @@ import shutil
 import sys
 import tempfile
 import time
+import traceback
 from pathlib import Path
 
 _SLUG_RE = re.compile(r"^[A-Za-z0-9._-]+$")
@@ -256,6 +257,8 @@ def _run_listen(args, track_name: str, staging_dir: Path, output_dir: Path):
         audio = load_audio_context(audio_path)
     except Exception as e:
         print(f"Error: audio load failed: {e}")
+        if os.environ.get("GALDR_DEBUG"):
+            traceback.print_exc()
         sys.exit(1)
     print(f"  Duration: {audio.duration:.1f}s, Sample rate: {audio.sr}")
 
