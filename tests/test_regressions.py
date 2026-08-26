@@ -593,6 +593,8 @@ def test_cli_null_audio_skips_remaining_modules(tmp_path):
     sf.write(str(wav_path), y, 22050)
 
     analysis_dir = tmp_path / "analysis"
+    env = _galdr_subprocess_env()
+    env["GALDR_DEBUG"] = "1"
     result = subprocess.run(
         _galdr_cli_cmd(
             "listen",
@@ -605,7 +607,7 @@ def test_cli_null_audio_skips_remaining_modules(tmp_path):
         ),
         capture_output=True,
         text=True,
-        env=_galdr_subprocess_env(),
+        env=env,
         timeout=60,
     )
 
@@ -613,6 +615,48 @@ def test_cli_null_audio_skips_remaining_modules(tmp_path):
     assert "remaining modules skipped" in result.stdout
     out_dir = analysis_dir / "null-cli"
     assert not out_dir.exists() or not any(out_dir.iterdir())
+
+
+def test_load_audio_context_reads_silent_wav(tmp_path):
+    """The shared loader should reliably decode the fixture used by null-audio CLI tests."""
+    import soundfile as sf
+
+    from galdr.audio_context import load_audio_context
+
+    wav_path = tmp_path / "null.wav"
+    sf.write(str(wav_path), np.zeros(22050, dtype=np.float32), 22050)
+
+    audio = load_audio_context(str(wav_path))
+
+    assert audio.sr == 22050
+    assert audio.duration == pytest.approx(1.0)
+    assert np.count_nonzero(audio.y) == 0
+
+
+def test_cli_audio_load_error_includes_traceback_in_debug_mode(tmp_path):
+    """Debug mode should preserve the library traceback for subprocess failures."""
+    invalid_audio = tmp_path / "invalid.wav"
+    invalid_audio.write_text("not audio", encoding="utf-8")
+    env = _galdr_subprocess_env()
+    env["GALDR_DEBUG"] = "1"
+
+    result = subprocess.run(
+        _galdr_cli_cmd(
+            "listen",
+            str(invalid_audio),
+            "--analysis-dir",
+            str(tmp_path / "analysis"),
+            "--no-catalog",
+        ),
+        capture_output=True,
+        text=True,
+        env=env,
+        timeout=60,
+    )
+
+    assert result.returncode == 1
+    assert "Error: audio load failed:" in result.stdout
+    assert "Traceback (most recent call last):" in result.stderr
 
 
 def test_cli_null_audio_only_perceive_skips_outputs(tmp_path):
